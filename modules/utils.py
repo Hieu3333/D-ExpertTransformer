@@ -19,6 +19,7 @@ def parser_arg():
     parser.add_argument('--image_path',type=str, required=True)
     parser.add_argument('--ann_path',type=str, required=True)
     parser.add_argument('--randaug',type=bool, required=False)
+    parser.add_argument('--resnet_dim',type=int, default=2048)
     args, unparsed = parser.parse_known_args()
     return args
     
@@ -42,5 +43,5 @@ def load_all_keywords():
                     keyword_list = [kw.strip() for kw in keywords.split(',')]
                     all_keywords.update(keyword_list)
     print(f"Total {len(all_keywords)} keywords collected!")
-    print(all_keywords)
+    all_keywords = sorted(list(all_keywords))
     return all_keywords

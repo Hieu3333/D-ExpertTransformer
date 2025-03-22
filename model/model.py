@@ -4,10 +4,13 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 import math
 from modules.visual_extractor import ResNet50
+import sys
 
-class MultiHeadedAttention(nn.Module):
+
+
+class MultiHeadedCrossAttention(nn.Module):
     def __init__(self,args):
-        super(MultiHeadedAttention,self).__init__()
+        super(MultiHeadedCrossAttention,self).__init__()
         self.hidden_size = args.hidden_size
         self.encoder_size = args.encoder_size
         self.decoder_size = args.decoder_size
@@ -25,6 +28,10 @@ class MultiHeadedAttention(nn.Module):
     def forward(self,encoder_feature,decoder_feature):
         B,N,_ = encoder_feature.shape
         B,T,_ = decoder_feature.shape #T is number of keywords
+
+        # print("decoder:",decoder_feature.shape)
+        # print("encoder:",encoder_feature.shape)
+    
         q = self.q_proj(decoder_feature) #(B,T,C)
         k = self.k_proj(encoder_feature) #(B,N,C)
         v = self.v_proj(encoder_feature) #(B,N,C)
@@ -32,10 +39,45 @@ class MultiHeadedAttention(nn.Module):
         q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
         k = k.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
         v = v.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
-
-        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(self.head_size) #(B,nh,T,N)
+        assert q.shape[-1] == k.shape[-1]
+        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
         att = F.softmax(att,dim=-1)
         out = torch.matmul(att,v) #(B,nh,T,N) @ (B,nh,N,head_size) -> (B,nh,T,head_size)
+        out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
+        out = self.dropout(out)
+        return out
+    
+class MultiHeadedAttention(nn.Module):
+    def __init__(self,args):
+        super(MultiHeadedAttention,self).__init__()
+        self.hidden_size = args.hidden_size
+        self.num_heads = args.num_head
+        self.head_size = self.hidden_size // self.num_heads
+        self.dropout = nn.Dropout(args.dropout)
+        assert self.hidden_size % self.num_heads == 0
+
+        self.q_proj = nn.Linear(self.hidden_size,self.hidden_size)
+        self.k_proj = nn.Linear(self.hidden_size, self.hidden_size)
+        self.v_proj = nn.Linear(self.hidden_size,self.hidden_size)
+
+        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size)
+
+    def forward(self,encoder_feature,x):
+        B,T,_ = x.shape #T is number of keywords
+
+        q = self.q_proj(x) #(B,T,C)
+        k = self.k_proj(encoder_feature) 
+        v = self.v_proj(encoder_feature) 
+        
+
+        q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
+        k = k.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
+        v = v.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
+        
+        assert q.shape[-1] == k.shape[-1]
+        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,T)
+        att = F.softmax(att,dim=-1)
+        out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
         out = self.dropout(out)
         return out
@@ -55,13 +97,13 @@ class MLP(nn.Module):
 class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
-        self.attn = MultiHeadedAttention(args)
+        self.attn = MultiHeadedCrossAttention(args)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
-    def forward(self,keyword_emb,x):
-        x = x + self.ln1(self.attn(keyword_emb,x))
+    def forward(self,visual_features,x):
+        x = x + self.ln1(self.attn(visual_features,x))
         x = x + self.ln2(self.mlp(x))
         return x
     
@@ -91,7 +133,7 @@ class ContextualTransformerDecoderLayer(nn.Module):
     def forward(self,encoder_feature,x):
         x = self.ln1(self.decoder_attn(x,x))
         x = self.ln2(self.encoder_decoder(encoder_feature,x))
-        x = x + self.ln3(self.mlp(x))
+        x = x + self.ln3(self.mlp(x))      
         return x
     
 
@@ -113,15 +155,16 @@ class ExpertTransformer(nn.Module):
         self.ve = ResNet50()
         self.fuser = ImageKeywordFuser(args)
         self.mlp_classifier = Classifier(args)
-        self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args) for _ in range(args.num_layer)])
+        self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args) for _ in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
         self.bce_loss = nn.BCELoss()
         self.keywords = keywords
+        self.device = args.device
 
     
     
     
-    def forward(self,images,tokens,target_keywords=None,targets = None):
+    def forward(self,images,tokens,targets = None, target_keywords=None):
         #keywords is a list of un-tokenized keywords
         #target_keywords are hot_encoding of true keywords
         B,T = tokens.shape
@@ -129,21 +172,29 @@ class ExpertTransformer(nn.Module):
 
         visual_features = self.ve(images) #(B,N,encoder_size)
         probs = self.mlp_classifier(visual_features)
+        probs = probs.mean(dim=1)
         keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
-        keyword_tokens = self.encode_keywords(keywords_list)
+        keyword_tokens = self.encode_keywords(keywords_list,self.tokenizer)
+        
+        keyword_tokens = keyword_tokens.to(device)
 
+        # print('keyword_tokens max:', keyword_tokens.max().item())
+        # print('vocab_size:', self.We.num_embeddings)
 
         keyword_emb = self.We(keyword_tokens)
-        encoder_features = self.fuser(keyword_emb,visual_features)
-        
+        encoder_features = self.fuser(visual_features,keyword_emb)
         pos = torch.arange(0,T,dtype=torch.long,device=device)
         tok_emb = self.We(tokens)
         pos_emb = self.wpe(pos)
         x = self.dropout(tok_emb+pos_emb)
 
-        for i in self.num_layers:
+        for i in range(self.num_layers):
             x = self.contextual_decoder[i](encoder_features,x)
+            
         logits = self.lm_head(x)
+        # print("logits:",logits.shape)
+        # print("target:",targets.shape)
+        # print("target_keywords:",target_keywords.shape)
         if targets is not None:
             loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_bce = self.bce_loss(probs,target_keywords)
@@ -151,17 +202,56 @@ class ExpertTransformer(nn.Module):
         else:
             loss = None
         return logits, loss
-      
+    
+    @torch.no_grad()
+    def generate(self, image, temperature=1.0, top_k=None, max_length=50):
+        device = self.device
+        
+        # Start with BOS token
+        decoded = [self.tokenizer.token_to_id("<BOS>")]
+        decoded_tensor = torch.tensor(decoded, device=device).unsqueeze(0)  # (1, T)
+
+        for _ in range(max_length):
+            # Forward pass: model should handle image + tokens
+            logits, _ = self(image, decoded_tensor)  # Image + tokens
+            
+            logits = logits[:, -1, :] / temperature  # Last token logits
+            
+            # Top-k filtering (optional)
+            if top_k is not None:
+                v, _ = torch.topk(logits, min(top_k, logits.shape[-1]))
+                logits[logits < v[:, [-1]]] = -float('Inf')
+
+            probs = F.softmax(logits, dim=-1)
+            idx_next = torch.multinomial(probs, num_samples=1)
+
+            # Append next token
+            decoded_tensor = torch.cat((decoded_tensor, idx_next), dim=1)
+
+            # Stop if EOS
+            if idx_next.item() == self.tokenizer.token_to_id("<EOS>"):
+                break
+
+        # Decode
+        decoded_sequence = decoded_tensor.squeeze(0).tolist()
+        output_text = self.tokenizer.decode(decoded_sequence, skip_special_tokens=True)
+        return output_text
 
 
     
-    def extract_keywords(probs, keywords, threshold=0.5, pad_token_id=0):
+    def extract_keywords(self,probs, keywords, threshold=0.9, pad_token_id=0):
         #probs (B,keyword_vocab_size)
         keywords_list = []
+        # print(f"Threshold: {threshold}")
+        # print(f"probs > threshold: {probs > threshold}")  # Should show True/False per element
+        # print(f"indices: {torch.nonzero(probs > threshold, as_tuple=True)[0]}")
+
         
-        for sample_probs in probs:
+        for i in range(probs.shape[0]):
             # Get indices of keywords where prob > threshold
-            indices = torch.nonzero(sample_probs > threshold, as_tuple=True)[0]
+            indices = torch.nonzero(probs[i] > threshold, as_tuple=True)[0]
+            # print("indices:",indices)
+            # print("probs",probs[i].shape)
             
             # Get token IDs of those keywords
             selected_keywords = [keywords[i] for i in indices.tolist()]
@@ -171,18 +261,30 @@ class ExpertTransformer(nn.Module):
 
         return keywords_list
     
-    def encode_keywords(batch_keywords, tokenizer):
+    def encode_keywords(self, batch_keywords, tokenizer):
         encoded_batch = []
-    
+        pad_token_id = tokenizer.token_to_id("<PAD>")
+
         for keywords in batch_keywords:
-            keyword_list = [kw.strip() for kw in keywords.split(',')]
+            keyword_list = [kw.strip() for kw in keywords]
             sep_joined = " <SEP> ".join(keyword_list)
-            encoded = tokenizer.encode(sep_joined)
-            encoded_batch.append(encoded.ids)
+            encoded = tokenizer.encode(sep_joined).ids
+            
+            # Truncate if longer than self.max_length
+            if len(encoded) > self.max_length:
+                encoded = encoded[:self.max_length]
+            
+            # Pad if shorter than self.max_length
+            padding_length = self.max_length - len(encoded)
+            padded_seq = encoded + [pad_token_id] * padding_length
+            
+            encoded_batch.append(torch.tensor(padded_seq))
         
-        padded = pad_sequence(encoded_batch, batch_first=True, padding_value=tokenizer.token_to_id("<PAD>"))
-    
-        return padded
+        # Stack all sequences into one tensor
+        padded_tensor = torch.stack(encoded_batch, dim=0)
+        
+        return padded_tensor
+
     
 
 

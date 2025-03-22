@@ -21,8 +21,8 @@ class DeepEyeNet(Dataset):
         ann_file = f'DeepEyeNet_{split}.json'
         self.ann_path = os.path.join(project_root,args.ann_path, ann_file)
         image_folder = f'{split}_set'
-        self.image_path = os.path.join(project_root,args.image_path, image_folder)
-        print('image_path:',self.image_path)
+        self.image_path = os.path.join(project_root,'data/eyenet0420', image_folder)
+        # print('image_path:',self.image_path)
 
         # Load annotations
         with open(self.ann_path, 'r') as f:
@@ -51,7 +51,7 @@ class DeepEyeNet(Dataset):
 
         # Load Image
         full_img_path = os.path.join(self.image_path, os.path.basename(img_name))
-        print(full_img_path)
+        # print(full_img_path)
         image_id = os.path.splitext(os.path.basename(img_name))[0]
         image = Image.open(full_img_path).convert('RGB')
         if self.transform:
@@ -61,17 +61,25 @@ class DeepEyeNet(Dataset):
         desc_tokens = self.tokenizer.encode(clinical_desc)
         desc_tokens = self._pad_or_truncate(desc_tokens)
 
-        # Convert to tensors
 
         desc_tokens = torch.tensor(desc_tokens, dtype=torch.long)
+
+        target_tokens = desc_tokens.clone()
+        target_tokens[:-1] = desc_tokens[1:]   # Shift left
+        target_tokens[-1] = self.tokenizer.token_to_id('<PAD>') # Pad token at the end
         
 
-        return image_id, image, desc_tokens, one_hot
+        return image_id, image, desc_tokens, target_tokens, one_hot
 
-    def _pad_or_truncate(self, tokens):
+    def _pad_or_truncate(self, encoding):
         """Pad or truncate tokens to the specified max_length."""
+        tokens = encoding.ids  # Extract token IDs list from Encoding object
+        pad_token_id = self.tokenizer.token_to_id("<PAD>")
+        
         if len(tokens) < self.max_length:
-            tokens += [self.tokenizer.word2idx['<PAD>']] * (self.max_length - len(tokens))
+            tokens += [pad_token_id] * (self.max_length - len(tokens))
         else:
             tokens = tokens[:self.max_length]
+        
         return tokens
+
