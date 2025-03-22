@@ -70,7 +70,7 @@ class Classifier(nn.Module):
         super(Classifier,self).__init__()
         self.c_fc = nn.Linear(args.encoder_size,args.encoder_size)
         self.GELU = nn.GELU()
-        self.c_proj = nn.Linear(args.encoder_sizer,args.keyword_vocab_size)
+        self.c_proj = nn.Linear(args.encoder_size,args.keyword_vocab_size)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self,x):
@@ -97,33 +97,43 @@ class ContextualTransformerDecoderLayer(nn.Module):
 
 
 class ExpertTransformer(nn.Module):
-    def __init__(self,args):
+    def __init__(self,args,tokenizer,keywords):
         super(ExpertTransformer,self).__init__()
         self.We = nn.Embedding(args.vocab_size,args.hidden_size)
         self.wpe = nn.Embedding(args.max_length,args.hidden_size)
         self.max_length = args.max_length
         self.threshold = args.threshold
         self.num_layers = args.num_layers
+        self.tokenizer = tokenizer
+        self.delta1 = args.delta1
+        self.delta2 = args.delta2
 
         self.dropout = nn.Dropout(args.dropout)
         
-        self.ve = ResNet50(args)
+        self.ve = ResNet50()
         self.fuser = ImageKeywordFuser(args)
         self.mlp_classifier = Classifier(args)
         self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args) for _ in range(args.num_layer)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
+        self.bce_loss = nn.BCELoss()
+        self.keywords = keywords
 
     
-
     
-    def forward(self,images,tokens,keywords,targets = None):
+    
+    def forward(self,images,tokens,target_keywords=None,targets = None):
+        #keywords is a list of un-tokenized keywords
+        #target_keywords are hot_encoding of true keywords
         B,T = tokens.shape
         device = tokens.device
 
         visual_features = self.ve(images) #(B,N,encoder_size)
         probs = self.mlp_classifier(visual_features)
-        keywords_list = self.extract_keywords_tokens(probs,keywords,self.threshold)
-        keyword_emb = self.We(keywords_list)
+        keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
+        keyword_tokens = self.encode_keywords(keywords_list)
+
+
+        keyword_emb = self.We(keyword_tokens)
         encoder_features = self.fuser(keyword_emb,visual_features)
         
         pos = torch.arange(0,T,dtype=torch.long,device=device)
@@ -131,11 +141,13 @@ class ExpertTransformer(nn.Module):
         pos_emb = self.wpe(pos)
         x = self.dropout(tok_emb+pos_emb)
 
-        for _ in self.num_layers:
-            x = self.contextual_decoder[0](encoder_features,x)
+        for i in self.num_layers:
+            x = self.contextual_decoder[i](encoder_features,x)
         logits = self.lm_head(x)
         if targets is not None:
-            loss = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
+            loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
+            loss_bce = self.bce_loss(probs,target_keywords)
+            loss = self.delta1*loss_ce + self.delta2*loss_bce
         else:
             loss = None
         return logits, loss
@@ -143,24 +155,34 @@ class ExpertTransformer(nn.Module):
 
 
     
-    def extract_keywords_tokens(probs, keyword_token_ids, threshold=0.5, pad_token_id=0):
-        batch_token_lists = []
+    def extract_keywords(probs, keywords, threshold=0.5, pad_token_id=0):
+        #probs (B,keyword_vocab_size)
+        keywords_list = []
         
         for sample_probs in probs:
             # Get indices of keywords where prob > threshold
             indices = torch.nonzero(sample_probs > threshold, as_tuple=True)[0]
             
             # Get token IDs of those keywords
-            selected_token_ids = [keyword_token_ids[i] for i in indices.tolist()]
+            selected_keywords = [keywords[i] for i in indices.tolist()]
             
             # Convert to tensor
-            token_tensor = torch.tensor(selected_token_ids, dtype=torch.long)
-            batch_token_lists.append(token_tensor)
-        
-        # Pad sequences
-        padded_batch = pad_sequence(batch_token_lists, batch_first=True, padding_value=pad_token_id)  # Shape: (batch_size, max_seq_len)
+            keywords_list.append(selected_keywords)
 
-        return padded_batch
+        return keywords_list
+    
+    def encode_keywords(batch_keywords, tokenizer):
+        encoded_batch = []
+    
+        for keywords in batch_keywords:
+            keyword_list = [kw.strip() for kw in keywords.split(',')]
+            sep_joined = " <SEP> ".join(keyword_list)
+            encoded = tokenizer.encode(sep_joined)
+            encoded_batch.append(encoded.ids)
+        
+        padded = pad_sequence(encoded_batch, batch_first=True, padding_value=tokenizer.token_to_id("<PAD>"))
+    
+        return padded
     
 
 

@@ -1,0 +1,16 @@
+python main.py \
+--batch_size 2 \
+--max_length 60 \
+--hidden_size 1024 \
+--vocab_size 3500 \
+--threshold 0.3 \
+--num_layers 2 \
+--delta1 0.1 \
+--delta2 0.3 \
+--dropout 0.2 \
+--encoder_size 500 \
+--decoder_size 1024 \
+--num_head 8 \
+--keyword_vocab_size 609 \
+--image_path "/data/eyenet0420" \
+--ann_path "data" \
