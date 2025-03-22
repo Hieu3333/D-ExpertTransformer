@@ -61,9 +61,11 @@ class MultiHeadedAttention(nn.Module):
         self.v_proj = nn.Linear(self.hidden_size,self.hidden_size)
 
         self.out_proj = nn.Linear(self.hidden_size, self.hidden_size)
+        self.register_buffer('bias',torch.tril(torch.ones(args.max_length,args.max_length).view(1,1,args.max_length,args.max_length))) 
 
     def forward(self,encoder_feature,x):
         B,T,_ = x.shape #T is number of keywords
+        B,N,_ = encoder_feature.shape
 
         q = self.q_proj(x) #(B,T,C)
         k = self.k_proj(encoder_feature) 
@@ -71,11 +73,12 @@ class MultiHeadedAttention(nn.Module):
         
 
         q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
-        k = k.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
-        v = v.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
+        k = k.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
+        v = v.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
         
         assert q.shape[-1] == k.shape[-1]
-        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,T)
+        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
+        att = att.masked_fill(self.bias[:,:,:T,:N]==0,float('-inf'))
         att = F.softmax(att,dim=-1)
         out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
@@ -191,6 +194,7 @@ class ExpertTransformer(nn.Module):
         for i in range(self.num_layers):
             x = self.contextual_decoder[i](encoder_features,x)
             
+            
         logits = self.lm_head(x)
         # print("logits:",logits.shape)
         # print("target:",targets.shape)
@@ -204,38 +208,65 @@ class ExpertTransformer(nn.Module):
         return logits, loss
     
     @torch.no_grad()
-    def generate(self, image, temperature=1.0, top_k=None, max_length=50):
-        device = self.device
+    def generate(self, images, temperature=1.0, top_k=None):
+        """
+        Args:
+            images: Tensor of shape (B, N, 2048) - batch of images.
+            temperature: Sampling temperature.
+            top_k: Top-k filtering.
+            max_length: Max decoding steps.
         
-        # Start with BOS token
-        decoded = [self.tokenizer.token_to_id("<BOS>")]
-        decoded_tensor = torch.tensor(decoded, device=device).unsqueeze(0)  # (1, T)
+        Returns:
+            A list of generated captions (strings), length B.
+        """
+        device = self.device
+        batch_size = images.size(0)
 
-        for _ in range(max_length):
-            # Forward pass: model should handle image + tokens
-            logits, _ = self(image, decoded_tensor)  # Image + tokens
-            
-            logits = logits[:, -1, :] / temperature  # Last token logits
-            
-            # Top-k filtering (optional)
+        # Token IDs
+        bos_id = self.tokenizer.token_to_id("<BOS>")
+        eos_id = self.tokenizer.token_to_id("<EOS>")
+        pad_id = self.tokenizer.token_to_id("<PAD>")
+
+        # Initialize full tensor with PAD tokens
+        decoded_tensor = torch.full((batch_size, self.max_length), pad_id, dtype=torch.long, device=device)  # (B, max_length)
+        decoded_tensor[:, 0] = bos_id  # BOS at position 0
+
+        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)  # Track EOS
+
+        for t in range(1, self.max_length):
+            logits, _ = self(images, decoded_tensor[:, :t])  # logits: (B, t, vocab_size)
+            logits = logits[:, -1, :] / temperature  # Last token logits: (B, vocab_size)
+
+            # Apply top-k filtering (optional)
             if top_k is not None:
                 v, _ = torch.topk(logits, min(top_k, logits.shape[-1]))
                 logits[logits < v[:, [-1]]] = -float('Inf')
 
-            probs = F.softmax(logits, dim=-1)
-            idx_next = torch.multinomial(probs, num_samples=1)
+            probs = F.softmax(logits, dim=-1)  # (B, vocab_size)
+            idx_next = torch.multinomial(probs, num_samples=1).squeeze(1)  # (B,)
 
-            # Append next token
-            decoded_tensor = torch.cat((decoded_tensor, idx_next), dim=1)
+            # Add next token at current timestep
+            decoded_tensor[:, t] = idx_next
 
-            # Stop if EOS
-            if idx_next.item() == self.tokenizer.token_to_id("<EOS>"):
+            # Update finished status
+            finished |= (idx_next == eos_id)
+
+            # Early stop if all sequences finished
+            if finished.all():
                 break
 
-        # Decode
-        decoded_sequence = decoded_tensor.squeeze(0).tolist()
-        output_text = self.tokenizer.decode(decoded_sequence, skip_special_tokens=True)
-        return output_text
+        # Decode each sequence in batch
+        decoded_sequences = []
+        for seq in decoded_tensor.tolist():
+            # Cut off after EOS, remove PADs
+            if eos_id in seq:
+                eos_index = seq.index(eos_id)
+                seq = seq[:eos_index + 1]
+            text = self.tokenizer.decode(seq, skip_special_tokens=True)
+            decoded_sequences.append(text)
+        
+        return decoded_sequences
+
 
 
     

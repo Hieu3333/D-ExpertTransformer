@@ -1,5 +1,8 @@
 python train.py \
---batch_size 1 \
+--epochs 1 \
+--lr 1e-4 \
+--save_path "results" \
+--batch_size 8 \
 --max_length 10 \
 --hidden_size 1024 \
 --vocab_size 5000 \
