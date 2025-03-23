@@ -1,3 +1,9 @@
 1. Add causal mask for attention 
-2. Add weight tying
+2. Add weight tying ???????
 3. Use beam search
+
+Ways to get better:
+-Clean report
+-Use beam search
+-Change or fix binary classifier
+-Tuning learning rate/delta
