@@ -74,7 +74,6 @@ for epoch in range(num_epochs):
             optimizer.step()
             optimizer.zero_grad()
 
-    # Save model checkpoint
     torch.save(model.state_dict(), os.path.join(save_path, f"model_epoch_{epoch+1}.pth"))
 
     #Evaluation
@@ -83,7 +82,7 @@ for epoch in range(num_epochs):
     res = {}
     with torch.no_grad():
         
-        for batch in tqdm(val_dataloader, desc="Evaluating"):
+        for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
             image_ids, images, desc_tokens, target_tokens, one_hot = batch
             images = images.to(device)
             target_tokens = target_tokens.to(device)
@@ -115,7 +114,7 @@ for epoch in range(num_epochs):
     gts= {}
     res = {}
     with torch.no_grad():
-        for batch in enumerate(tqdm(test_dataloader)):
+        for batch_idx,batch in enumerate(tqdm(test_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
             image_ids, images, desc_tokens, target_tokens, one_hot = batch
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
@@ -124,7 +123,7 @@ for epoch in range(num_epochs):
         for i,image_id in enumerate(image_ids):
             groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)
             gts[image_id] = [groundtruth_caption]
-            res[image_id] = [tokenizer.decode(generated_captions[i])]
+            res[image_id] = [generated_captions[i]]
         
         test_scores = compute_scores(gts,res)
         print(f"Epoch {epoch + 1} - Test scores:")
@@ -140,6 +139,8 @@ for epoch in range(num_epochs):
     improved = avg_bleu > best_avg_bleu
     if not improved:
         num_epoch_not_improved += 1
+        best_avg_bleu = avg_bleu
+        best_epoch = epoch
     else:
         num_epoch_not_improved = 0
     print(f"Best epoch: {epoch}")
