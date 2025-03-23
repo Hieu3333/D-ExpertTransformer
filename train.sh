@@ -8,7 +8,7 @@ python train.py \
 --max_length 10 \
 --hidden_size 1024 \
 --vocab_size 5000 \
---threshold 0.55 \
+--threshold 0.5 \
 --num_layers 2 \
 --delta1 0.1 \
 --delta2 0.3 \
