@@ -140,10 +140,10 @@ for epoch in range(num_epochs):
     if not improved:
         num_epoch_not_improved += 1
         best_avg_bleu = avg_bleu
-        best_epoch = epoch
+        best_epoch = epoch+1
     else:
         num_epoch_not_improved = 0
-    print(f"Best epoch: {epoch}")
+    print(f"Best epoch: {epoch+1}")
     print("---------------------------------------------------------------------------------------------------------------------")
 
 
