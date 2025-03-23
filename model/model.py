@@ -164,6 +164,9 @@ class ExpertTransformer(nn.Module):
         self.keywords = keywords
         self.device = args.device
 
+        #Weight tying
+        self.We.weight = self.lm_head.weight
+
     
     
     
@@ -205,7 +208,9 @@ class ExpertTransformer(nn.Module):
             loss = self.delta1*loss_ce + self.delta2*loss_bce
         else:
             loss = None
-        return logits, loss
+            loss_bce = None
+            loss_ce = None
+        return logits, loss, loss_ce, loss_bce
     
     @torch.no_grad()
     def generate(self, images, temperature=1.0, top_k=None):
@@ -234,7 +239,7 @@ class ExpertTransformer(nn.Module):
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)  # Track EOS
 
         for t in range(1, self.max_length):
-            logits, _ = self(images, decoded_tensor[:, :t])  # logits: (B, t, vocab_size)
+            logits, _, _, _ = self(images, decoded_tensor[:, :t])  # logits: (B, t, vocab_size)
             logits = logits[:, -1, :] / temperature  # Last token logits: (B, vocab_size)
 
             # Apply top-k filtering (optional)

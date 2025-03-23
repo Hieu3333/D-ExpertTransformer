@@ -18,13 +18,15 @@ def parser_arg():
     parser.add_argument('--num_head',type=int, required=True)
     parser.add_argument('--keyword_vocab_size',type=int, required=True)
     parser.add_argument('--num_workers',type=int, default=8)
-    parser.add_argument('--log_interval',type=int, default=1000)
+    parser.add_argument('--log_interval',type=int, default=250)
     parser.add_argument('--save_path',type=str, required=True)
     parser.add_argument('--image_path',type=str, required=True)
     parser.add_argument('--ann_path',type=str, required=True)
     parser.add_argument('--randaug',type=bool, required=False)
     parser.add_argument('--resnet_dim',type=int, default=2048)
     parser.add_argument('--device',type=str, default='cuda')
+    parser.add_argument('--accum_steps',type=int,required=True)
+    parser.add_argument('--early_stopping',type=int,default=10)
     args, unparsed = parser.parse_known_args()
     return args
     

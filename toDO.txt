@@ -1,1 +1,2 @@
 1. Add causal mask for attention 
+2. Add weight tying

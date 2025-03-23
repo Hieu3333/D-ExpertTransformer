@@ -40,23 +40,39 @@ os.makedirs(save_path, exist_ok=True)
 total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
 print('Total params:',total_params)
 
+num_epoch_not_improved = 0
+best_epoch = 0
+best_avg_bleu = 0
+
 for epoch in range(num_epochs):
+    if num_epoch_not_improved == args.early_stopping:
+        break
+
     model.train()
     running_loss = 0.0
+    optimizer.zero_grad()
     for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
         image_ids, images, desc_tokens, target_tokens, one_hot = batch
         images, desc_tokens, target_tokens, one_hot = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device)
-        optimizer.zero_grad()
-        outputs, loss = model(images, desc_tokens, target_tokens, one_hot)
+        
+        outputs, loss, loss_ce, loss_bce = model(images, desc_tokens, target_tokens, one_hot)
+        loss = loss / args.accum_steps
         loss.backward()
-        optimizer.step()
+        
+        if batch_idx%args.accum_steps == 0:
+            optimizer.step()
+            optimizer.zero_grad()
         
         running_loss += loss.item()
         
-        if (batch_idx + 1) % log_interval == 0:
+        if (batch_idx + 1) % log_interval == 0 or batch_idx == 1:
             avg_loss = running_loss / log_interval
-            print(f"Batch {batch_idx + 1}/{len(train_dataloader)}, Loss: {avg_loss:.4f}")
+            print(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
             running_loss = 0.0
+        
+        if (batch_idx + 1) % args.accum_steps != 0:
+            optimizer.step()
+            optimizer.zero_grad()
 
     # Save model checkpoint
     torch.save(model.state_dict(), os.path.join(save_path, f"model_epoch_{epoch+1}.pth"))
@@ -79,13 +95,56 @@ for epoch in range(num_epochs):
             
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
-                reference_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
-                gts[image_id] = [reference_caption]
+                groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
+                gts[image_id] = [groundtruth_caption]
                 res[image_id] = [generated_captions[i]]  # Corresponding generated caption
         
         # Compute evaluation metrics
         eval_scores = compute_scores(gts, res)
-        print(f"Epoch {epoch + 1} Evaluation Scores: {eval_scores}")
+        print(f"Epoch {epoch + 1} - Evaluation scores:")
+        print(f"BLEU_1: {eval_scores['BLEU_1']}")
+        print(f"BLEU_2: {eval_scores['BLEU_2']}")
+        print(f"BLEU_3: {eval_scores['BLEU_3']}")
+        print(f"BLEU_4: {eval_scores['BLEU_4']}")
+        print(f"METEOR: {eval_scores['METEOR']}")
+        print(f"CIDER: {eval_scores['Cider']}")
+        print(f"ROUGE_L: {eval_scores['ROUGE_L']}")
+        
+
+    model.eval()
+    gts= {}
+    res = {}
+    with torch.no_grad():
+        for batch in enumerate(tqdm(test_dataloader)):
+            image_ids, images, desc_tokens, target_tokens, one_hot = batch
+            images = images.to(args.device)
+            target_tokens = target_tokens.to(device)
+            generated_captions = model.generate(images)
+
+        for i,image_id in enumerate(image_ids):
+            groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)
+            gts[image_id] = [groundtruth_caption]
+            res[image_id] = [tokenizer.decode(generated_captions[i])]
+        
+        test_scores = compute_scores(gts,res)
+        print(f"Epoch {epoch + 1} - Test scores:")
+        print(f"BLEU_1: {test_scores['BLEU_1']}")
+        print(f"BLEU_2: {test_scores['BLEU_2']}")
+        print(f"BLEU_3: {test_scores['BLEU_3']}")
+        print(f"BLEU_4: {test_scores['BLEU_4']}")
+        print(f"METEOR: {test_scores['METEOR']}")
+        print(f"CIDER: {test_scores['Cider']}")
+        print(f"ROUGE_L: {test_scores['ROUGE_L']}")
+
+    avg_bleu = (eval_scores['BLEU_1']+eval_scores['BLEU_2'])/2
+    improved = avg_bleu > best_avg_bleu
+    if not improved:
+        num_epoch_not_improved += 1
+    else:
+        num_epoch_not_improved = 0
+    print(f"Best epoch: {epoch}")
+    print("---------------------------------------------------------------------------------------------------------------------")
+
 
 
 

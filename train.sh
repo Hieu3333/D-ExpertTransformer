@@ -1,8 +1,10 @@
 python train.py \
---epochs 1 \
+--epochs 30 \
 --lr 1e-4 \
 --save_path "results" \
 --batch_size 8 \
+--accum_steps 8 \
+--early_stopping 10 \
 --max_length 10 \
 --hidden_size 1024 \
 --vocab_size 5000 \
