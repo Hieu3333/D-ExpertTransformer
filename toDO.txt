@@ -2,6 +2,7 @@
 2. Add weight tying ???????
 3. Use beam search
 
+
 Ways to get better:
 -Clean report
 -Use beam search

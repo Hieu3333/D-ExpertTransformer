@@ -12,6 +12,7 @@ def parser_arg():
     parser.add_argument('--lr',type=float, required=True)
     parser.add_argument('--delta1',type=float, required=True)
     parser.add_argument('--delta2',type=float, required=True)
+    parser.add_argument('--beam_width',type=int,default=1)
     parser.add_argument('--dropout',type=float, required=False)
     parser.add_argument('--encoder_size',type=int, required=True)
     parser.add_argument('--decoder_size',type=int, required=True)
@@ -32,9 +33,9 @@ def parser_arg():
     
 
 def load_all_keywords():
-    train_path = "data/DeepEyeNet_train.json"
-    val_path = "data/DeepEyeNet_val.json"
-    test_path = "data/DeepEyeNet_test.json"
+    train_path = "data/cleaned_DeepEyeNet_train.json"
+    val_path = "data/cleaned_DeepEyeNet_val.json"
+    test_path = "data/cleaned_DeepEyeNet_test.json"
     all_keywords = set()
     json_paths = [train_path,val_path,test_path]
     for path in json_paths:

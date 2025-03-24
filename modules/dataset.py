@@ -18,7 +18,7 @@ class DeepEyeNet(Dataset):
 
         # Set paths
         project_root = '/mnt/c/D-ExpertTransformer'
-        ann_file = f'DeepEyeNet_{split}.json'
+        ann_file = f'cleaned_DeepEyeNet_{split}.json'
         self.ann_path = os.path.join(project_root,args.ann_path, ann_file)
         image_folder = f'{split}_set'
         self.image_path = os.path.join(project_root,'data/eyenet0420', image_folder)

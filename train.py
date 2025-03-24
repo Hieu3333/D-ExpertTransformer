@@ -7,6 +7,24 @@ from tqdm import tqdm
 import os
 from modules.utils import parser_arg, load_all_keywords
 import torch.optim as optim
+import logging
+
+# Configure logger
+logger = logging.getLogger("TrainingLogger")
+logger.setLevel(logging.INFO)  # Change to DEBUG for more details
+
+# Formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+# (Optional) File handler to save logs to file
+file_handler = logging.FileHandler('training.log')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 
 # Parse arguments (ensure parser_arg() is defined appropriately)
@@ -44,9 +62,13 @@ num_epoch_not_improved = 0
 best_epoch = 0
 best_avg_bleu = 0
 
+logger.info(args)
+
 for epoch in range(num_epochs):
     if num_epoch_not_improved == args.early_stopping:
         break
+
+    logger.info(f"Epoch {epoch+1}:")
 
     model.train()
     running_loss = 0.0
@@ -67,7 +89,7 @@ for epoch in range(num_epochs):
         
         if (batch_idx + 1) % log_interval == 0 or batch_idx == 1:
             avg_loss = running_loss / log_interval
-            print(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
+            logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
             running_loss = 0.0
         
         if (batch_idx + 1) % args.accum_steps != 0:
@@ -90,7 +112,7 @@ for epoch in range(num_epochs):
             # print("target_tokens:",target_tokens.shape)
             
             # Generate captions for the whole batch
-            generated_captions = model.generate(images)  # List of strings, length B
+            generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
             
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
@@ -100,14 +122,14 @@ for epoch in range(num_epochs):
         
         # Compute evaluation metrics
         eval_scores = compute_scores(gts, res)
-        print(f"Epoch {epoch + 1} - Evaluation scores:")
-        print(f"BLEU_1: {eval_scores['BLEU_1']}")
-        print(f"BLEU_2: {eval_scores['BLEU_2']}")
-        print(f"BLEU_3: {eval_scores['BLEU_3']}")
-        print(f"BLEU_4: {eval_scores['BLEU_4']}")
-        print(f"METEOR: {eval_scores['METEOR']}")
-        print(f"CIDER: {eval_scores['Cider']}")
-        print(f"ROUGE_L: {eval_scores['ROUGE_L']}")
+        logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
+        logger.info(f"BLEU_1: {eval_scores['BLEU_1']}")
+        logger.info(f"BLEU_2: {eval_scores['BLEU_2']}")
+        logger.info(f"BLEU_3: {eval_scores['BLEU_3']}")
+        logger.info(f"BLEU_4: {eval_scores['BLEU_4']}")
+        logger.info(f"METEOR: {eval_scores['METEOR']}")
+        logger.info(f"CIDER: {eval_scores['Cider']}")
+        logger.info(f"ROUGE_L: {eval_scores['ROUGE_L']}")
         
 
     model.eval()
@@ -118,7 +140,7 @@ for epoch in range(num_epochs):
             image_ids, images, desc_tokens, target_tokens, one_hot = batch
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
-            generated_captions = model.generate(images)
+            generated_captions = model.generate(images,beam_width=args.beam_width)
 
         for i,image_id in enumerate(image_ids):
             groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)
@@ -126,14 +148,14 @@ for epoch in range(num_epochs):
             res[image_id] = [generated_captions[i]]
         
         test_scores = compute_scores(gts,res)
-        print(f"Epoch {epoch + 1} - Test scores:")
-        print(f"BLEU_1: {test_scores['BLEU_1']}")
-        print(f"BLEU_2: {test_scores['BLEU_2']}")
-        print(f"BLEU_3: {test_scores['BLEU_3']}")
-        print(f"BLEU_4: {test_scores['BLEU_4']}")
-        print(f"METEOR: {test_scores['METEOR']}")
-        print(f"CIDER: {test_scores['Cider']}")
-        print(f"ROUGE_L: {test_scores['ROUGE_L']}")
+        logger.info(f"Epoch {epoch + 1} - Test scores:")
+        logger.info(f"BLEU_1: {test_scores['BLEU_1']}")
+        logger.info(f"BLEU_2: {test_scores['BLEU_2']}")
+        logger.info(f"BLEU_3: {test_scores['BLEU_3']}")
+        logger.info(f"BLEU_4: {test_scores['BLEU_4']}")
+        logger.info(f"METEOR: {test_scores['METEOR']}")
+        logger.info(f"CIDER: {test_scores['Cider']}")
+        logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
 
     avg_bleu = (eval_scores['BLEU_1']+eval_scores['BLEU_2'])/2
     improved = avg_bleu > best_avg_bleu
@@ -143,8 +165,8 @@ for epoch in range(num_epochs):
         best_epoch = epoch+1
     else:
         num_epoch_not_improved = 0
-    print(f"Best epoch: {epoch+1}")
-    print("---------------------------------------------------------------------------------------------------------------------")
+    logger.info(f"Best epoch: {epoch+1}")
+    logger.info("---------------------------------------------------------------------------------------------------------------------")
 
 
 

@@ -13,9 +13,10 @@ python train.py \
 --delta1 0.1 \
 --delta2 0.3 \
 --dropout 0.2 \
+--beam_width 1 \
 --encoder_size 2048 \
 --decoder_size 1024 \
 --num_head 8 \
---keyword_vocab_size 609 \
+--keyword_vocab_size 598 \
 --image_path "/data/eyenet0420" \
 --ann_path "data" \

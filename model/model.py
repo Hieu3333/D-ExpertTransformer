@@ -213,17 +213,7 @@ class ExpertTransformer(nn.Module):
         return logits, loss, loss_ce, loss_bce
     
     @torch.no_grad()
-    def generate(self, images, temperature=1.0, top_k=None):
-        """
-        Args:
-            images: Tensor of shape (B, N, 2048) - batch of images.
-            temperature: Sampling temperature.
-            top_k: Top-k filtering.
-            max_length: Max decoding steps.
-        
-        Returns:
-            A list of generated captions (strings), length B.
-        """
+    def generate(self, images, temperature=1.0, beam_width=3, top_k=None):
         device = self.device
         batch_size = images.size(0)
 
@@ -232,45 +222,60 @@ class ExpertTransformer(nn.Module):
         eos_id = self.tokenizer.token_to_id("<EOS>")
         pad_id = self.tokenizer.token_to_id("<PAD>")
 
-        # Initialize full tensor with PAD tokens
-        decoded_tensor = torch.full((batch_size, self.max_length), pad_id, dtype=torch.long, device=device)  # (B, max_length)
-        decoded_tensor[:, 0] = bos_id  # BOS at position 0
+        final_sequences = []
 
-        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)  # Track EOS
+        for b in range(batch_size):
+            # Start with BOS token
+            beams = [(torch.tensor([bos_id], device=device), 0.0)]  # (sequence_tensor, cumulative log_prob)
 
-        for t in range(1, self.max_length):
-            logits, _, _, _ = self(images, decoded_tensor[:, :t])  # logits: (B, t, vocab_size)
-            logits = logits[:, -1, :] / temperature  # Last token logits: (B, vocab_size)
+            for t in range(1, self.max_length):
+                new_beams = []
+                for seq, score in beams:
+                    if seq[-1].item() == eos_id:
+                        # Already ended, carry forward
+                        new_beams.append((seq, score))
+                        continue
 
-            # Apply top-k filtering (optional)
-            if top_k is not None:
-                v, _ = torch.topk(logits, min(top_k, logits.shape[-1]))
-                logits[logits < v[:, [-1]]] = -float('Inf')
+                    # Get logits
+                    logits, _, _, _ = self(images[b:b+1], seq.unsqueeze(0))  # Shape: (1, t, vocab_size)
+                    logits = logits[:, -1, :] / temperature  # (1, vocab_size)
 
-            probs = F.softmax(logits, dim=-1)  # (B, vocab_size)
-            idx_next = torch.multinomial(probs, num_samples=1).squeeze(1)  # (B,)
+                    # Apply top-k filtering if specified
+                    if top_k is not None:
+                        v, _ = torch.topk(logits, min(top_k, logits.shape[-1]))
+                        logits[logits < v[:, [-1]]] = -float('Inf')
 
-            # Add next token at current timestep
-            decoded_tensor[:, t] = idx_next
+                    log_probs = F.log_softmax(logits, dim=-1)  # Log-probs for numerical stability
 
-            # Update finished status
-            finished |= (idx_next == eos_id)
+                    # Select top beam_width candidates
+                    top_log_probs, top_indices = torch.topk(log_probs, beam_width, dim=-1)  # (1, beam_width)
 
-            # Early stop if all sequences finished
-            if finished.all():
-                break
+                    for log_prob, idx in zip(top_log_probs[0], top_indices[0]):
+                        new_seq = torch.cat([seq, idx.unsqueeze(0)], dim=0)
+                        new_score = score + log_prob.item()
+                        new_beams.append((new_seq, new_score))
 
-        # Decode each sequence in batch
-        decoded_sequences = []
-        for seq in decoded_tensor.tolist():
-            # Cut off after EOS, remove PADs
-            if eos_id in seq:
-                eos_index = seq.index(eos_id)
-                seq = seq[:eos_index + 1]
-            text = self.tokenizer.decode(seq, skip_special_tokens=True)
-            decoded_sequences.append(text)
-        
-        return decoded_sequences
+                # Keep top beam_width sequences
+                beams = sorted(new_beams, key=lambda x: x[1], reverse=True)[:beam_width]
+
+                # Early stop if all beams ended with EOS
+                if all(seq[-1].item() == eos_id for seq, _ in beams):
+                    break
+
+            # Choose best sequence
+            best_seq, _ = beams[0]
+            best_seq = best_seq.tolist()
+
+            # Cut after EOS if present
+            if eos_id in best_seq:
+                eos_index = best_seq.index(eos_id)
+                best_seq = best_seq[:eos_index + 1]
+
+            text = self.tokenizer.decode(best_seq, skip_special_tokens=True)
+            final_sequences.append(text)
+
+        return final_sequences
+
 
 
 

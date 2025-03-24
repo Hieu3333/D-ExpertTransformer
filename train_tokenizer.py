@@ -32,7 +32,7 @@ import json
 
 def load_all_keywords():
     train_path = "data/DeepEyeNet_train.json"
-    val_path = "data/DeepEyeNet_valid.json"
+    val_path = "data/DeepEyeNet_val.json"
     test_path = "data/DeepEyeNet_test.json"
     all_keywords = set()
     json_paths = [train_path,val_path,test_path]
@@ -108,14 +108,14 @@ def example_usage(tokenizer):
 
 if __name__ == "__main__":
     # === Paths to JSON files ===
-    train_path = "data/DeepEyeNet_train.json"
-    val_path = "data/DeepEyeNet_valid.json"
-    test_path = "data/DeepEyeNet_test.json"
+    train_path = "data/cleaned_DeepEyeNet_train.json"
+    val_path = "data/cleaned_DeepEyeNet_val.json"
+    test_path = "data/cleaned_DeepEyeNet_test.json"
 
     # === Load all texts ===
     all_texts = load_texts([train_path, val_path, test_path])
 
     # === Train tokenizer ===
-    tokenizer = train_tokenizer(all_texts, vocab_size=5000, save_path="custom_tokenizer.json")
+    tokenizer = train_tokenizer(all_texts, vocab_size=3500, save_path="custom_tokenizer.json")
 
     
