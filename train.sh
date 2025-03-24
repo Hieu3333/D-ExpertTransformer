@@ -7,7 +7,7 @@ python train.py \
 --early_stopping 10 \
 --max_length 10 \
 --hidden_size 1024 \
---vocab_size 5000 \
+--vocab_size 3500 \
 --threshold 0.5 \
 --num_layers 2 \
 --delta1 0.1 \
@@ -20,3 +20,4 @@ python train.py \
 --keyword_vocab_size 598 \
 --image_path "/data/eyenet0420" \
 --ann_path "data" \
+--project_root '/mnt/c/D-ExpertTransformer' \

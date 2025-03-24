@@ -17,7 +17,7 @@ class DeepEyeNet(Dataset):
         self.num_keywords = len(self.keywords_vocab)
 
         # Set paths
-        project_root = '/mnt/c/D-ExpertTransformer'
+        project_root = args.project_root
         ann_file = f'cleaned_DeepEyeNet_{split}.json'
         self.ann_path = os.path.join(project_root,args.ann_path, ann_file)
         image_folder = f'{split}_set'
