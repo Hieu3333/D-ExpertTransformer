@@ -6,6 +6,8 @@ source ~/miniconda3/bin/activate
 conda init
 source ~/.bashrc
 conda env create -f env.yaml
+sudo apt-get install default-jre
+sudo apt-get install default-jdk
 mkdir data
 
 
@@ -13,3 +15,7 @@ scp -P 53588 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@143.55.45.86:/wo
 
 sudo apt update && sudo apt install unzip -y
 unzip DeepEyeNet.zip -d data
+
+mkdir -p /workspace/D-ExpertTransformer/pycocoevalcap/meteor/data/
+cd /workspace/D-ExpertTransformer/pycocoevalcap/meteor/data/
+wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-en.gz
