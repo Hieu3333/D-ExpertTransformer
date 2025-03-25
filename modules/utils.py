@@ -17,7 +17,7 @@ def parser_arg():
     parser.add_argument('--encoder_size',type=int, required=True)
     parser.add_argument('--decoder_size',type=int, required=True)
     parser.add_argument('--num_head',type=int, required=True)
-    parser.add_argument('--bias',type=bool, action='store_true')
+    parser.add_argument('--bias', action='store_true')
     parser.add_argument('--num_workers',type=int, default=8)
     parser.add_argument('--keyword_vocab_size',type=int, required=True)
     parser.add_argument('--weight_decay',type=float, required=True)
