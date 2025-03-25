@@ -11,6 +11,8 @@ class ResNet50(nn.Module):
         resnet50 = models.resnet50(pretrained=True)
         # Remove avgpool and fc layers
         self.features = nn.Sequential(*list(resnet50.children())[:-2])  # Keep until last conv layer
+        for param in resnet50.parameters():
+            param.requires_grad = False
         
     def forward(self, x):
         x = self.features(x)  # Output shape: (B, 2048, 7, 7)
