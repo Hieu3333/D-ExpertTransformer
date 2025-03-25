@@ -213,69 +213,50 @@ class ExpertTransformer(nn.Module):
             loss_bce = None
             loss_ce = None
         return logits, loss, loss_ce, loss_bce
+    
+
     @torch.no_grad()
-    def generate(self, images, temperature=1.0, beam_width=3, top_k=None):
+    def generate(self, images, temperature=1.0):
         device = self.device
         batch_size = images.size(0)
 
-        # Token IDs
         bos_id = self.tokenizer.token_to_id("<BOS>")
         eos_id = self.tokenizer.token_to_id("<EOS>")
-        pad_id = self.tokenizer.token_to_id("<PAD>")
 
+        # Initialize sequences with <BOS>
+        sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
+
+        # Track finished sequences
+        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
+
+        for t in range(1, self.max_length):
+            # Get logits for current sequences
+            logits, _, _, _ = self(images, sequences)  # (batch_size, seq_len, vocab_size)
+            logits = logits[:, -1, :] / temperature  # Get last token logits
+
+            # Get most probable next token (Greedy Search)
+            best_tokens = logits.argmax(dim=-1)  # (batch_size,)
+
+            # Append new tokens to sequences
+            sequences = torch.cat([sequences, best_tokens.unsqueeze(1)], dim=-1)
+
+            # Mark sequences that have ended with <EOS>
+            finished |= best_tokens == eos_id
+
+            # Stop early if all sequences are done
+            if finished.all():
+                break
+
+        # Decode sequences
         final_sequences = []
-
-        for b in range(batch_size):
-            # Start with BOS token
-            beams = [(torch.tensor([bos_id], device=device), 0.0)]  # (sequence_tensor, cumulative log_prob)
-
-            for t in range(1, self.max_length):
-                new_beams = []
-                for seq, score in beams:
-                    if seq[-1].item() == eos_id:
-                        # Already ended, carry forward
-                        new_beams.append((seq, score))
-                        continue
-
-                    # Get logits
-                    logits, _, _, _ = self(images[b:b+1], seq.unsqueeze(0))  # Shape: (1, t, vocab_size)
-                    logits = logits[:, -1, :] / temperature  # (1, vocab_size)
-
-                    # Apply top-k filtering if specified
-                    if top_k is not None:
-                        v, _ = torch.topk(logits, min(top_k, logits.shape[-1]))
-                        logits[logits < v[:, [-1]]] = -float('Inf')
-
-                    log_probs = F.log_softmax(logits, dim=-1)  # Log-probs for numerical stability
-
-                    # Select top beam_width candidates
-                    top_log_probs, top_indices = torch.topk(log_probs, beam_width, dim=-1)  # (1, beam_width)
-
-                    for log_prob, idx in zip(top_log_probs[0], top_indices[0]):
-                        new_seq = torch.cat([seq, idx.unsqueeze(0)], dim=0)
-                        new_score = score + log_prob.item()
-                        new_beams.append((new_seq, new_score))
-
-                # Keep top beam_width sequences
-                beams = sorted(new_beams, key=lambda x: x[1], reverse=True)[:beam_width]
-
-                # Early stop if all beams ended with EOS
-                if all(seq[-1].item() == eos_id for seq, _ in beams):
-                    break
-
-            # Choose best sequence
-            best_seq, _ = beams[0]
-            best_seq = best_seq.tolist()
-
-            # Cut after EOS if present
-            if eos_id in best_seq:
-                eos_index = best_seq.index(eos_id)
-                best_seq = best_seq[:eos_index + 1]
-
-            text = self.tokenizer.decode(best_seq, skip_special_tokens=True)
+        for seq in sequences.tolist():
+            if eos_id in seq:
+                seq = seq[:seq.index(eos_id) + 1]  # Cut after EOS
+            text = self.tokenizer.decode(seq, skip_special_tokens=True)
             final_sequences.append(text)
 
         return final_sequences
+
 
 
     

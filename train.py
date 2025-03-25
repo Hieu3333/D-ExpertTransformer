@@ -126,8 +126,7 @@ for epoch in range(num_epochs):
     model.eval()
     gts = {}
     res = {}
-    with torch.no_grad():
-        
+    with torch.no_grad():  
         for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
             image_ids, images, desc_tokens, target_tokens, one_hot = batch
             images = images.to(device)
