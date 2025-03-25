@@ -1,9 +1,9 @@
 python train.py \
 --epochs 10 \
---lr 4e-4 \
+--lr 1e-4 \
 --weight_decay 1e-3 \
 --save_path "results" \
---batch_size 256 \
+--batch_size 64 \
 --accum_steps 1 \
 --early_stopping 10 \
 --max_length 50 \

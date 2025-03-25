@@ -10,6 +10,7 @@ import torch.optim as optim
 import logging
 import random
 import numpy as np
+from torch.cuda.amp import autocast, GradScaler
 
 def set_seed(seed=42):
     random.seed(seed)
@@ -78,6 +79,8 @@ best_avg_bleu = 0
 
 logger.info(args)
 
+scaler = GradScaler()
+
 for epoch in range(num_epochs):
     if num_epoch_not_improved == args.early_stopping:
         break
@@ -91,12 +94,16 @@ for epoch in range(num_epochs):
         image_ids, images, desc_tokens, target_tokens, one_hot = batch
         images, desc_tokens, target_tokens, one_hot = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device)
         
-        outputs, loss, loss_ce, loss_bce = model(images, desc_tokens, target_tokens, one_hot)
-        loss = loss / args.accum_steps
-        loss.backward()
+        with autocast():  # Enable mixed precision
+            outputs, loss, loss_ce, loss_bce = model(images, desc_tokens, target_tokens, one_hot)
+            loss = loss / args.accum_steps  # Normalize for gradient accumulation
+
+        scaler.scale(loss).backward()  # Scale loss for stability
         
+        # Gradient accumulation step
         if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-            optimizer.step()
+            scaler.step(optimizer)  # Unscales gradients and updates parameters
+            scaler.update()  # Updates scaling factor
             optimizer.zero_grad()
         
         running_loss += loss.item()
@@ -124,7 +131,8 @@ for epoch in range(num_epochs):
             
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
-            generated_captions = model.generate(images) 
+            with autocast():
+                generated_captions = model.generate(images)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
@@ -152,7 +160,8 @@ for epoch in range(num_epochs):
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
-            generated_captions = model.generate(images) 
+            with autocast():
+                generated_captions = model.generate(images) 
 
         for i,image_id in enumerate(image_ids):
             groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)
