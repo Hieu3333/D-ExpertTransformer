@@ -153,7 +153,7 @@ class ExpertTransformer(nn.Module):
     def __init__(self,args,tokenizer,keywords):
         super(ExpertTransformer,self).__init__()
         self.We = nn.Embedding(args.vocab_size,args.hidden_size)
-        self.wpe = nn.Embedding(args.max_len,args.hidden_size)
+        self.wpe = nn.Embedding(args.max_gen,args.hidden_size)
         self.args = args
         self.max_length = args.max_length
         self.max_gen = args.max_gen
