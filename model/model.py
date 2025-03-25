@@ -155,7 +155,7 @@ class ExpertTransformer(nn.Module):
 
         self.dropout = nn.Dropout(args.dropout)
         
-        self.ve = ResNet50()
+        self.visual_extractor = ResNet50()
         self.fuser = ImageKeywordFuser(args)
         self.mlp_classifier = Classifier(args)
         self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args) for _ in range(args.num_layers)])
