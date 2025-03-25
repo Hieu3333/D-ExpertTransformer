@@ -61,7 +61,7 @@ model = ExpertTransformer(args, tokenizer, keywords)
 # Define device
 device = args.device
 model.to(device)
-# model = torch.compile(model)
+model = torch.compile(model)
 
 optimizer = optim.AdamW(model.parameters(), lr=args.lr)
 
@@ -94,7 +94,7 @@ for epoch in range(num_epochs):
         image_ids, images, desc_tokens, target_tokens, one_hot = batch
         images, desc_tokens, target_tokens, one_hot = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device)
         
-        with autocast():  # Enable mixed precision
+        with torch.amp.autocast(device_type="cuda"):  # Enable mixed precision
             outputs, loss, loss_ce = model(images, desc_tokens, target_tokens, one_hot)
             loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
@@ -131,7 +131,7 @@ for epoch in range(num_epochs):
             
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
-            with autocast():
+            with torch.amp.autocast(device_type="cuda"):
                 generated_captions = model.generate(images)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
