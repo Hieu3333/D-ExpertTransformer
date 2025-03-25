@@ -1,3 +1,4 @@
+CUDA_LAUNCH_BLOCKING=1 \
 python train.py \
   --epochs 30 \
   --lr_ed 2e-4 \
