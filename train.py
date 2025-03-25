@@ -94,7 +94,6 @@ best_avg_bleu = 0
 logger.info(args)
 
 
-scaler = torch.cuda.amp.GradScaler()
 for epoch in range(num_epochs):
     if num_epoch_not_improved == args.early_stopping:
         break
@@ -108,16 +107,14 @@ for epoch in range(num_epochs):
         image_ids, images, desc_tokens, target_tokens, one_hot = batch
         images, desc_tokens, target_tokens, one_hot = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device)
 
-        with torch.cuda.amp.autocast():
-            outputs, loss, loss_ce, loss_bce = model(images, desc_tokens, target_tokens, one_hot)
-            loss = loss / args.accum_steps  # Normalize for gradient accumulation
+        outputs, loss, loss_ce, loss_bce = model(images, desc_tokens, target_tokens, one_hot)
+        loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
-        scaler.scale(loss).backward()  # Backprop with scaled loss
+        loss.backward()
 
         # Gradient accumulation step
         if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-            scaler.step(optimizer)  # Update weights with scaled gradients
-            scaler.update()  # Adjust scale factor
+            optimizer.step()
             optimizer.zero_grad()  # Zero gradients after step
 
         running_loss += loss.item()
