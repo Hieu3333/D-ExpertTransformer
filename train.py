@@ -123,8 +123,8 @@ for epoch in range(num_epochs):
             # print("target_tokens:",target_tokens.shape)
             
             # Generate captions for the whole batch
-            generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
-            
+            # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
+            generated_captions = model.generate(images) 
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
@@ -151,7 +151,8 @@ for epoch in range(num_epochs):
             image_ids, images, desc_tokens, target_tokens, one_hot = batch
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
-            generated_captions = model.generate(images,beam_width=args.beam_width)
+            # generated_captions = model.generate(images,beam_width=args.beam_width)
+            generated_captions = model.generate(images) 
 
         for i,image_id in enumerate(image_ids):
             groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)
