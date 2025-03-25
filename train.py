@@ -49,7 +49,7 @@ device = args.device
 model.to(device)
 # model = torch.compile(model)
 
-optimizer = optim.Adam(model.parameters(), lr=args.lr)
+optimizer = optim.AdamW(model.parameters(), lr=args.lr,weight_decay=args.weight_decay)
 
 # Training parameters
 num_epochs = args.epochs
