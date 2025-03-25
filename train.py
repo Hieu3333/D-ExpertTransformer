@@ -95,7 +95,7 @@ for epoch in range(num_epochs):
         loss = loss / args.accum_steps
         loss.backward()
         
-        if batch_idx%args.accum_steps == 0:
+        if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
             optimizer.step()
             optimizer.zero_grad()
         
@@ -105,10 +105,7 @@ for epoch in range(num_epochs):
             avg_loss = running_loss / log_interval
             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
             running_loss = 0.0
-        
-        if (batch_idx + 1) % args.accum_steps != 0:
-            optimizer.step()
-            optimizer.zero_grad()
+    
 
     torch.save(model.state_dict(), os.path.join(save_path, f"model_epoch_{epoch+1}.pth"))
 
