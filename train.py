@@ -107,7 +107,7 @@ for epoch in range(num_epochs):
         image_ids, images, desc_tokens, target_tokens, one_hot = batch
         images, desc_tokens, target_tokens, one_hot = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device)
 
-        outputs, loss, loss_ce, loss_bce = model(images, desc_tokens, target_tokens, one_hot)
+        outputs, loss, loss_ce = model(images, desc_tokens, target_tokens, one_hot)
         loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
         loss.backward()
