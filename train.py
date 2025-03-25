@@ -95,7 +95,7 @@ for epoch in range(num_epochs):
         images, desc_tokens, target_tokens, one_hot = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device)
         
         with autocast():  # Enable mixed precision
-            outputs, loss, loss_ce, loss_bce = model(images, desc_tokens, target_tokens, one_hot)
+            outputs, loss, loss_ce = model(images, desc_tokens, target_tokens, one_hot)
             loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
         scaler.scale(loss).backward()  # Scale loss for stability
