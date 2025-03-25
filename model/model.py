@@ -176,7 +176,7 @@ class ExpertTransformer(nn.Module):
         B,T = tokens.shape
         device = tokens.device
 
-        visual_features = self.ve(images) #(B,N,encoder_size)
+        visual_features = self.visual_extractor(images) #(B,N,encoder_size)
         probs = self.mlp_classifier(visual_features)
         probs = probs.mean(dim=1)
         keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
