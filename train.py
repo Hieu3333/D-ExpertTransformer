@@ -47,6 +47,7 @@ model = ExpertTransformer(args, tokenizer, keywords)
 # Define device
 device = args.device
 model.to(device)
+model = torch.compile(model)
 
 optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
