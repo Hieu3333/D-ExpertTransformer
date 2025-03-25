@@ -13,7 +13,7 @@ python train.py \
   --vocab_size 3500 \
   --threshold 0.5 \
   --num_layers 2 \
-  --delta1 0.1 \
+  --delta1 1 \
   --delta2 0.3 \
   --dropout 0.2 \
   --beam_width 1 \
