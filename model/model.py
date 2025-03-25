@@ -102,13 +102,17 @@ class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
         self.attn = MultiHeadedCrossAttention(args)
-        self.ln1 = nn.LayerNorm(args.hidden_size)
+        self.ln_enc = nn.LayerNorm(args.hidden_size)
+        self.ln_dec = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
         x = x + self.ln1(self.attn(visual_features,x))
         x = x + self.ln2(self.mlp(x))
+
+        x = x + self.attn(self.ln_enc(visual_features),self.ln_dec(x))
+        x = x + self.mlp(self.ln2(x))
         return x
     
 class Classifier(nn.Module):
@@ -133,15 +137,17 @@ class ContextualTransformerDecoderLayer(nn.Module):
         super(ContextualTransformerDecoderLayer,self).__init__()
         self.decoder_attn = MultiHeadedAttention(args)
         self.ln1 = nn.LayerNorm(args.hidden_size)
-        self.ln2 = nn.LayerNorm(args.hidden_size)
+        self.ln_enc = nn.LayerNorm(args.hidden_size)
+        self.ln_dec = nn.LayerNorm(args.hidden_size)
         self.ln3 = nn.LayerNorm(args.hidden_size)
         self.encoder_decoder = MultiHeadedAttention(args)
         self.mlp = MLP(args)
 
-    def forward(self,encoder_feature,x):
-        x = self.ln1(self.decoder_attn(x,x))
-        x = self.ln2(self.encoder_decoder(encoder_feature,x))
-        x = x + self.ln3(self.mlp(x))      
+    def forward(self,encoder_feature,x): 
+
+        x = self.decoder_attn(self.ln1(x),self.ln1(x))
+        x = self.encoder_decoder(self.ln_enc(encoder_feature),self.ln_dec(x))
+        x = x+ self.mlp(self.ln3(x))
         return x
     
 
