@@ -209,7 +209,7 @@ for epoch in range(current_epoch-1,num_epochs):
     
     if avg_test_metric > best_avg_test:
         best_avg_test = avg_test_metric
-        num_epoch_not_improved = 0
+        
         torch.save({
             'epoch': epoch + 1,  # Save current epoch
             'model': model.state_dict(),  # Save model weights
@@ -220,6 +220,7 @@ for epoch in range(current_epoch-1,num_epochs):
         best_avg_val = avg_eval_metric
         best_epoch = epoch+1
         logger.info(f"Best epoch: {epoch+1}")
+        num_epoch_not_improved = 0
     else:
         num_epoch_not_improved+=1 
         
