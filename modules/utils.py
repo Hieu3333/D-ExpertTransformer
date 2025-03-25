@@ -18,7 +18,7 @@ def parser_arg():
     parser.add_argument('--decoder_size',type=int, required=True)
     parser.add_argument('--num_head',type=int, required=True)
     parser.add_argument('--keyword_vocab_size',type=int, required=True)
-    parser.add_argument('--num_workers',type=int, default=8)
+    # parser.add_argument('--num_workers',type=int, default=8)
     parser.add_argument('--log_interval',type=int, default=500)
     parser.add_argument('--save_path',type=str, required=True)
     parser.add_argument('--image_path',type=str, required=True)
