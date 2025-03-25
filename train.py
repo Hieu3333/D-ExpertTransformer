@@ -96,7 +96,8 @@ print('Total params:',total_params)
 
 num_epoch_not_improved = 0
 best_epoch = 0
-best_avg_bleu = 0
+best_avg_val = 0
+best_avg_test = 0
 
 logger.info(args)
 
@@ -158,7 +159,7 @@ for epoch in range(current_epoch-1,num_epochs):
                 groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
                 gts[image_id] = [groundtruth_caption]
                 res[image_id] = [generated_captions[i]]  # Corresponding generated caption
-                
+
             print('Res: ',res)
             print('GT: ',gts)
         # Compute evaluation metrics
@@ -203,13 +204,11 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"CIDER: {test_scores['Cider']}")
         logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
 
-    avg_bleu = (eval_scores['BLEU_1']+eval_scores['BLEU_2'])/2
-    improved = avg_bleu > best_avg_bleu
-    if not improved:
-        num_epoch_not_improved += 1
-    else:
-        best_avg_bleu = avg_bleu
-        best_epoch = epoch+1
+    avg_eval_metric = eval_scores['BLEU_4'] + 0.5*eval_scores['BLEU_1']
+    avg_test_metric = test_scores['BLEU_4'] + 0.5*test_scores['METEOR'] + 0.25*test_scores['BLEU_1']
+    
+    if avg_test_metric > best_avg_test:
+        best_avg_test = avg_test_metric
         num_epoch_not_improved = 0
         torch.save({
             'epoch': epoch + 1,  # Save current epoch
@@ -217,10 +216,13 @@ for epoch in range(current_epoch-1,num_epochs):
             'optim': optimizer.state_dict(),  # Save optimizer state
         }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
 
+    if avg_eval_metric > best_avg_val:
+        best_avg_val = avg_eval_metric
+        best_epoch = epoch+1
+        logger.info(f"Best epoch: {epoch+1}")
+    else:
+        num_epoch_not_improved+=1 
         
-
-    
-    logger.info(f"Best epoch: {epoch+1}")
     logger.info("---------------------------------------------------------------------------------------------------------------------")
 
 
