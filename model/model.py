@@ -116,6 +116,7 @@ class Classifier(nn.Module):
         self.c_fc = nn.Linear(args.encoder_size,args.encoder_size,bias=args.bias)
         self.GELU = nn.GELU()
         self.c_proj = nn.Linear(args.encoder_size,args.keyword_vocab_size,bias=args.bias)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self,x):
         logits = self.c_proj(self.GELU(self.c_fc(x)))
