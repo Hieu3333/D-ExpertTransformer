@@ -78,7 +78,7 @@ class MultiHeadedAttention(nn.Module):
         
         assert q.shape[-1] == k.shape[-1]
         att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
-        att = att.masked_fill(self.bias[:,:,:T,:N]==0,float('-inf'))
+        att = att.masked_fill(self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, float('-inf'))
         att = F.softmax(att,dim=-1)
         out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
