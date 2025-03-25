@@ -205,14 +205,14 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.permute(0, 2, 1), targets, ignore_index=-1)
-            # loss_bce = self.bce_loss(probs,target_keywords)
+            loss_bce = self.bce_loss(probs,target_keywords)
             # loss = self.delta1*loss_ce + self.delta2*loss_bce
             loss = loss_ce #Only cross-entropy
         else:
             loss = None
-            # loss_bce = None
+            loss_bce = None
             loss_ce = None
-        return logits, loss, loss_ce
+        return logits, loss, loss_ce, loss_bce
     @torch.no_grad()
     def generate(self, images, temperature=1.0, beam_width=3, top_k=None):
         device = self.device
