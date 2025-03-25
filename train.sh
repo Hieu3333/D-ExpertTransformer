@@ -1,9 +1,9 @@
 python train.py \
 --epochs 10 \
---lr 2e-4 \
+--lr 4e-4 \
 --weight_decay 1e-3 \
 --save_path "results" \
---batch_size 128 \
+--batch_size 256 \
 --accum_steps 1 \
 --early_stopping 10 \
 --max_length 50 \
@@ -18,7 +18,7 @@ python train.py \
 --encoder_size 2048 \
 --decoder_size 1024 \
 --num_head 8 \
---num_workers 16 \
+--num_workers 32 \
 --keyword_vocab_size 598 \
 --image_path "/data/eyenet0420" \
 --ann_path "data" \
