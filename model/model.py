@@ -151,6 +151,7 @@ class ExpertTransformer(nn.Module):
         self.We = nn.Embedding(args.vocab_size,args.hidden_size)
         self.wpe = nn.Embedding(args.max_length,args.hidden_size)
         self.max_length = args.max_length
+        self.max_gen = args.max_gen
         self.threshold = args.threshold
         self.num_layers = args.num_layers
         self.tokenizer = tokenizer
@@ -231,7 +232,7 @@ class ExpertTransformer(nn.Module):
         # Track finished sequences
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
 
-        for t in range(1, self.max_length):
+        for t in range(1, self.max_gen):
             # Get logits for current sequences
             logits, _, _ = self(images, sequences)  # (batch_size, seq_len, vocab_size)
             logits = logits[:, -1, :] / temperature  # Get last token logits
