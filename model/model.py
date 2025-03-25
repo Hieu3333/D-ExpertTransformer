@@ -205,7 +205,8 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_bce = self.bce_loss(probs,target_keywords)
-            loss = self.delta1*loss_ce + self.delta2*loss_bce
+            # loss = self.delta1*loss_ce + self.delta2*loss_bce
+            loss = loss_ce #Only cross-entropy
         else:
             loss = None
             loss_bce = None
