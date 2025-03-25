@@ -1,12 +1,12 @@
 python train.py \
---epochs 30 \
+--epochs 10 \
 --lr 1e-4 \
 --weight_decay 1e-3 \
 --save_path "results" \
 --batch_size 64 \
 --accum_steps 1 \
 --early_stopping 10 \
---max_length 10 \
+--max_length 50 \
 --hidden_size 1024 \
 --vocab_size 3500 \
 --threshold 0.5 \
