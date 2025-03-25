@@ -48,7 +48,7 @@ model = ExpertTransformer(args, tokenizer, keywords)
 device = args.device
 model.to(device)
 
-optimizer = optim.Adam(model.parameters(), lr=args.lr)
+optimizer = optim.AdamW(model.parameters(), lr=args.lr)
 
 # Training parameters
 num_epochs = args.epochs
@@ -81,13 +81,11 @@ for epoch in range(num_epochs):
         loss = loss / args.accum_steps
         loss.backward()
         
-        if batch_idx%args.accum_steps == 0:
-            optimizer.step()
-            optimizer.zero_grad()
+        
         
         running_loss += loss.item()
         
-        if (batch_idx + 1) % log_interval == 0 or batch_idx == 1:
+        if (batch_idx + 1) % log_interval == 0 or batch_idx+1 == 1 or (batch_idx+1==len(train_dataloader)):
             avg_loss = running_loss / log_interval
             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
             running_loss = 0.0
