@@ -19,11 +19,11 @@ class MultiHeadedCrossAttention(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
         assert self.hidden_size % self.num_heads == 0
 
-        self.q_proj = nn.Linear(self.decoder_size,self.hidden_size)
-        self.k_proj = nn.Linear(self.encoder_size, self.hidden_size)
-        self.v_proj = nn.Linear(self.encoder_size,self.hidden_size)
+        self.q_proj = nn.Linear(self.decoder_size,self.hidden_size,bias=args.bias)
+        self.k_proj = nn.Linear(self.encoder_size, self.hidden_size,bias=args.bias)
+        self.v_proj = nn.Linear(self.encoder_size,self.hidden_size,bias=args.bias)
 
-        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size)
+        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
     
     def forward(self,encoder_feature,decoder_feature):
         B,N,_ = encoder_feature.shape
@@ -56,11 +56,11 @@ class MultiHeadedAttention(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
         assert self.hidden_size % self.num_heads == 0
 
-        self.q_proj = nn.Linear(self.hidden_size,self.hidden_size)
-        self.k_proj = nn.Linear(self.hidden_size, self.hidden_size)
-        self.v_proj = nn.Linear(self.hidden_size,self.hidden_size)
+        self.q_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
+        self.k_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
+        self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
 
-        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size)
+        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
         self.register_buffer('bias',torch.tril(torch.ones(args.max_length,args.max_length).view(1,1,args.max_length,args.max_length))) 
 
     def forward(self,encoder_feature,x):
@@ -89,9 +89,9 @@ class MultiHeadedAttention(nn.Module):
 class MLP(nn.Module):
     def __init__(self,args):
         super(MLP,self).__init__()
-        self.c_fc = nn.Linear(args.hidden_size,4*args.hidden_size)
+        self.c_fc = nn.Linear(args.hidden_size,4*args.hidden_size,bias=args.bias)
         self.gelu = nn.GELU()
-        self.c_proj = nn.Linear(args.hidden_size*4,args.hidden_size)
+        self.c_proj = nn.Linear(args.hidden_size*4,args.hidden_size,bias=args.bias)
         self.dropout = nn.Dropout(args.dropout)
     
     def forward(self,x):
@@ -113,9 +113,9 @@ class ImageKeywordFuser(nn.Module):
 class Classifier(nn.Module):
     def __init__(self,args):
         super(Classifier,self).__init__()
-        self.c_fc = nn.Linear(args.encoder_size,args.encoder_size)
+        self.c_fc = nn.Linear(args.encoder_size,args.encoder_size,bias=args.bias)
         self.GELU = nn.GELU()
-        self.c_proj = nn.Linear(args.encoder_size,args.keyword_vocab_size)
+        self.c_proj = nn.Linear(args.encoder_size,args.keyword_vocab_size,bias=args.bias)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self,x):

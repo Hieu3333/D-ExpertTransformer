@@ -5,6 +5,7 @@ python train.py \
 --save_path "results" \
 --batch_size 64 \
 --accum_steps 1 \
+--bias \
 --early_stopping 10 \
 --max_length 50 \
 --hidden_size 1024 \

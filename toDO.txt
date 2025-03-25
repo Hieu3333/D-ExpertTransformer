@@ -1,7 +1,7 @@
 1. Add causal mask for attention 
 2. Add weight tying ???????
 3. Use beam search
-
+4. Use V100 to train, it is much faster than P100
 
 Ways to get better:
 -Clean report
