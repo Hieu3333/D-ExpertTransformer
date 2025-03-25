@@ -19,7 +19,7 @@ def set_seed(seed=42):
     torch.cuda.manual_seed(seed)  # For CUDA
     torch.cuda.manual_seed_all(seed)  # For multi-GPU
     torch.backends.cudnn.deterministic = True  # Ensures deterministic behavior
-    torch.backends.cudnn.benchmark = True  
+    torch.backends.cudnn.benchmark = False  
 
 # Set the seed before training
 set_seed(42)

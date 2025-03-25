@@ -1,0 +1,26 @@
+python train.py \
+  --epochs 10 \
+  --lr 1e-4 \
+  --weight_decay 1e-3 \
+  --save_path "results" \
+  --batch_size 8 \
+  --accum_steps 8 \
+  --bias \
+  --early_stopping 10 \
+  --max_length 50 \
+  --hidden_size 1024 \
+  --vocab_size 3500 \
+  --threshold 0.5 \
+  --num_layers 2 \
+  --delta1 0.1 \
+  --delta2 0.3 \
+  --dropout 0.2 \
+  --beam_width 1 \
+  --encoder_size 2048 \
+  --decoder_size 1024 \
+  --num_head 8 \
+  --num_workers 8 \
+  --keyword_vocab_size 598 \
+  --image_path "/data/eyenet0420" \
+  --ann_path "data" \
+  --project_root "/mnt/c/D-ExpertTransformer"
