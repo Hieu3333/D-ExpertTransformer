@@ -101,7 +101,7 @@ for epoch in range(num_epochs):
         
         running_loss += loss.item()
         
-        if (batch_idx + 1) % log_interval == 0 or batch_idx == 1:
+        if (batch_idx + 1) % log_interval == 0 or batch_idx == 0 or (batch_idx+1== len(train_dataloader)) :
             avg_loss = running_loss / log_interval
             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
             running_loss = 0.0
