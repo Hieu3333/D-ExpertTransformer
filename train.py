@@ -13,13 +13,20 @@ import numpy as np
 
 
 def set_seed(seed=42):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)  # For CUDA
-    torch.cuda.manual_seed_all(seed)  # For multi-GPU
-    torch.backends.cudnn.deterministic = True  # Ensures deterministic behavior
+    random.seed(seed)  
+    np.random.seed(seed)  
+    torch.manual_seed(seed)  
+    torch.cuda.manual_seed(seed)  
+    torch.cuda.manual_seed_all(seed)  
+
+    # Ensure deterministic behavior
+    torch.backends.cudnn.deterministic = True  
     torch.backends.cudnn.benchmark = False  
+
+    # Extra safety: Ensure deterministic behavior for NumPy and PyTorch operations
+    torch.use_deterministic_algorithms(True)  # Enforces full determinism in PyTorch >=1.8
+    os.environ["PYTHONHASHSEED"] = str(seed)  # Ensures reproducibility for Python hash-based operations
+
 
 # Set the seed before training
 set_seed(42)
