@@ -158,7 +158,9 @@ for epoch in range(current_epoch-1,num_epochs):
                 groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
                 gts[image_id] = [groundtruth_caption]
                 res[image_id] = [generated_captions[i]]  # Corresponding generated caption
-        
+                
+            print('Res: ',res)
+            print('GT: ',gts)
         # Compute evaluation metrics
         eval_scores = compute_scores(gts, res)
         logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
@@ -187,6 +189,9 @@ for epoch in range(current_epoch-1,num_epochs):
             groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)
             gts[image_id] = [groundtruth_caption]
             res[image_id] = [generated_captions[i]]
+
+        print('Res: ',res)
+        print('GT: ',gts)
         
         test_scores = compute_scores(gts,res)
         logger.info(f"Epoch {epoch + 1} - Test scores:")
@@ -202,9 +207,9 @@ for epoch in range(current_epoch-1,num_epochs):
     improved = avg_bleu > best_avg_bleu
     if not improved:
         num_epoch_not_improved += 1
+    else:
         best_avg_bleu = avg_bleu
         best_epoch = epoch+1
-    else:
         num_epoch_not_improved = 0
         torch.save({
             'epoch': epoch + 1,  # Save current epoch

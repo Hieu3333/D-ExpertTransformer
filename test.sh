@@ -1,6 +1,6 @@
 python train.py \
   --epochs 30 \
-  --lr_ed 1e-4 \
+  --lr_ed 2e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-3 \
   --save_path "results" \
