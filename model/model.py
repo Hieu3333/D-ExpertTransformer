@@ -162,7 +162,7 @@ class ExpertTransformer(nn.Module):
         self.mlp_classifier = Classifier(args)
         self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args) for _ in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
-        # self.bce_loss = nn.BCEWithLogitsLoss()
+        self.bce_loss = nn.BCELoss()
         self.keywords = keywords
         self.device = args.device
 
@@ -207,8 +207,8 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.permute(0, 2, 1), targets, ignore_index=-1)
-            # loss_bce = self.bce_loss(classifier_logits,target_keywords)
-            loss = loss_ce
+            loss_bce = self.bce_loss(probs,target_keywords)
+            loss = self.delta1*loss_ce + self.delta2*loss_bce
         else:
             loss = None
             loss_ce = None
