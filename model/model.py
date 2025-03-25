@@ -102,7 +102,7 @@ class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
         self.attn = MultiHeadedCrossAttention(args)
-        self.ln_enc = nn.LayerNorm(args.hidden_size)
+        self.ln_enc = nn.LayerNorm(args.encoder_size)
         self.ln_dec = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
         self.ln2 = nn.LayerNorm(args.hidden_size)
@@ -141,8 +141,8 @@ class ContextualTransformerDecoderLayer(nn.Module):
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
-
-        x = self.decoder_attn(self.ln1(x),self.ln1(x))
+        x = self.ln1(x)
+        x = self.decoder_attn(x,x)
         x = self.encoder_decoder(self.ln_enc(encoder_feature),self.ln_dec(x))
         x = x+ self.mlp(self.ln3(x))
         return x
@@ -196,7 +196,8 @@ class ExpertTransformer(nn.Module):
         # print('keyword_tokens max:', keyword_tokens.max().item())
         # print('vocab_size:', self.We.num_embeddings)
 
-        keyword_emb = self.We(keyword_tokens)
+        keyword_emb = self.We(keyword_tokens) #B,max_len,hidden_size
+
         encoder_features = self.fuser(visual_features,keyword_emb)
         pos = torch.arange(0,T,dtype=torch.long,device=device)
         tok_emb = self.We(tokens)
