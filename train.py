@@ -90,7 +90,7 @@ for epoch in range(num_epochs):
             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
             running_loss = 0.0
         
-        if (batch_idx + 1) % args.accum_steps != 0:
+        if (batch_idx + 1) % args.accum_steps == 0:
             optimizer.step()
             optimizer.zero_grad()
 
