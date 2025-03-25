@@ -108,9 +108,6 @@ class ImageKeywordFuser(nn.Module):
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
-        x = x + self.ln1(self.attn(visual_features,x))
-        x = x + self.ln2(self.mlp(x))
-
         x = x + self.attn(self.ln_enc(visual_features),self.ln_dec(x))
         x = x + self.mlp(self.ln2(x))
         return x
