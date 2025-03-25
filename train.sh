@@ -18,6 +18,7 @@ python train.py \
 --encoder_size 2048 \
 --decoder_size 1024 \
 --num_head 8 \
+--num_workers 8 \
 --keyword_vocab_size 598 \
 --image_path "/data/eyenet0420" \
 --ann_path "data" \

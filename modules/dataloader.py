@@ -7,6 +7,7 @@ class DENDataLoader(DataLoader):
         self.args = args
         self.batch_size = args.batch_size
         self.shuffle = shuffle
+        self.num_workers = args.num_workers
         self.tokenizer = tokenizer
         self.split = split
         self.drop_last = True if split == 'train' else False
@@ -59,5 +60,6 @@ class DENDataLoader(DataLoader):
             dataset=self.dataset,
             batch_size=self.batch_size,
             shuffle=self.shuffle,
+            num_workers = self.num_workers,
             drop_last=self.drop_last
         )
