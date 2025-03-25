@@ -8,7 +8,20 @@ import os
 from modules.utils import parser_arg, load_all_keywords
 import torch.optim as optim
 import logging
+import random
+import numpy as np
 
+def set_seed(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)  # For CUDA
+    torch.cuda.manual_seed_all(seed)  # For multi-GPU
+    torch.backends.cudnn.deterministic = True  # Ensures deterministic behavior
+    torch.backends.cudnn.benchmark = False  # Disables auto-optimization for reproducibility
+
+# Set the seed before training
+set_seed(42)
 # Configure logger
 logger = logging.getLogger("TrainingLogger")
 logger.setLevel(logging.INFO)  # Change to DEBUG for more details
