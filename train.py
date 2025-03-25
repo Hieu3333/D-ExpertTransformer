@@ -22,6 +22,8 @@ def set_seed(seed=42):
     # Ensure deterministic behavior
     torch.backends.cudnn.deterministic = True  
     torch.backends.cudnn.benchmark = False  
+    np.random.seed(seed)
+    random.seed(seed)
 
     # # Extra safety: Ensure deterministic behavior for NumPy and PyTorch operations
     # torch.use_deterministic_algorithms(True)  # Enforces full determinism in PyTorch >=1.8
@@ -69,8 +71,13 @@ model = ExpertTransformer(args, tokenizer, keywords)
 device = args.device
 model.to(device)
 # model = torch.compile(model)
-
-optimizer = optim.AdamW(model.parameters(), lr=args.lr)
+ve_params = list(map(id, model.visual_extractor.parameters()))
+ed_params = filter(lambda x: id(x) not in ve_params, model.parameters())
+optimizer =torch.optim.AdamW(
+            [{'params': model.visual_extractor.parameters(), 'lr': args.lr_ve},
+             {'params': ed_params, 'lr': args.lr_ed}],
+            weight_decay=args.weight_decay
+        )
 
 # Training parameters
 num_epochs = args.epochs

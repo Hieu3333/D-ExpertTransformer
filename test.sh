@@ -1,6 +1,7 @@
 python train.py \
   --epochs 10 \
-  --lr 1e-4 \
+  --lr_ed 1e-4 \
+  --lr_ve 1e-5 \
   --weight_decay 1e-3 \
   --save_path "results" \
   --batch_size 64 \
