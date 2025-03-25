@@ -3,8 +3,8 @@ python train.py \
   --lr 1e-4 \
   --weight_decay 1e-3 \
   --save_path "results" \
-  --batch_size 8 \
-  --accum_steps 8 \
+  --batch_size 64 \
+  --accum_steps 1 \
   --bias \
   --early_stopping 10 \
   --max_length 50 \
