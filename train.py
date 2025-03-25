@@ -66,11 +66,6 @@ test_dataloader = DENDataLoader(args,tokenizer,keywords,split='test',shuffle=Fal
 # Initialize model
 model = ExpertTransformer(args, tokenizer, keywords)
 
-
-# Define device
-device = args.device
-model.to(device)
-model = torch.compile(model)
 ve_params = list(map(id, model.visual_extractor.parameters()))
 ed_params = filter(lambda x: id(x) not in ve_params, model.parameters())
 optimizer =torch.optim.AdamW(
@@ -78,6 +73,18 @@ optimizer =torch.optim.AdamW(
              {'params': ed_params, 'lr': args.lr_ed}],
             weight_decay=args.weight_decay
         )
+if args.from_pretrained is not None:
+    checkpoint = os.path.join(args.project_root,args.from_pretrained)
+    model.load_state_dict(checkpoint['model'])
+    optimizer.load_state_dict(checkpoint['optim'])
+    current_epoch = checkpoint['epoch']
+else:
+    current_epoch = 1
+
+# Define device
+device = args.device
+model.to(device)
+model = torch.compile(model)
 
 # Training parameters
 num_epochs = args.epochs
@@ -94,7 +101,8 @@ best_avg_bleu = 0
 logger.info(args)
 
 
-for epoch in range(num_epochs):
+
+for epoch in range(current_epoch-1,num_epochs):
     if num_epoch_not_improved == args.early_stopping:
         break
 
@@ -126,7 +134,8 @@ for epoch in range(num_epochs):
             running_loss = 0.0  # Reset running loss
     
 
-    torch.save(model.state_dict(), os.path.join(save_path, f"model_epoch_{epoch+1}.pth"))
+    
+
 
     #Evaluation
     model.eval()
@@ -197,6 +206,15 @@ for epoch in range(num_epochs):
         best_epoch = epoch+1
     else:
         num_epoch_not_improved = 0
+        torch.save({
+            'epoch': epoch + 1,  # Save current epoch
+            'model': model.state_dict(),  # Save model weights
+            'optim': optimizer.state_dict(),  # Save optimizer state
+        }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+
+        
+
+    
     logger.info(f"Best epoch: {epoch+1}")
     logger.info("---------------------------------------------------------------------------------------------------------------------")
 

@@ -32,6 +32,7 @@ def parser_arg():
     parser.add_argument('--accum_steps',type=int,required=True)
     parser.add_argument('--early_stopping',type=int,default=10)
     parser.add_argument('--project_root',type=str,required=True)
+    parser.add_argument('--from_pretrained',type=str,default=None)
     args, unparsed = parser.parse_known_args()
     return args
     
