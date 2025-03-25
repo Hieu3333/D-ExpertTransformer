@@ -78,7 +78,7 @@ class MultiHeadedAttention(nn.Module):
         
         assert q.shape[-1] == k.shape[-1]
         att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
-        print('att:',att.shape)
+        # print('att:',att.shape)
         att = att.masked_fill(self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, float('-inf'))
         att = F.softmax(att,dim=-1)
         out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
@@ -154,6 +154,7 @@ class ExpertTransformer(nn.Module):
         super(ExpertTransformer,self).__init__()
         self.We = nn.Embedding(args.vocab_size,args.hidden_size)
         self.wpe = nn.Embedding(args.max_length,args.hidden_size)
+        self.args = args
         self.max_length = args.max_length
         self.max_gen = args.max_gen
         self.threshold = args.threshold
@@ -236,9 +237,10 @@ class ExpertTransformer(nn.Module):
 
         # Track finished sequences
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
-
+        self.max_length = self.max_gen
         for t in range(1, self.max_gen):
             # Get logits for current sequences
+            
             logits, _, _ = self(images, sequences)  # (batch_size, seq_len, vocab_size)
             logits = logits[:, -1, :] / temperature  # Get last token logits
 
@@ -254,7 +256,7 @@ class ExpertTransformer(nn.Module):
             # Stop early if all sequences are done
             if finished.all():
                 break
-
+        self.max_length = self.args.max_length
         # Decode sequences
         final_sequences = []
         for seq in sequences.tolist():
