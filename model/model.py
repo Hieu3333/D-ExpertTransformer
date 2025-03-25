@@ -230,7 +230,7 @@ class ExpertTransformer(nn.Module):
 
         for t in range(1, self.max_length):
             # Get logits for all sequences in the batch
-            logits, _, _, _ = self(images, seqs)  # Shape: (batch_size, seq_len, vocab_size)
+            logits, _, _ = self(images, seqs)  # Shape: (batch_size, seq_len, vocab_size)
             logits = logits[:, -1, :] / temperature  # Get the last token logits (batch_size, vocab_size)
 
             # Apply top-k filtering if specified
