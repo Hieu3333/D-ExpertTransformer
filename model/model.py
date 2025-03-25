@@ -160,7 +160,7 @@ class ExpertTransformer(nn.Module):
         self.mlp_classifier = Classifier(args)
         self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args) for _ in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
-        # self.bce_loss = nn.BCELoss()
+        self.bce_loss = nn.BCELoss()
         self.keywords = keywords
         self.device = args.device
 
