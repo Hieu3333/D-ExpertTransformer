@@ -286,35 +286,38 @@ class ExpertTransformer(nn.Module):
         # Token IDs
         bos_id = self.tokenizer.token_to_id("<BOS>")
         eos_id = self.tokenizer.token_to_id("<EOS>")
-        pad_id = self.tokenizer.token_to_id("<PAD>")
+        
+        # Initialize sequences with BOS token
+        seqs = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
 
-        final_sequences = []
+        # Tracking finished sequences
+        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
 
-        for b in range(batch_size):
-            seq = torch.tensor([bos_id], device=device)  # Start with BOS token
-            for t in range(1, self.max_length):
-                # Get logits for the next token
-                logits, _, _, _ = self(images[b:b+1], seq.unsqueeze(0))  # Shape: (1, t, vocab_size)
-                logits = logits[:, -1, :] / temperature  # Get the last token logits
+        for t in range(1, self.max_length):
+            # Get logits for all sequences in the batch
+            logits, _, _, _ = self(images, seqs)  # Shape: (batch_size, seq_len, vocab_size)
+            logits = logits[:, -1, :] / temperature  # Get the last token logits (batch_size, vocab_size)
 
-                # Apply top-k filtering if specified
-                if top_k is not None:
-                    v, _ = torch.topk(logits, min(top_k, logits.shape[-1]))
-                    logits[logits < v[:, [-1]]] = -float('Inf')
+            # Apply top-k filtering if specified
+            if top_k is not None:
+                v, _ = torch.topk(logits, min(top_k, logits.shape[-1]))
+                logits[logits < v[:, [-1]]] = -float('Inf')
 
-                # Select the most probable token (greedy decoding)
-                next_token = torch.argmax(logits, dim=-1).item()
+            # Select the most probable token (greedy decoding)
+            next_tokens = torch.argmax(logits, dim=-1)  # Shape: (batch_size,)
 
-                # Append token to the sequence
-                seq = torch.cat([seq, torch.tensor([next_token], device=device)], dim=0)
+            # Stop if EOS is reached (per batch)
+            finished |= next_tokens == eos_id
 
-                # Stop if EOS is reached
-                if next_token == eos_id:
-                    break
+            # Append tokens to the sequence
+            seqs = torch.cat([seqs, next_tokens.unsqueeze(1)], dim=1)
 
-            # Convert token IDs to text
-            text = self.tokenizer.decode(seq.tolist(), skip_special_tokens=True)
-            final_sequences.append(text)
+            # If all sequences are finished, break early
+            if finished.all():
+                break
+
+        # Convert token IDs to text
+        final_sequences = [self.tokenizer.decode(seq.tolist(), skip_special_tokens=True) for seq in seqs]
 
         return final_sequences
 
