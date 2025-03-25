@@ -22,8 +22,7 @@ def set_seed(seed=42):
     # Ensure deterministic behavior
     torch.backends.cudnn.deterministic = True  
     torch.backends.cudnn.benchmark = False  
-    np.random.seed(seed)
-    random.seed(seed)
+
 
     # # Extra safety: Ensure deterministic behavior for NumPy and PyTorch operations
     # torch.use_deterministic_algorithms(True)  # Enforces full determinism in PyTorch >=1.8
@@ -31,7 +30,7 @@ def set_seed(seed=42):
 
 
 # Set the seed before training
-set_seed(42)
+set_seed(18)
 # Configure logger
 logger = logging.getLogger("TrainingLogger")
 logger.setLevel(logging.INFO)  # Change to DEBUG for more details
@@ -67,10 +66,11 @@ test_dataloader = DENDataLoader(args,tokenizer,keywords,split='test',shuffle=Fal
 # Initialize model
 model = ExpertTransformer(args, tokenizer, keywords)
 
+
 # Define device
 device = args.device
 model.to(device)
-# model = torch.compile(model)
+model = torch.compile(model)
 ve_params = list(map(id, model.visual_extractor.parameters()))
 ed_params = filter(lambda x: id(x) not in ve_params, model.parameters())
 optimizer =torch.optim.AdamW(
@@ -94,7 +94,7 @@ best_avg_bleu = 0
 logger.info(args)
 
 
-
+scaler = torch.cuda.amp.GradScaler()
 for epoch in range(num_epochs):
     if num_epoch_not_improved == args.early_stopping:
         break
@@ -103,28 +103,30 @@ for epoch in range(num_epochs):
 
     model.train()
     running_loss = 0.0
-    optimizer.zero_grad()
+
     for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
         image_ids, images, desc_tokens, target_tokens, one_hot = batch
         images, desc_tokens, target_tokens, one_hot = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device)
-        
 
-        outputs, loss, loss_ce, loss_bce = model(images, desc_tokens, target_tokens, one_hot)
-        loss = loss / args.accum_steps  # Normalize for gradient accumulation
+        with torch.cuda.amp.autocast():
+            outputs, loss, loss_ce, loss_bce = model(images, desc_tokens, target_tokens, one_hot)
+            loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
-        loss.backward()
-        
+        scaler.scale(loss).backward()  # Backprop with scaled loss
+
         # Gradient accumulation step
         if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-            optimizer.step()
-            optimizer.zero_grad()
-        
+            scaler.step(optimizer)  # Update weights with scaled gradients
+            scaler.update()  # Adjust scale factor
+            optimizer.zero_grad()  # Zero gradients after step
+
         running_loss += loss.item()
         
+        # Logging
         if (batch_idx + 1) % log_interval == 0 or batch_idx == 0 or (batch_idx+1== len(train_dataloader)) :
             avg_loss = running_loss / log_interval
             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
-            running_loss = 0.0
+            running_loss = 0.0  # Reset running loss
     
 
     torch.save(model.state_dict(), os.path.join(save_path, f"model_epoch_{epoch+1}.pth"))
@@ -143,8 +145,8 @@ for epoch in range(num_epochs):
             
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
-
-            generated_captions = model.generate(images)
+            with torch.cuda.amp.autocast():
+                generated_captions = model.generate(images)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
@@ -172,8 +174,8 @@ for epoch in range(num_epochs):
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
-
-            generated_captions = model.generate(images) 
+            with torch.cuda.amp.autocast():
+                generated_captions = model.generate(images) 
 
         for i,image_id in enumerate(image_ids):
             groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)

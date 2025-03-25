@@ -116,10 +116,11 @@ class Classifier(nn.Module):
         self.c_fc = nn.Linear(args.encoder_size,args.encoder_size,bias=args.bias)
         self.GELU = nn.GELU()
         self.c_proj = nn.Linear(args.encoder_size,args.keyword_vocab_size,bias=args.bias)
-        self.sigmoid = nn.Sigmoid()
 
     def forward(self,x):
-        return self.sigmoid(self.c_proj(self.GELU(self.c_fc(x))))
+        logits = self.c_proj(self.GELU(self.c_fc(x)))
+        probs = self.sigmoid(logits)
+        return probs, logits
 
 
 
@@ -160,7 +161,7 @@ class ExpertTransformer(nn.Module):
         self.mlp_classifier = Classifier(args)
         self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args) for _ in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
-        self.bce_loss = nn.BCELoss()
+        self.bce_loss = nn.BCEWithLogitsLoss()
         self.keywords = keywords
         self.device = args.device
 
@@ -177,8 +178,8 @@ class ExpertTransformer(nn.Module):
         device = tokens.device
 
         visual_features = self.visual_extractor(images) #(B,N,encoder_size)
-        probs = self.mlp_classifier(visual_features)
-        probs = probs.mean(dim=1)
+        probs, classifier_logits = self.mlp_classifier(visual_features)
+        probs = probs.mean(dim=1) #Average over N -> (B,1,encoder_size)
         keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
         keyword_tokens = self.encode_keywords(keywords_list,self.tokenizer)
         
@@ -205,9 +206,9 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.permute(0, 2, 1), targets, ignore_index=-1)
-            loss_bce = self.bce_loss(probs,target_keywords)
+            loss_bce = self.bce_loss(classifier_logits,target_keywords)
             # loss = self.delta1*loss_ce + self.delta2*loss_bce
-            loss = loss_ce #Only cross-entropy
+            loss = loss_ce + loss_bce#Only cross-entropy
         else:
             loss = None
             loss_bce = None
