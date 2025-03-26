@@ -268,7 +268,7 @@ class ExpertTransformer(nn.Module):
         self.tokenizer = tokenizer
         self.delta1 = args.delta1
         self.delta2 = args.delta2
-        self.topk = args.top_k
+        self.topk = args.topk
 
         self.dropout = nn.Dropout(args.dropout)
         
@@ -352,9 +352,9 @@ class ExpertTransformer(nn.Module):
             probs = torch.softmax(logits, dim=-1)
 
             # Top-k Sampling
-            if self.top_k > 0:
-                top_k_probs, top_k_indices = torch.topk(probs, self.top_k, dim=-1)
-                best_tokens = torch.gather(top_k_indices, -1, torch.multinomial(top_k_probs, 1)).squeeze(-1)
+            if self.topk > 0:
+                topk_probs, topk_indices = torch.topk(probs, self.topk, dim=-1)
+                best_tokens = torch.gather(topk_indices, -1, torch.multinomial(topk_probs, 1)).squeeze(-1)
 
             # Append token to sequence
             sequences = torch.cat([sequences, best_tokens.unsqueeze(1)], dim=-1)
