@@ -12,7 +12,7 @@ class DeepEyeNet(Dataset):
         self.transform = transform
 
         # --- Vocabulary ---
-        self.keywords_vocab = sorted(list(keywords_list))  # set → sorted list
+        self.keywords_vocab = keywords_list  # set → sorted list
         self.keyword_to_idx = {kw: idx for idx, kw in enumerate(self.keywords_vocab)}
         self.num_keywords = len(self.keywords_vocab)
 
