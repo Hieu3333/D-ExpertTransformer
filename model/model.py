@@ -234,7 +234,6 @@ class ExpertTransformer(nn.Module):
 
         # Track finished sequences
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
-        self.max_length = self.max_gen
         for t in range(1, self.max_gen):
             # Get logits for current sequences
             
@@ -253,7 +252,7 @@ class ExpertTransformer(nn.Module):
             # Stop early if all sequences are done
             if finished.all():
                 break
-        self.max_length = self.args.max_length
+
         # Decode sequences
         final_sequences = []
         for seq in sequences.tolist():
