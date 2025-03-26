@@ -19,16 +19,15 @@ class DeepEyeNet(Dataset):
         # Set paths
         project_root = args.project_root
         ann_file = f'cleaned_DeepEyeNet_{split}.json'
-        self.ann_path = os.path.join(project_root,args.ann_path, ann_file)
+        self.ann_path = os.path.join(project_root, args.ann_path, ann_file)
         image_folder = f'{split}_set'
-        self.image_path = os.path.join(project_root,'data/eyenet0420', image_folder)
-        # print('image_path:',self.image_path)
+        self.image_path = os.path.join(project_root, 'data/eyenet0420', image_folder)
 
         # Load annotations
         with open(self.ann_path, 'r') as f:
             self.annotations = json.load(f)
 
-        # Flatten the list of dicts into list of tuples (image_path, keywords, clinical_description)
+        # Flatten the list of dicts into (image_path, keywords, clinical_description)
         self.data = []
         for entry in self.annotations:
             for img_path, content in entry.items():
@@ -36,13 +35,16 @@ class DeepEyeNet(Dataset):
                 clinical_desc = content.get('clinical-description', '')
                 self.data.append((img_path, keywords, clinical_desc))
 
+        # Define special token IDs
+        self.pad_token_id = self.tokenizer.word2idx["<PAD>"]
+
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
         img_name, keywords, clinical_desc = self.data[idx]
 
-        # --- One-hot keywords ---
+        # --- One-hot encoding for keywords ---
         one_hot = torch.zeros(self.num_keywords, dtype=torch.float32)
         keywords_list = [kw.strip() for kw in keywords.split(',') if kw.strip()]
         for kw in keywords_list:
@@ -56,33 +58,32 @@ class DeepEyeNet(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        # Tokenize clinical description
+        # --- Tokenize clinical description ---
         desc_tokens = self.tokenizer.encode(clinical_desc)
         desc_tokens = self._pad_or_truncate(desc_tokens)  # Extract token IDs
         desc_tokens = torch.tensor(desc_tokens, dtype=torch.long)
 
+        # --- Create target tokens (shift left) ---
         target_tokens = desc_tokens.clone()
         target_tokens[:-1] = desc_tokens[1:]  # Shift left
-        target_tokens[-1] = self.tokenizer.encode('<PAD>')  # Pad token at the end
+        target_tokens[-1] = self.pad_token_id  # Set last token as <PAD>
 
-        # --- Keywords with <SEP> ---
-        sep_token = "<SEP>"
-        raw_keywords = f" {sep_token} ".join(keywords_list)  # Join keywords with <SEP>
+        # --- Encode keywords with <SEP> separator ---
+        if keywords_list:
+            raw_keywords = f" <SEP> ".join(keywords_list)  # Join keywords with <SEP>
+        else:
+            raw_keywords = "<SEP>"  # Handle empty keywords case
+        
         keyword_tokens = self.tokenizer.encode(raw_keywords)
         keyword_tokens = self._pad_or_truncate(keyword_tokens)
-        keyword_tokens = torch.tensor(keyword_tokens,dtype=torch.long)
+        keyword_tokens = torch.tensor(keyword_tokens, dtype=torch.long)
 
         return image_id, image, desc_tokens, target_tokens, one_hot, keyword_tokens
 
-    def _pad_or_truncate(self, encoding):
-        """Pad or truncate tokens to the specified max_length."""
-        tokens = encoding
-        pad_token_id = self.tokenizer.encode("<PAD>")
-        
+    def _pad_or_truncate(self, tokens):
+        """Pad or truncate tokens to `max_length`."""
         if len(tokens) < self.max_length:
-            tokens += [pad_token_id] * (self.max_length - len(tokens))
+            tokens += [self.pad_token_id] * (self.max_length - len(tokens))
         else:
             tokens = tokens[:self.max_length]
-        
         return tokens
-
