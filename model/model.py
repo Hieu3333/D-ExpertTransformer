@@ -111,10 +111,10 @@ class DiffMultiHeadedCrossAttention(nn.Module):
 
         # Apply RMSNorm to each head separately
         out = torch.stack([self.rmsnorm[i](out[:, i, :, :]) for i in range(self.diff_num_heads)], dim=1)  # (B, nh, T, head_size)
-
+        out = out * (1-self.lambda_init)
         # Reshape and project output
         out = out.transpose(1, 2).contiguous().view(B, T, self.hidden_size)  # (B, T, hidden_size)
-        out = self.out_proj(out) * (1-self.lambda_init)
+        out = self.out_proj(out) 
         out = self.dropout(out)
 
         return out
@@ -220,8 +220,9 @@ class DiffMultiHeadedAttention(nn.Module):
         att = att[:,:,0] - lambda_full * att[:,:,1]
         out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = torch.stack([self.rmsnorm[i](out[:, i, :, :]) for i in range(self.diff_num_heads)], dim=1)  # (B, nh, T, head_size)
+        out = out * (1-self.lambda_init)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
-        out = self.out_proj(out) * (1-self.lambda_init)
+        out = self.out_proj(out) 
         out = self.dropout(out)
         return out
 
