@@ -49,7 +49,7 @@ class MultiHeadedCrossAttention(nn.Module):
     
 class DiffMultiHeadedCrossAttention(nn.Module):
     def __init__(self,args):
-        super(MultiHeadedCrossAttention,self).__init__()
+        super(DiffMultiHeadedCrossAttention,self).__init__()
         self.hidden_size = args.hidden_size
         self.encoder_size = args.encoder_size
         self.decoder_size = args.decoder_size
@@ -142,7 +142,7 @@ class MultiHeadedAttention(nn.Module):
 
 class DiffMultiHeadedAttention(nn.Module):
     def __init__(self,args):
-        super(MultiHeadedAttention,self).__init__()
+        super(DiffMultiHeadedAttention,self).__init__()
         self.hidden_size = args.hidden_size
         self.diff_num_heads = args.diff_num_heads
         self.diff_head_size = self.hidden_size // self.diff_num_heads
