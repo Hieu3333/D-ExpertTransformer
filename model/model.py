@@ -14,7 +14,7 @@ class MultiHeadedCrossAttention(nn.Module):
         self.hidden_size = args.hidden_size
         self.encoder_size = args.encoder_size
         self.decoder_size = args.decoder_size
-        self.num_heads = args.num_head
+        self.num_heads = args.num_heads
         self.head_size = self.hidden_size // self.num_heads
         self.dropout = nn.Dropout(args.dropout)
         assert self.hidden_size % self.num_heads == 0
@@ -47,14 +47,65 @@ class MultiHeadedCrossAttention(nn.Module):
         out = self.dropout(out)
         return out
     
+class DiffMultiHeadedCrossAttention(nn.Module):
+    def __init__(self,args):
+        super(MultiHeadedCrossAttention,self).__init__()
+        self.hidden_size = args.hidden_size
+        self.encoder_size = args.encoder_size
+        self.decoder_size = args.decoder_size
+        self.diff_num_heads = args.diff_num_heads
+        self.diff_head_size = self.hidden_size // self.diff_num_heads
+        self.lambda_init = args.lambda_init
+        self.lambda_q1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
+        self.lambda_q2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
+        self.lambda_k1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
+        self.lambda_k2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
+        self.dropout = nn.Dropout(args.dropout)
+        assert self.hidden_size % self.diff_num_heads == 0
+
+        self.q_proj = nn.Linear(self.decoder_size,self.hidden_size,bias=args.bias)
+        self.k_proj = nn.Linear(self.encoder_size, self.hidden_size,bias=args.bias)
+        self.v_proj = nn.Linear(self.encoder_size,self.hidden_size,bias=args.bias)
+
+        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
+    
+    def forward(self,encoder_feature,decoder_feature):
+        B,N,_ = encoder_feature.shape
+        B,T,_ = decoder_feature.shape #T is number of keywords
+
+        # print("decoder:",decoder_feature.shape)
+        # print("encoder:",encoder_feature.shape)
+    
+        q = self.q_proj(decoder_feature) #(B,T,C)
+        k = self.k_proj(encoder_feature) #(B,N,C)
+        v = self.v_proj(encoder_feature) #(B,N,C)
+
+        lambda1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1).float())
+        lambda2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1).float())
+        lambda_full = lambda1 - lambda2 + self.lambda_init
+
+        q = q.reshape(B,T,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,2*nh,T,diff_head_size/2)
+        k = k.reshape(B,N,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,2*nh,N,diff_head_size/2)
+        v = v.reshape(B,N,self.diff_num_heads,self.diff_head_size).transpose(1,2) #(B,nh,N,2*diff_head_size)
+        assert q.shape[-1] == k.shape[-1]
+        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,2*nh,T,N)
+        att = F.softmax(att,dim=-1)
+        att = att.reshape(B,self.diff_num_heads,2,T,-1) #(B,nh,2,T,N)
+        att = att[:,:,0] - lambda_full * att[:,:,1] #(B,nh,T,N)
+        out = torch.matmul(att,v) #(B,nh,T,N) @ (B,nh,N,head_size) -> (B,nh,T,head_size)
+        out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
+        out = self.dropout(out)
+        return out
+    
 class MultiHeadedAttention(nn.Module):
     def __init__(self,args):
         super(MultiHeadedAttention,self).__init__()
         self.hidden_size = args.hidden_size
-        self.num_heads = args.num_head
+        self.num_heads = args.num_heads
         self.head_size = self.hidden_size // self.num_heads
         self.dropout = nn.Dropout(args.dropout)
         assert self.hidden_size % self.num_heads == 0
+        
 
         self.q_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
         self.k_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
@@ -89,6 +140,58 @@ class MultiHeadedAttention(nn.Module):
         out = self.dropout(out)
         return out
 
+class DiffMultiHeadedAttention(nn.Module):
+    def __init__(self,args):
+        super(MultiHeadedAttention,self).__init__()
+        self.hidden_size = args.hidden_size
+        self.diff_num_heads = args.diff_num_heads
+        self.diff_head_size = self.hidden_size // self.diff_num_heads
+        self.dropout = nn.Dropout(args.dropout)
+        assert self.hidden_size % self.diff_num_heads == 0
+
+        self.lambda_init = args.lambda_init
+        self.lambda_q1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
+        self.lambda_q2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
+        self.lambda_k1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
+        self.lambda_k2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
+        self.q_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
+        self.k_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
+        self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
+
+        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
+        self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
+
+    def forward(self,encoder_feature,x):
+        B,T,_ = x.shape #T is number of keywords
+        B,N,_ = encoder_feature.shape
+
+        q = self.q_proj(x) #(B,T,C)
+        k = self.k_proj(encoder_feature) 
+        v = self.v_proj(encoder_feature) 
+        
+        lambda1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1).float())
+        lambda2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1).float())
+        lambda_full = lambda1 - lambda2 + self.lambda_init
+
+        q = q.reshape(B,T,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,2*nh,T,diff_head_size/2)
+        k = k.reshape(B,N,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,2*nh,N,diff_head_size/2)
+        v = v.reshape(B,N,self.diff_num_heads,self.diff_head_size).transpose(1,2) #(B,nh,N,diff_head_size)
+        
+        assert q.shape[-1] == k.shape[-1]
+        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
+        # print('att:',att.shape)
+        att = att.masked_fill(
+                    self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, 
+                    torch.finfo(att.dtype).min  # Ensures proper handling in mixed precision
+                )
+        att = F.softmax(att,dim=-1)
+        att = att.reshape(B,self.diff_num_heads,2,T,-1)
+        att = att[:,:,0] - lambda_full * att[:,:,1]
+        out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
+        out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
+        out = self.dropout(out)
+        return out
+
 
 class MLP(nn.Module):
     def __init__(self,args):
@@ -104,7 +207,7 @@ class MLP(nn.Module):
 class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
-        self.attn = MultiHeadedCrossAttention(args)
+        self.attn = DiffMultiHeadedCrossAttention(args)
         self.ln_enc = nn.LayerNorm(args.encoder_size)
         self.ln_dec = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
@@ -135,7 +238,7 @@ class Classifier(nn.Module):
 class ContextualTransformerDecoderLayer(nn.Module):
     def __init__(self,args):
         super(ContextualTransformerDecoderLayer,self).__init__()
-        self.decoder_attn = MultiHeadedAttention(args)
+        self.decoder_attn = DiffMultiHeadedAttention(args)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.ln_enc = nn.LayerNorm(args.hidden_size)
         self.ln_dec = nn.LayerNorm(args.hidden_size)
@@ -165,6 +268,7 @@ class ExpertTransformer(nn.Module):
         self.tokenizer = tokenizer
         self.delta1 = args.delta1
         self.delta2 = args.delta2
+        self.topk = args.top_k
 
         self.dropout = nn.Dropout(args.dropout)
         
@@ -192,10 +296,10 @@ class ExpertTransformer(nn.Module):
         visual_features = self.visual_extractor(images) #(B,N,encoder_size)
         probs, classifier_logits = self.mlp_classifier(visual_features)
         # probs = probs.mean(dim=1) 
-        keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
-        keyword_tokens = self.encode_keywords(keywords_list,self.tokenizer)
+        # keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
+        # keyword_tokens = self.encode_keywords(keywords_list,self.tokenizer)
         
-        keyword_tokens = keyword_tokens.to(device)
+        # keyword_tokens = keyword_tokens.to(device)
 
         # print('keyword_tokens max:', keyword_tokens.max().item())
         # print('vocab_size:', self.We.num_embeddings
@@ -228,35 +332,35 @@ class ExpertTransformer(nn.Module):
     
 
     @torch.no_grad()
-    def generate(self, images, gt_keywords,temperature=1.0):
+    def generate(self, images, gt_keywords, temperature=1.0):
         device = self.device
         batch_size = images.size(0)
+        
+
 
         bos_id = self.tokenizer.word2idx["<BOS>"]
         eos_id = self.tokenizer.word2idx["<EOS>"]
 
-        # Initialize sequences with <BOS>
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
-
-        # Track finished sequences
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
 
         for t in range(1, self.max_gen):
-            # Get logits for current sequences
-            
             logits, _, _ = self(images, sequences, gt_keywords)  # (batch_size, seq_len, vocab_size)
-            logits = logits[:, -1, :] / temperature  # Get last token logits
+            logits = logits[:, -1, :] / temperature  # Scale logits
 
-            # Get most probable next token (Greedy Search)
-            best_tokens = logits.argmax(dim=-1)  # (batch_size,)
+            # Apply softmax to convert logits to probabilities
+            probs = torch.softmax(logits, dim=-1)
 
-            # Append new tokens to sequences
+            # Top-k Sampling
+            if self.top_k > 0:
+                top_k_probs, top_k_indices = torch.topk(probs, self.top_k, dim=-1)
+                best_tokens = torch.gather(top_k_indices, -1, torch.multinomial(top_k_probs, 1)).squeeze(-1)
+
+            # Append token to sequence
             sequences = torch.cat([sequences, best_tokens.unsqueeze(1)], dim=-1)
 
-            # Mark sequences that have ended with <EOS>
+            # Check if EOS is reached
             finished |= best_tokens == eos_id
-
-            # Stop early if all sequences are done
             if finished.all():
                 break
 
@@ -264,7 +368,7 @@ class ExpertTransformer(nn.Module):
         final_sequences = []
         for seq in sequences.tolist():
             if eos_id in seq:
-                seq = seq[:seq.index(eos_id) + 1]  # Cut after EOS
+                seq = seq[:seq.index(eos_id) + 1]
             text = self.tokenizer.decode(seq)
             final_sequences.append(text)
 

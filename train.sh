@@ -16,11 +16,14 @@ python train.py \
   --num_layers 2 \
   --delta1 1 \
   --delta2 0 \
+  --topk 5 \
+  --lambda_init 0.8 \
   --dropout 0.2 \
   --beam_width 1 \
   --encoder_size 2048 \
   --decoder_size 1024 \
-  --num_head 8 \
+  --num_heads 8 \
+  --diff_num_heads 4 \
   --num_workers 16 \
   --keyword_vocab_size 602 \
   --image_path "/data/eyenet0420" \
