@@ -275,6 +275,7 @@ class ExpertTransformer(nn.Module):
         self.delta1 = args.delta1
         self.delta2 = args.delta2
         self.topk = args.topk
+        self.temperature = args.temperature
 
         self.dropout = nn.Dropout(args.dropout)
         
@@ -338,7 +339,7 @@ class ExpertTransformer(nn.Module):
     
 
     @torch.no_grad()
-    def generate(self, images, gt_keywords, temperature=1.0):
+    def generate(self, images, gt_keywords):
         device = self.device
         batch_size = images.size(0)
         
@@ -352,7 +353,7 @@ class ExpertTransformer(nn.Module):
 
         for t in range(1, self.max_gen):
             logits, _, _ = self(images, sequences, gt_keywords)  # (batch_size, seq_len, vocab_size)
-            logits = logits[:, -1, :] / temperature  # Scale logits
+            logits = logits[:, -1, :] / self.temperature  # Scale logits
 
             # Apply softmax to convert logits to probabilities
             probs = torch.softmax(logits, dim=-1)

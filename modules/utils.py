@@ -17,6 +17,7 @@ def parser_arg():
     parser.add_argument('--beam_width',type=int,default=1)
     parser.add_argument('--dropout',type=float, required=False)
     parser.add_argument('--topk',type=int, required=True)
+    parser.add_argument('--temperature',type=float, required=True)
     parser.add_argument('--encoder_size',type=int, required=True)
     parser.add_argument('--decoder_size',type=int, required=True)
     parser.add_argument('--num_heads',type=int, required=True)
