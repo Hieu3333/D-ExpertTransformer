@@ -44,57 +44,79 @@ class MultiHeadedCrossAttention(nn.Module):
         att = F.softmax(att,dim=-1)
         out = torch.matmul(att,v) #(B,nh,T,N) @ (B,nh,N,head_size) -> (B,nh,T,head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
+        out = self.out_proj(out) 
         out = self.dropout(out)
         return out
     
 class DiffMultiHeadedCrossAttention(nn.Module):
-    def __init__(self,args):
-        super(DiffMultiHeadedCrossAttention,self).__init__()
+    def __init__(self, args):
+        super(DiffMultiHeadedCrossAttention, self).__init__()
         self.hidden_size = args.hidden_size
         self.encoder_size = args.encoder_size
         self.decoder_size = args.decoder_size
         self.diff_num_heads = args.diff_num_heads
         self.diff_head_size = self.hidden_size // self.diff_num_heads
         self.lambda_init = args.lambda_init
-        self.lambda_q1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
-        self.lambda_q2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
-        self.lambda_k1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
-        self.lambda_k2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
+
+        # Learnable lambda parameters
+        self.lambda_q1 = nn.Parameter(torch.zeros(self.diff_head_size // 2).normal_(mean=0, std=0.1))
+        self.lambda_q2 = nn.Parameter(torch.zeros(self.diff_head_size // 2).normal_(mean=0, std=0.1))
+        self.lambda_k1 = nn.Parameter(torch.zeros(self.diff_head_size // 2).normal_(mean=0, std=0.1))
+        self.lambda_k2 = nn.Parameter(torch.zeros(self.diff_head_size // 2).normal_(mean=0, std=0.1))
+
         self.dropout = nn.Dropout(args.dropout)
+
+        # Apply RMSNorm to each head
+        self.rmsnorm = nn.ModuleList([RMSNorm(self.diff_head_size) for _ in range(self.diff_num_heads)])
+
         assert self.hidden_size % self.diff_num_heads == 0
 
-        self.q_proj = nn.Linear(self.decoder_size,self.hidden_size,bias=args.bias)
-        self.k_proj = nn.Linear(self.encoder_size, self.hidden_size,bias=args.bias)
-        self.v_proj = nn.Linear(self.encoder_size,self.hidden_size,bias=args.bias)
+        # Projection layers
+        self.q_proj = nn.Linear(self.decoder_size, self.hidden_size, bias=args.bias)
+        self.k_proj = nn.Linear(self.encoder_size, self.hidden_size, bias=args.bias)
+        self.v_proj = nn.Linear(self.encoder_size, self.hidden_size, bias=args.bias)
+        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size, bias=args.bias)
 
-        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
-    
-    def forward(self,encoder_feature,decoder_feature):
-        B,N,_ = encoder_feature.shape
-        B,T,_ = decoder_feature.shape #T is number of keywords
+    def forward(self, encoder_feature, decoder_feature):
+        B, N, _ = encoder_feature.shape
+        B, T, _ = decoder_feature.shape  # T is the number of keywords
 
-        # print("decoder:",decoder_feature.shape)
-        # print("encoder:",encoder_feature.shape)
-    
-        q = self.q_proj(decoder_feature) #(B,T,C)
-        k = self.k_proj(encoder_feature) #(B,N,C)
-        v = self.v_proj(encoder_feature) #(B,N,C)
+        # Project input features
+        q = self.q_proj(decoder_feature)  # (B, T, C)
+        k = self.k_proj(encoder_feature)  # (B, N, C)
+        v = self.v_proj(encoder_feature)  # (B, N, C)
 
+        # Compute lambda values
         lambda1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1).float())
         lambda2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1).float())
         lambda_full = lambda1 - lambda2 + self.lambda_init
 
-        q = q.reshape(B,T,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,2*nh,T,diff_head_size/2)
-        k = k.reshape(B,N,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,2*nh,N,diff_head_size/2)
-        v = v.reshape(B,N,self.diff_num_heads,self.diff_head_size).transpose(1,2) #(B,nh,N,2*diff_head_size)
-        assert q.shape[-1] == k.shape[-1]
-        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,2*nh,T,N)
-        att = F.softmax(att,dim=-1)
-        att = att.reshape(B,self.diff_num_heads,2,T,-1) #(B,nh,2,T,N)
-        att = att[:,:,0] - lambda_full * att[:,:,1] #(B,nh,T,N)
-        out = torch.matmul(att,v) #(B,nh,T,N) @ (B,nh,N,head_size) -> (B,nh,T,head_size)
-        out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
+        # Reshape for multi-head attention
+        q = q.view(B, T, 2 * self.diff_num_heads, self.diff_head_size // 2).transpose(1, 2)  # (B, 2*nh, T, head_size/2)
+        k = k.view(B, N, 2 * self.diff_num_heads, self.diff_head_size // 2).transpose(1, 2)  # (B, 2*nh, N, head_size/2)
+        v = v.view(B, N, self.diff_num_heads, self.diff_head_size).transpose(1, 2)  # (B, nh, N, head_size)
+
+        assert q.shape[-1] == k.shape[-1], "Q and K must have the same head dimension"
+
+        # Compute attention scores
+        att = torch.matmul(q, k.transpose(-1, -2)) / math.sqrt(q.shape[-1])  # (B, 2*nh, T, N)
+        att = F.softmax(att, dim=-1)
+
+        # Reshape attention for differential computation
+        att = att.view(B, self.diff_num_heads, 2, T, N)  # (B, nh, 2, T, N)
+        att = att[:, :, 0] - lambda_full * att[:, :, 1]  # (B, nh, T, N)
+
+        # Compute output values
+        out = torch.matmul(att, v)  # (B, nh, T, head_size)
+
+        # Apply RMSNorm to each head separately
+        out = torch.stack([self.rmsnorm[i](out[:, i, :, :]) for i in range(self.diff_num_heads)], dim=1)  # (B, nh, T, head_size)
+
+        # Reshape and project output
+        out = out.transpose(1, 2).contiguous().view(B, T, self.hidden_size)  # (B, T, hidden_size)
+        out = self.out_proj(out) * (1-self.lambda_init)
         out = self.dropout(out)
+
         return out
     
 class MultiHeadedAttention(nn.Module):
@@ -140,6 +162,7 @@ class MultiHeadedAttention(nn.Module):
         att = F.softmax(att,dim=-1)
         out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
+        out = self.out_proj(out)
         out = self.dropout(out)
         return out
 
@@ -162,6 +185,8 @@ class DiffMultiHeadedAttention(nn.Module):
         self.q_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
         self.k_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
         self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
+
+        self.rmsnorm = nn.ModuleList([RMSNorm(self.diff_head_size) for _ in range(self.diff_num_heads)])
 
         self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
         self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
@@ -194,7 +219,9 @@ class DiffMultiHeadedAttention(nn.Module):
         att = att.reshape(B,self.diff_num_heads,2,T,-1)
         att = att[:,:,0] - lambda_full * att[:,:,1]
         out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
+        out = torch.stack([self.rmsnorm[i](out[:, i, :, :]) for i in range(self.diff_num_heads)], dim=1)  # (B, nh, T, head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
+        out = self.out_proj(out) * (1-self.lambda_init)
         out = self.dropout(out)
         return out
 
@@ -214,10 +241,10 @@ class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
         self.attn = DiffMultiHeadedCrossAttention(args)
-        self.ln_enc = nn.LayerNorm(args.encoder_size)
-        self.ln_dec = nn.LayerNorm(args.hidden_size)
+        self.ln_enc = RMSNorm(args.encoder_size)
+        self.ln_dec = RMSNorm(args.hidden_size)
         self.mlp = MLP(args)
-        self.ln2 = nn.LayerNorm(args.hidden_size)
+        self.ln2 = RMSNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
         x = x + self.attn(self.ln_enc(visual_features),self.ln_dec(x))
@@ -245,10 +272,10 @@ class ContextualTransformerDecoderLayer(nn.Module):
     def __init__(self,args):
         super(ContextualTransformerDecoderLayer,self).__init__()
         self.decoder_attn = DiffMultiHeadedAttention(args,mask=True)
-        self.ln1 = nn.LayerNorm(args.hidden_size)
-        self.ln_enc = nn.LayerNorm(args.hidden_size)
-        self.ln_dec = nn.LayerNorm(args.hidden_size)
-        self.ln3 = nn.LayerNorm(args.hidden_size)
+        self.ln1 = RMSNorm(args.hidden_size)
+        self.ln_enc = RMSNorm(args.hidden_size)
+        self.ln_dec = RMSNorm(args.hidden_size)
+        self.ln3 = RMSNorm(args.hidden_size)
         self.encoder_decoder = DiffMultiHeadedAttention(args,mask=False)
         self.mlp = MLP(args)
 
@@ -259,6 +286,18 @@ class ContextualTransformerDecoderLayer(nn.Module):
         x = x+ self.mlp(self.ln3(x))
         return x
     
+class RMSNorm(nn.Module):
+    def __init__(self, dim: int, eps: float = 1e-8):
+        """ Root Mean Square Layer Normalization (RMSNorm). """
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(dim))  # Learnable scale parameter
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Forward pass of RMSNorm. """
+        norm = x.norm(2, dim=-1, keepdim=True)  # L2 norm along last dimension
+        rms = norm * (x.shape[-1] ** -0.5)  # Root mean square normalization
+        return self.weight * (x / (rms + self.eps))  # Apply learnable scale
 
 
 class ExpertTransformer(nn.Module):
