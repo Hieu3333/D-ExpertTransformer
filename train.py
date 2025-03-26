@@ -172,8 +172,7 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"METEOR: {eval_scores['METEOR']}")
         logger.info(f"CIDER: {eval_scores['Cider']}")
         logger.info(f"ROUGE_L: {eval_scores['ROUGE_L']}")
-        print("GTS Val Example:", list(gts_val.items())[:5])
-        print("Res Val Example:", list(res_val.items())[:5])
+        
         
 
     model.eval()
@@ -205,7 +204,8 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"METEOR: {test_scores['METEOR']}")
         logger.info(f"CIDER: {test_scores['Cider']}")
         logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
-
+        print("GTS Test Example:", list(gts_test.items())[:5])
+        print("Res Test Example:", list(res_test.items())[:5])
     avg_eval_metric = eval_scores['BLEU_4'] + 0.5*eval_scores['BLEU_1']
     avg_test_metric = test_scores['BLEU_4'] + 0.5*test_scores['METEOR'] + 0.25*test_scores['BLEU_1']
     

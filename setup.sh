@@ -14,10 +14,10 @@ sudo apt update && sudo apt install unzip -y
 mkdir data
 
 
-scp -P 40819 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@114.34.116.46:/workspace/D-ExpertTransformer
-scp -P 40819 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@114.34.116.46:/workspace/D-ExpertTransformer/data
-scp -P 40819 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@114.34.116.46:/workspace/D-ExpertTransformer/data
-scp -P 40819 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@114.34.116.46:/workspace/D-ExpertTransformer/data
+scp -P 14822 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@172.219.157.164:/workspace/D-ExpertTransformer
+scp -P 14822 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@172.219.157.164:/workspace/D-ExpertTransformer/data
+scp -P 14822 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@172.219.157.164:/workspace/D-ExpertTransformer/data
+scp -P 14822 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@172.219.157.164:/workspace/D-ExpertTransformer/data
 
 unzip DeepEyeNet.zip -d data
 
