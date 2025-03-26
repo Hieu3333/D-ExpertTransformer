@@ -18,7 +18,6 @@ class MultiHeadedCrossAttention(nn.Module):
         self.head_size = self.hidden_size // self.num_heads
         self.dropout = nn.Dropout(args.dropout)
         assert self.hidden_size % self.num_heads == 0
-        self.ln = nn.LayerNorm(args.hidden_size)
 
         self.q_proj = nn.Linear(self.decoder_size,self.hidden_size,bias=args.bias)
         self.k_proj = nn.Linear(self.encoder_size, self.hidden_size,bias=args.bias)
@@ -33,9 +32,9 @@ class MultiHeadedCrossAttention(nn.Module):
         # print("decoder:",decoder_feature.shape)
         # print("encoder:",encoder_feature.shape)
     
-        q = self.ln(self.q_proj(decoder_feature)) #(B,T,C)
-        k = self.ln(self.k_proj(encoder_feature)) #(B,N,C)
-        v = self.ln(self.v_proj(encoder_feature)) #(B,N,C)
+        q = self.q_proj(decoder_feature) #(B,T,C)
+        k = self.k_proj(encoder_feature) #(B,N,C)
+        v = self.v_proj(encoder_feature) #(B,N,C)
 
         q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
         k = k.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
@@ -56,22 +55,21 @@ class MultiHeadedAttention(nn.Module):
         self.head_size = self.hidden_size // self.num_heads
         self.dropout = nn.Dropout(args.dropout)
         assert self.hidden_size % self.num_heads == 0
-        self.ln = nn.LayerNorm(args.hidden_size)
 
         self.q_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
         self.k_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
         self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
 
         self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
-        self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
+        self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,50).view(1,1,args.max_gen,50))) 
 
     def forward(self,encoder_feature,x):
         B,T,_ = x.shape #T is number of keywords
         B,N,_ = encoder_feature.shape
 
-        q = self.ln(self.q_proj(x)) #(B,T,C)
-        k = self.ln(self.k_proj(encoder_feature)) 
-        v = self.ln(self.v_proj(encoder_feature)) 
+        q = self.q_proj(x) #(B,T,C)
+        k = self.k_proj(encoder_feature) 
+        v = self.v_proj(encoder_feature) 
         
 
         q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
@@ -104,12 +102,14 @@ class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
         self.attn = MultiHeadedCrossAttention(args)
+        self.ln_enc = nn.LayerNorm(args.encoder_size)
+        self.ln_dec = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
-        self.ln = nn.LayerNorm(args.hidden_size)
+        self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
-        x = x + self.attn(visual_features,x)
-        x = x + self.mlp(self.ln(x))
+        x = x + self.attn(self.ln_enc(visual_features),self.ln_dec(x))
+        x = x + self.mlp(self.ln2(x))
         return x
     
 class Classifier(nn.Module):
@@ -133,15 +133,18 @@ class ContextualTransformerDecoderLayer(nn.Module):
     def __init__(self,args):
         super(ContextualTransformerDecoderLayer,self).__init__()
         self.decoder_attn = MultiHeadedAttention(args)
-     
-        self.ln = nn.LayerNorm(args.hidden_size)
+        self.ln1 = nn.LayerNorm(args.hidden_size)
+        self.ln_enc = nn.LayerNorm(args.hidden_size)
+        self.ln_dec = nn.LayerNorm(args.hidden_size)
+        self.ln3 = nn.LayerNorm(args.hidden_size)
         self.encoder_decoder = MultiHeadedAttention(args)
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
+        x = self.ln1(x)
         x = self.decoder_attn(x,x)
-        x = self.encoder_decoder(encoder_feature,x)
-        x = x+ self.mlp(self.ln(x))
+        x = self.encoder_decoder(self.ln_enc(encoder_feature),self.ln_dec(x))
+        x = x+ self.mlp(self.ln3(x))
         return x
     
 
@@ -234,6 +237,7 @@ class ExpertTransformer(nn.Module):
 
         # Track finished sequences
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
+
         for t in range(1, self.max_gen):
             # Get logits for current sequences
             
