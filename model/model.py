@@ -243,7 +243,7 @@ class ContextualTransformerDecoderLayer(nn.Module):
         self.ln_enc = nn.LayerNorm(args.hidden_size)
         self.ln_dec = nn.LayerNorm(args.hidden_size)
         self.ln3 = nn.LayerNorm(args.hidden_size)
-        self.encoder_decoder = MultiHeadedAttention(args)
+        self.encoder_decoder = DiffMultiHeadedCrossAttention(args)
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
