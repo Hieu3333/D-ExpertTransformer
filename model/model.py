@@ -396,7 +396,8 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.permute(0, 2, 1), targets, ignore_index=-1)
-            loss_ngram = self.compute_ngram_loss(logits, targets, self.max_n)
+            pred_tokens = logits.argmax(dim=-1)
+            loss_ngram = self.compute_ngram_loss(pred_tokens, targets, self.max_n)
 
             loss = self.delta1 * loss_ce + self.delta2 * loss_ngram
         else:
