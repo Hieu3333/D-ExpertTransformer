@@ -162,8 +162,8 @@ for epoch in range(current_epoch-1,num_epochs):
                 gts_val[image_id] = [groundtruth_caption]
                 res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
 
-            # print('Res: ',res)
-            # print('GT: ',gts)
+            print('Res: ',res_val)
+            print('GT: ',gts_val)
         # Compute evaluation metrics
         eval_scores = compute_scores(gts_val, res_val)
         logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
@@ -195,8 +195,7 @@ for epoch in range(current_epoch-1,num_epochs):
             gts_test[image_id] = [groundtruth_caption]
             res_test[image_id] = [generated_captions[i]]
 
-        # print('Res: ',res)
-        # print('GT: ',gts)
+        
         
         test_scores = compute_scores(gts_test,res_test)
         logger.info(f"Epoch {epoch + 1} - Test scores:")
