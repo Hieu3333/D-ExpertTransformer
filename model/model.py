@@ -330,7 +330,7 @@ class ExpertTransformer(nn.Module):
         #Weight tying
         self.We.weight = self.lm_head.weight
 
-    def compute_ngram_loss(pred_tokens, target_tokens, max_n=4):
+    def compute_ngram_loss(self,pred_tokens, target_tokens, max_n=4):
         """
         Compute cumulative n-gram loss (1-gram to max_n-gram)
         Args:
