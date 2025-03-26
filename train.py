@@ -56,7 +56,8 @@ args = parser_arg()
 keywords = load_all_keywords()
 
 # Load custom tokenizer
-tokenizer = Tokenizer.from_file('modules/custom_tokenizer.json')
+tokenizer = Tokenizer()
+tokenizer.load_vocab("vocab.json")
 
 # Initialize dataset and dataloader
 train_dataloader = DENDataLoader(args, tokenizer, keywords, split='train',shuffle=True)
