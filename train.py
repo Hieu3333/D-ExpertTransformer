@@ -7,6 +7,7 @@ from tqdm import tqdm
 import os
 from modules.utils import parser_arg, load_all_keywords
 import torch.optim as optim
+from torch.optim.lr_scheduler import OneCycleLR
 import logging
 import random
 import numpy as np
@@ -74,6 +75,10 @@ optimizer =torch.optim.AdamW(
              {'params': ed_params, 'lr': args.lr_ed}],
             weight_decay=args.weight_decay
         )
+
+
+scheduler = OneCycleLR(optimizer, max_lr=args.lr_ed, steps_per_epoch=len(train_dataloader), epochs=args.num_epochs)
+
 if args.from_pretrained is not None:
     checkpoint = os.path.join(args.project_root,args.from_pretrained)
     model.load_state_dict(checkpoint['model'])
@@ -113,7 +118,7 @@ for epoch in range(current_epoch-1,num_epochs):
     model.train()
     running_loss = 0.0
 
-    for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
+    for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
         image_ids, images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = batch
         images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device), gt_keyword_tokens.to(device)
 
@@ -227,7 +232,8 @@ for epoch in range(current_epoch-1,num_epochs):
         num_epoch_not_improved = 0
     else:
         num_epoch_not_improved+=1 
-        
+
+    scheduler.step()  
     logger.info("--------------------------------------------------------------------------------")
 
 

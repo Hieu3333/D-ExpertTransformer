@@ -331,7 +331,41 @@ class ExpertTransformer(nn.Module):
         #Weight tying
         self.We.weight = self.lm_head.weight
 
-    
+    def compute_ngram_loss(self, predictions, targets, n):
+        """
+        Computes the n-gram loss using KL divergence between n-gram distributions of predictions and targets.
+        """
+        def get_ngram_counts(sequence, n):
+            """Extracts n-gram counts from a given sequence."""
+            ngrams = [tuple(sequence[i : i + n]) for i in range(len(sequence) - n + 1)]
+            return Counter(ngrams)
+
+        batch_size = predictions.shape[0]
+        total_loss = 0
+
+        for i in range(batch_size):
+            pred_ids = predictions[i].argmax(dim=-1).tolist()  # Convert logits to token IDs
+            target_ids = targets[i].tolist()
+
+            pred_ngram_counts = get_ngram_counts(pred_ids, n)
+            target_ngram_counts = get_ngram_counts(target_ids, n)
+
+            # Convert counts to probability distributions
+            pred_ngram_probs = {k: v / sum(pred_ngram_counts.values()) for k, v in pred_ngram_counts.items()}
+            target_ngram_probs = {k: v / sum(target_ngram_counts.values()) for k, v in target_ngram_counts.items()}
+
+            # Create a complete set of n-grams appearing in either predictions or targets
+            all_ngrams = set(pred_ngram_probs.keys()) | set(target_ngram_probs.keys())
+
+            pred_probs = torch.tensor([pred_ngram_probs.get(k, 1e-8) for k in all_ngrams], device=self.device)
+            target_probs = torch.tensor([target_ngram_probs.get(k, 1e-8) for k in all_ngrams], device=self.device)
+
+            # Compute KL divergence loss
+            ngram_loss = F.kl_div(pred_probs.log(), target_probs, reduction='batchmean')
+            total_loss += ngram_loss
+
+        return total_loss / batch_size
+
     
     
     def forward(self,images,tokens,gt_keyword_tokens, targets = None, target_keywords=None):
@@ -341,7 +375,6 @@ class ExpertTransformer(nn.Module):
         device = tokens.device
 
         visual_features = self.visual_extractor(images) #(B,N,encoder_size)
-        probs, classifier_logits = self.mlp_classifier(visual_features)
         # probs = probs.mean(dim=1) 
         # keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
         # keyword_tokens = self.encode_keywords(keywords_list,self.tokenizer)
@@ -370,12 +403,13 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.permute(0, 2, 1), targets, ignore_index=-1)
-            loss_bce = self.bce_loss(classifier_logits,target_keywords)
-            loss = self.delta1*loss_ce + self.delta2*loss_bce
+            loss_ngram = self.compute_ngram_loss(logits, targets, self.n_gram_order)
+
+            loss = self.delta1 * loss_ce + self.delta2 * loss_ngram
         else:
             loss = None
             loss_ce = None
-        return logits, loss, loss_ce
+        return logits, loss, loss_ngram
     
 
     @torch.no_grad()
