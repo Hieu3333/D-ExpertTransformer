@@ -7,7 +7,7 @@ from tqdm import tqdm
 import os
 from modules.utils import parser_arg, load_all_keywords
 import torch.optim as optim
-from torch.optim.lr_scheduler import OneCycleLR
+
 import logging
 import random
 import numpy as np
@@ -77,7 +77,7 @@ optimizer =torch.optim.AdamW(
         )
 
 
-scheduler = OneCycleLR(optimizer, max_lr=args.lr_ed, steps_per_epoch=len(train_dataloader), epochs=args.epochs)
+scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=10,gamma=0.1)
 
 if args.from_pretrained is not None:
     checkpoint = os.path.join(args.project_root,args.from_pretrained)
@@ -140,7 +140,7 @@ for epoch in range(current_epoch-1,num_epochs):
             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
             running_loss = 0.0  # Reset running loss
     
-
+    scheduler.step()  
     
 
 
@@ -233,7 +233,7 @@ for epoch in range(current_epoch-1,num_epochs):
     else:
         num_epoch_not_improved+=1 
 
-    scheduler.step()  
+    
     logger.info("--------------------------------------------------------------------------------")
 
 
