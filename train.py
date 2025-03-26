@@ -77,7 +77,7 @@ optimizer =torch.optim.AdamW(
         )
 
 
-scheduler = OneCycleLR(optimizer, max_lr=args.lr_ed, steps_per_epoch=len(train_dataloader), epochs=args.num_epochs)
+scheduler = OneCycleLR(optimizer, max_lr=args.lr_ed, steps_per_epoch=len(train_dataloader), epochs=args.epochs)
 
 if args.from_pretrained is not None:
     checkpoint = os.path.join(args.project_root,args.from_pretrained)
