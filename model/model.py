@@ -98,13 +98,14 @@ class DiffMultiHeadedCrossAttention(nn.Module):
         return out
     
 class MultiHeadedAttention(nn.Module):
-    def __init__(self,args):
+    def __init__(self,args, mask=True):
         super(MultiHeadedAttention,self).__init__()
         self.hidden_size = args.hidden_size
         self.num_heads = args.num_heads
         self.head_size = self.hidden_size // self.num_heads
         self.dropout = nn.Dropout(args.dropout)
         assert self.hidden_size % self.num_heads == 0
+        self.mask = mask
         
 
         self.q_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
@@ -112,7 +113,8 @@ class MultiHeadedAttention(nn.Module):
         self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
 
         self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
-        self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
+        if self.mask:
+            self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
 
     def forward(self,encoder_feature,x):
         B,T,_ = x.shape #T is number of keywords
@@ -130,7 +132,8 @@ class MultiHeadedAttention(nn.Module):
         assert q.shape[-1] == k.shape[-1]
         att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
         # print('att:',att.shape)
-        att = att.masked_fill(
+        if self.mask:
+            att = att.masked_fill(
                     self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, 
                     torch.finfo(att.dtype).min  # Ensures proper handling in mixed precision
                 )
@@ -141,12 +144,14 @@ class MultiHeadedAttention(nn.Module):
         return out
 
 class DiffMultiHeadedAttention(nn.Module):
-    def __init__(self,args):
+    def __init__(self,args,mask=True):
         super(DiffMultiHeadedAttention,self).__init__()
         self.hidden_size = args.hidden_size
         self.diff_num_heads = args.diff_num_heads
         self.diff_head_size = self.hidden_size // self.diff_num_heads
         self.dropout = nn.Dropout(args.dropout)
+        self.mask = mask
+
         assert self.hidden_size % self.diff_num_heads == 0
 
         self.lambda_init = args.lambda_init
@@ -180,7 +185,8 @@ class DiffMultiHeadedAttention(nn.Module):
         assert q.shape[-1] == k.shape[-1]
         att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
         # print('att:',att.shape)
-        att = att.masked_fill(
+        if self.mask:
+            att = att.masked_fill(
                     self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, 
                     torch.finfo(att.dtype).min  # Ensures proper handling in mixed precision
                 )
@@ -238,12 +244,12 @@ class Classifier(nn.Module):
 class ContextualTransformerDecoderLayer(nn.Module):
     def __init__(self,args):
         super(ContextualTransformerDecoderLayer,self).__init__()
-        self.decoder_attn = DiffMultiHeadedAttention(args)
+        self.decoder_attn = DiffMultiHeadedAttention(args,mask=True)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.ln_enc = nn.LayerNorm(args.hidden_size)
         self.ln_dec = nn.LayerNorm(args.hidden_size)
         self.ln3 = nn.LayerNorm(args.hidden_size)
-        self.encoder_decoder = DiffMultiHeadedCrossAttention(args)
+        self.encoder_decoder = DiffMultiHeadedAttention(args,mask=False)
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
