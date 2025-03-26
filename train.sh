@@ -8,7 +8,7 @@ python train.py \
   --accum_steps 1 \
   --bias \
   --early_stopping 10 \
-  --max_length 20 \
+  --max_length 30 \
   --max_gen 100 \
   --hidden_size 1024 \
   --vocab_size 2681 \
