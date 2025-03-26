@@ -22,7 +22,7 @@ python train.py \
   --decoder_size 1024 \
   --num_head 8 \
   --num_workers 16 \
-  --keyword_vocab_size 571 \
+  --keyword_vocab_size 602 \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer"
