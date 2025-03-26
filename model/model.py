@@ -233,7 +233,7 @@ class ExpertTransformer(nn.Module):
         batch_size = images.size(0)
 
         bos_id = self.tokenizer.word2idx["<BOS>"]
-        eos_id = self.tokenizer.encode["<EOS>"]
+        eos_id = self.tokenizer.word2idx["<EOS>"]
 
         # Initialize sequences with <BOS>
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
