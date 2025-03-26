@@ -61,7 +61,7 @@ class MultiHeadedAttention(nn.Module):
         self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
 
         self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
-        self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,50).view(1,1,args.max_gen,50))) 
+        self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
 
     def forward(self,encoder_feature,x):
         B,T,_ = x.shape #T is number of keywords
