@@ -66,10 +66,8 @@ class DeepEyeNet(Dataset):
         target_tokens[-1] = self.tokenizer.token_to_id('<PAD>')  # Pad token at the end
 
         # --- Keywords with <SEP> ---
-        sep_token = "<SEP>"
-        raw_keywords = f" {sep_token} ".join(keywords_list)  # Join keywords with <SEP>
 
-        return image_id, image, desc_tokens, target_tokens, one_hot, raw_keywords
+        return image_id, image, desc_tokens, target_tokens, one_hot, keywords_list
 
     def _pad_or_truncate(self, encoding):
         """Pad or truncate tokens to the specified max_length."""
