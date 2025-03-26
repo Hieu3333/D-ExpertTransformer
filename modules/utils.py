@@ -14,7 +14,6 @@ def parser_arg():
     parser.add_argument('--lr_ed',type=float, required=True)
     parser.add_argument('--delta1',type=float, required=True)
     parser.add_argument('--delta2',type=float, required=True)
-    parser.add_argument('--max_n',type=int, required=True)
     parser.add_argument('--beam_width',type=int,default=1)
     parser.add_argument('--dropout',type=float, required=False)
     parser.add_argument('--topk',type=int, required=True)
