@@ -56,6 +56,9 @@ def load_all_keywords():
                     # Split by comma and strip whitespace
                     keyword_list = [kw.strip() for kw in keywords.split(',')]
                     all_keywords.update(keyword_list)
+    
+    all_keywords = [kw for kw in all_keywords if "<UNK>" not in kw]
     print(f"Total {len(all_keywords)} keywords collected!")
     all_keywords = sorted(list(all_keywords))
+    # print(all_keywords)
     return all_keywords

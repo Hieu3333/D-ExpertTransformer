@@ -1,16 +1,15 @@
-CUDA_LAUNCH_BLOCKING=1 \
 python train.py \
   --epochs 30 \
-  --lr_ed 2e-4 \
+  --lr_ed 5e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-3 \
   --save_path "results" \
-  --batch_size 64 \
+  --batch_size 128 \
   --accum_steps 1 \
   --bias \
   --early_stopping 10 \
-  --max_length 15 \
-  --max_gen 25 \
+  --max_length 75 \
+  --max_gen 100 \
   --hidden_size 1024 \
   --vocab_size 3500 \
   --threshold 0.5 \
@@ -23,7 +22,7 @@ python train.py \
   --decoder_size 1024 \
   --num_head 8 \
   --num_workers 8 \
-  --keyword_vocab_size 598 \
+  --keyword_vocab_size 571 \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
-  --project_root "/workspace/D-ExpertTransformer"
+  --project_root "/mnt/c/D-ExpertTransformer"

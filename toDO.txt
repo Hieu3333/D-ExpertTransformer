@@ -4,6 +4,8 @@
 4. Use V100 to train, it is much faster than P100
 5. The test branch has much faster eval and test time but horrible result??? -> Because it still has max_length = 10
 6. BCELoss makes the model run much slower?????
+7. Separate layernorm??
+8. Rebuild the tokenzier and clean the report
 
 Ways to get better:
 -Clean report

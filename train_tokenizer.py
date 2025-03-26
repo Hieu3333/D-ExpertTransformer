@@ -30,26 +30,7 @@ def load_texts(json_paths):
 
 import json
 
-def load_all_keywords():
-    train_path = "data/DeepEyeNet_train.json"
-    val_path = "data/DeepEyeNet_val.json"
-    test_path = "data/DeepEyeNet_test.json"
-    all_keywords = set()
-    json_paths = [train_path,val_path,test_path]
-    for path in json_paths:
-        print(f"Loading {path}...")
-        with open(path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
 
-        for item in data:
-            for _, value in item.items():
-                if value.get('keywords'):
-                    keywords = value['keywords']
-                    # Split by comma and strip whitespace
-                    keyword_list = [kw.strip() for kw in keywords.split(',')]
-                    all_keywords.update(keyword_list)
-    print(f"Total {len(all_keywords)} keywords collected!")
-    return all_keywords
 
 
 # === Step 2: Train Tokenizer ===

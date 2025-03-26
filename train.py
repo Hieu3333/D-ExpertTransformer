@@ -140,8 +140,8 @@ for epoch in range(current_epoch-1,num_epochs):
 
     #Evaluation
     model.eval()
-    gts = {}
-    res = {}
+    gts_val = {}
+    res_val = {}
     with torch.no_grad():  
         for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
             image_ids, images, desc_tokens, target_tokens, one_hot = batch
@@ -157,13 +157,13 @@ for epoch in range(current_epoch-1,num_epochs):
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
-                gts[image_id] = [groundtruth_caption]
-                res[image_id] = [generated_captions[i]]  # Corresponding generated caption
+                gts_val[image_id] = [groundtruth_caption]
+                res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
 
             # print('Res: ',res)
             # print('GT: ',gts)
         # Compute evaluation metrics
-        eval_scores = compute_scores(gts, res)
+        eval_scores = compute_scores(gts_val, res_val)
         logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
         logger.info(f"BLEU_1: {eval_scores['BLEU_1']}")
         logger.info(f"BLEU_2: {eval_scores['BLEU_2']}")
@@ -175,8 +175,8 @@ for epoch in range(current_epoch-1,num_epochs):
         
 
     model.eval()
-    gts= {}
-    res = {}
+    gts_test= {}
+    res_test = {}
     with torch.no_grad():
         for batch_idx,batch in enumerate(tqdm(test_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
             image_ids, images, desc_tokens, target_tokens, one_hot = batch
@@ -188,13 +188,13 @@ for epoch in range(current_epoch-1,num_epochs):
 
         for i,image_id in enumerate(image_ids):
             groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)
-            gts[image_id] = [groundtruth_caption]
-            res[image_id] = [generated_captions[i]]
+            gts_test[image_id] = [groundtruth_caption]
+            res_test[image_id] = [generated_captions[i]]
 
         # print('Res: ',res)
         # print('GT: ',gts)
         
-        test_scores = compute_scores(gts,res)
+        test_scores = compute_scores(gts_test,res_test)
         logger.info(f"Epoch {epoch + 1} - Test scores:")
         logger.info(f"BLEU_1: {test_scores['BLEU_1']}")
         logger.info(f"BLEU_2: {test_scores['BLEU_2']}")
@@ -224,7 +224,7 @@ for epoch in range(current_epoch-1,num_epochs):
     else:
         num_epoch_not_improved+=1 
         
-    logger.info("---------------------------------------------------------------------------------------------------------------------")
+    logger.info("--------------------------------------------------------------------------------")
 
 
 

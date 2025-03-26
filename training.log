@@ -42,3 +42,11 @@
 2025-03-25 19:56:37,129 - INFO - Batch 500/1178 Loss: 0.3397
 2025-03-25 19:57:19,474 - INFO - Batch 1000/1178 Loss: 0.2972
 2025-03-25 19:57:34,444 - INFO - Batch 1178/1178 Loss: 0.0987
+2025-03-26 12:46:43,073 - INFO - Namespace(epochs=30, batch_size=64, max_length=75, max_gen=100, hidden_size=1024, vocab_size=3500, threshold=0.5, num_layers=2, lr_ve=0.0001, lr_ed=0.0005, delta1=1.0, delta2=0.3, beam_width=1, dropout=0.2, encoder_size=2048, decoder_size=1024, num_head=8, bias=True, num_workers=8, keyword_vocab_size=598, weight_decay=0.001, log_interval=500, save_path='results', image_path='/data/eyenet0420', ann_path='data', randaug=None, resnet_dim=2048, device='cuda', accum_steps=1, early_stopping=10, project_root='/mnt/c/D-ExpertTransformer', from_pretrained=None)
+2025-03-26 12:46:43,074 - INFO - Epoch 1:
+2025-03-26 12:49:03,918 - INFO - Namespace(epochs=30, batch_size=64, max_length=75, max_gen=100, hidden_size=1024, vocab_size=3500, threshold=0.5, num_layers=2, lr_ve=0.0001, lr_ed=0.0005, delta1=1.0, delta2=0.3, beam_width=1, dropout=0.2, encoder_size=2048, decoder_size=1024, num_head=8, bias=True, num_workers=8, keyword_vocab_size=598, weight_decay=0.001, log_interval=500, save_path='results', image_path='/data/eyenet0420', ann_path='data', randaug=None, resnet_dim=2048, device='cuda', accum_steps=1, early_stopping=10, project_root='/mnt/c/D-ExpertTransformer', from_pretrained=None)
+2025-03-26 12:49:03,919 - INFO - Epoch 1:
+2025-03-26 12:49:34,744 - INFO - Namespace(epochs=30, batch_size=64, max_length=75, max_gen=100, hidden_size=1024, vocab_size=3500, threshold=0.5, num_layers=2, lr_ve=0.0001, lr_ed=0.0005, delta1=1.0, delta2=0.3, beam_width=1, dropout=0.2, encoder_size=2048, decoder_size=1024, num_head=8, bias=True, num_workers=8, keyword_vocab_size=571, weight_decay=0.001, log_interval=500, save_path='results', image_path='/data/eyenet0420', ann_path='data', randaug=None, resnet_dim=2048, device='cuda', accum_steps=1, early_stopping=10, project_root='/mnt/c/D-ExpertTransformer', from_pretrained=None)
+2025-03-26 12:49:34,745 - INFO - Epoch 1:
+2025-03-26 12:49:40,152 - INFO - Batch 1/147 Loss: 0.0174
+2025-03-26 12:51:15,543 - INFO - Batch 147/147 Loss: 0.5570
