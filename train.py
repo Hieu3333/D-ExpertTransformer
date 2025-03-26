@@ -1,5 +1,5 @@
 import torch
-from tokenizers import Tokenizer
+from modules.tokenizer import Tokenizer
 from model.model import ExpertTransformer
 from modules.dataloader import DENDataLoader
 from modules.metrics import compute_scores
@@ -157,7 +157,7 @@ for epoch in range(current_epoch-1,num_epochs):
                 generated_captions = model.generate(images,gt_keyword_tokens)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
-                groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
+                groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy())
                 gts_val[image_id] = [groundtruth_caption]
                 res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
 
@@ -190,7 +190,7 @@ for epoch in range(current_epoch-1,num_epochs):
                 generated_captions = model.generate(images,gt_keyword_tokens) 
 
         for i,image_id in enumerate(image_ids):
-            groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)
+            groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy())
             gts_test[image_id] = [groundtruth_caption]
             res_test[image_id] = [generated_captions[i]]
 

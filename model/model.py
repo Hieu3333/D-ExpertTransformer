@@ -232,8 +232,8 @@ class ExpertTransformer(nn.Module):
         device = self.device
         batch_size = images.size(0)
 
-        bos_id = self.tokenizer.token_to_id("<BOS>")
-        eos_id = self.tokenizer.token_to_id("<EOS>")
+        bos_id = self.tokenizer.encode("<BOS>")
+        eos_id = self.tokenizer.encode("<EOS>")
 
         # Initialize sequences with <BOS>
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
@@ -265,7 +265,7 @@ class ExpertTransformer(nn.Module):
         for seq in sequences.tolist():
             if eos_id in seq:
                 seq = seq[:seq.index(eos_id) + 1]  # Cut after EOS
-            text = self.tokenizer.decode(seq, skip_special_tokens=True)
+            text = self.tokenizer.decode(seq)
             final_sequences.append(text)
 
         return final_sequences
@@ -297,7 +297,7 @@ class ExpertTransformer(nn.Module):
     
     def encode_keywords(self, batch_keywords, tokenizer):
         encoded_batch = []
-        pad_token_id = tokenizer.token_to_id("<PAD>")
+        pad_token_id = tokenizer.encode("<PAD>")
 
         for keywords in batch_keywords:
             keyword_list = [kw.strip() for kw in keywords]

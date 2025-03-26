@@ -63,7 +63,7 @@ class DeepEyeNet(Dataset):
 
         target_tokens = desc_tokens.clone()
         target_tokens[:-1] = desc_tokens[1:]  # Shift left
-        target_tokens[-1] = self.tokenizer.token_to_id('<PAD>')  # Pad token at the end
+        target_tokens[-1] = self.tokenizer.encode('<PAD>')  # Pad token at the end
 
         # --- Keywords with <SEP> ---
         sep_token = "<SEP>"
@@ -76,8 +76,8 @@ class DeepEyeNet(Dataset):
 
     def _pad_or_truncate(self, encoding):
         """Pad or truncate tokens to the specified max_length."""
-        tokens = encoding.ids  # Extract token IDs list from Encoding object
-        pad_token_id = self.tokenizer.token_to_id("<PAD>")
+        tokens = encoding
+        pad_token_id = self.tokenizer.encode("<PAD>")
         
         if len(tokens) < self.max_length:
             tokens += [pad_token_id] * (self.max_length - len(tokens))
