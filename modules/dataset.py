@@ -51,7 +51,6 @@ class DeepEyeNet(Dataset):
 
         # Load Image
         full_img_path = os.path.join(self.image_path, os.path.basename(img_name))
-        # print(full_img_path)
         image_id = os.path.splitext(os.path.basename(img_name))[0]
         image = Image.open(full_img_path).convert('RGB')
         if self.transform:
@@ -59,17 +58,20 @@ class DeepEyeNet(Dataset):
 
         # Tokenize clinical description
         desc_tokens = self.tokenizer.encode(clinical_desc)
-        desc_tokens = self._pad_or_truncate(desc_tokens)
-
-
+        desc_tokens = self._pad_or_truncate(desc_tokens.ids)  # Extract token IDs
         desc_tokens = torch.tensor(desc_tokens, dtype=torch.long)
 
         target_tokens = desc_tokens.clone()
-        target_tokens[:-1] = desc_tokens[1:]   # Shift left
-        target_tokens[-1] = self.tokenizer.token_to_id('<PAD>') # Pad token at the end
-        
+        target_tokens[:-1] = desc_tokens[1:]  # Shift left
+        target_tokens[-1] = self.tokenizer.token_to_id('<PAD>')  # Pad token at the end
 
-        return image_id, image, desc_tokens, target_tokens, one_hot
+        # --- Keywords with <SEP> ---
+        sep_token = "<SEP>"
+        raw_keywords = f" {sep_token} ".join(keywords_list)  # Join keywords with <SEP>
+
+        return image_id, image, desc_tokens, target_tokens, one_hot, raw_keywords
+
+
 
     def _pad_or_truncate(self, encoding):
         """Pad or truncate tokens to the specified max_length."""

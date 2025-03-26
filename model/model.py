@@ -183,7 +183,7 @@ class ExpertTransformer(nn.Module):
     
     
     
-    def forward(self,images,tokens,targets = None, target_keywords=None):
+    def forward(self,images,tokens,gt_keywords, targets = None, target_keywords=None):
         #keywords is a list of un-tokenized keywords
         #target_keywords are hot_encoding of true keywords
         B,T = tokens.shape
@@ -200,7 +200,9 @@ class ExpertTransformer(nn.Module):
         # print('keyword_tokens max:', keyword_tokens.max().item())
         # print('vocab_size:', self.We.num_embeddings)
 
-        keyword_emb = self.We(keyword_tokens) #B,max_len,hidden_size
+        gt_keywords_tokens = self.encode_keywords(gt_keywords) #Feed groundtruth keywords
+
+        keyword_emb = self.We(gt_keywords_tokens) #B,max_len,hidden_size
 
         encoder_features = self.fuser(visual_features,keyword_emb)
         pos = torch.arange(0,T,dtype=torch.long,device=device)
