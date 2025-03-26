@@ -9,8 +9,11 @@ class Tokenizer:
         self.important_words = ['re', 'le', 'od', 'os']
 
     def clean_text(self, text):
-        text = re.sub(r'[^a-zA-Z0-9\s]', ' ', text)  # Keep letters AND digits
-        text = re.sub(r'\s+', ' ', text)  # Remove extra spaces
+        text = re.sub(r'[^a-zA-Z0-9\s\'-]', ' ', text)  # Keep letters, digits, spaces, hyphens, and apostrophes
+        text = re.sub(r'-+', ' ', text)  # Replace all hyphens with spaces
+        text = re.sub(r"\b(\w+)'s\b", r'\1', text)  # Remove possessive 's (e.g., "patient's" → "patient")
+        text = re.sub(r'\s+', ' ', text)  # Normalize extra spaces
+        text = re.sub(r'[\s,\.]+$', '', text)  # Remove trailing commas and dots
         return text.lower().strip()
 
     def count_words(self, text):
@@ -69,8 +72,8 @@ for path in paths:
                 cleaned_keywords = ', '.join(cleaned_keywords_list)
                 all_cleaned_text.extend(cleaned_keywords_list)
             
-            # Clean clinical_description
-            description = meta.get('clinical_description', '')
+            # Clean clinical-description
+            description = meta.get('clinical-description', '')
             cleaned_description = ""
             if description:
                 cleaned_description = tokenizer.clean_text(description)
@@ -79,7 +82,7 @@ for path in paths:
             # Save cleaned (before replacing rare words) for now
             temp_clean.append({
                 'keywords': cleaned_keywords,
-                'clinical_description': cleaned_description
+                'clinical-description': cleaned_description
             })
     
     cleaned_data[path] = (anns, temp_clean)
@@ -115,10 +118,10 @@ for orig_path, out_path in zip(paths, cleaned_paths):
                 cleaned_kw_list = [tokenizer.replace_rare(kw) for kw in cleaned_keywords.split(', ')]
                 meta['keywords'] = ', '.join(cleaned_kw_list)
             
-            # Replace rare words in clinical_description
-            cleaned_description = temp_clean[idx]['clinical_description']
+            # Replace rare words in clinical-description
+            cleaned_description = temp_clean[idx]['clinical-description']
             if cleaned_description:
-                meta['clinical_description'] = tokenizer.replace_rare(cleaned_description)
+                meta['clinical-description'] = tokenizer.replace_rare(cleaned_description)
             
             idx += 1
     

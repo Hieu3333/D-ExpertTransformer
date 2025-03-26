@@ -6,7 +6,7 @@
 6. BCELoss makes the model run much slower?????
 7. Separate layernorm??
 8. Rebuild the tokenzier and clean the report
-
+9. INcrease max_length
 Ways to get better:
 -Clean report
 -Use beam search
