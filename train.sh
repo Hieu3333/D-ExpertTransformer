@@ -15,7 +15,8 @@ python train.py \
   --threshold 0.5 \
   --num_layers 2 \
   --delta1 1 \
-  --delta2 0 \
+  --delta2 0.3 \
+  --max_n 4 \
   --topk 5 \
   --temperature 1.2 \
   --lambda_init 0.8 \
