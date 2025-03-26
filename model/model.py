@@ -330,36 +330,6 @@ class ExpertTransformer(nn.Module):
         #Weight tying
         self.We.weight = self.lm_head.weight
 
-    def compute_ngram_loss(self,pred_tokens, target_tokens, max_n=4):
-        """
-        Compute cumulative n-gram loss (1-gram to max_n-gram)
-        Args:
-            pred_tokens: (B, T) tensor of predicted tokens
-            target_tokens: (B, T) tensor of ground truth tokens
-            max_n: Maximum n-gram size to consider
-
-        Returns:
-            n-gram loss scalar tensor
-        """
-        B, T = pred_tokens.shape
-        loss = 0.0
-
-        for n in range(1, max_n + 1):  # Loop over 1-grams to max_n-grams
-            total_count, match_count = 0, 0
-            
-            for b in range(B):  # Loop over batch
-                pred_ngrams = Counter(tuple(pred_tokens[b, i:i+n].tolist()) for i in range(T - n + 1))
-                target_ngrams = Counter(tuple(target_tokens[b, i:i+n].tolist()) for i in range(T - n + 1))
-                
-                total_count += sum(pred_ngrams.values())  # Total n-grams in prediction
-                match_count += sum((pred_ngrams & target_ngrams).values())  # Matching n-grams
-
-            precision = match_count / (total_count + 1e-8)  # Avoid division by zero
-            loss += (1 - precision)  # Minimize the error in n-gram match
-        
-        return loss / max_n  # Average over all n-gram sizes
-
-    
     
     def forward(self,images,tokens,gt_keyword_tokens, targets = None, target_keywords=None):
         #keywords is a list of un-tokenized keywords
@@ -396,15 +366,12 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.permute(0, 2, 1), targets, ignore_index=-1)
-            pred_tokens = logits.argmax(dim=-1)
-            loss_ngram = self.compute_ngram_loss(pred_tokens, targets, self.max_n)
 
-            loss = self.delta1 * loss_ce + self.delta2 * loss_ngram
+            loss = loss_ce 
         else:
             loss = None
             loss_ce = None
-            loss_ngram = None
-        return logits, loss, loss_ngram
+        return logits, loss, loss_ce
     
 
     @torch.no_grad()
