@@ -230,7 +230,7 @@ class ExpertTransformer(nn.Module):
     
 
     @torch.no_grad()
-    def generate(self, images, temperature=1.0):
+    def generate(self, images, gt_keywords,temperature=1.0):
         device = self.device
         batch_size = images.size(0)
 
@@ -246,7 +246,7 @@ class ExpertTransformer(nn.Module):
         for t in range(1, self.max_gen):
             # Get logits for current sequences
             
-            logits, _, _ = self(images, sequences)  # (batch_size, seq_len, vocab_size)
+            logits, _, _ = self(images, sequences, gt_keywords)  # (batch_size, seq_len, vocab_size)
             logits = logits[:, -1, :] / temperature  # Get last token logits
 
             # Get most probable next token (Greedy Search)

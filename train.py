@@ -113,10 +113,10 @@ for epoch in range(current_epoch-1,num_epochs):
     running_loss = 0.0
 
     for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
-        image_ids, images, desc_tokens, target_tokens, one_hot = batch
-        images, desc_tokens, target_tokens, one_hot = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device)
+        image_ids, images, desc_tokens, target_tokens, one_hot, gt_keywords = batch
+        images, desc_tokens, target_tokens, one_hot, gt_keywords = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device), gt_keywords.to(device)
 
-        outputs, loss, loss_ce = model(images, desc_tokens, target_tokens, one_hot)
+        outputs, loss, loss_ce = model(images, desc_tokens, gt_keywords, target_tokens, one_hot)
         loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
         loss.backward()
@@ -144,7 +144,7 @@ for epoch in range(current_epoch-1,num_epochs):
     res_val = {}
     with torch.no_grad():  
         for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
-            image_ids, images, desc_tokens, target_tokens, one_hot = batch
+            image_ids, images, desc_tokens, target_tokens, one_hot, gt_keywords = batch
             images = images.to(device)
             target_tokens = target_tokens.to(device)
             # print("Image:",images.shape)
@@ -153,7 +153,7 @@ for epoch in range(current_epoch-1,num_epochs):
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
             with torch.cuda.amp.autocast():
-                generated_captions = model.generate(images)
+                generated_captions = model.generate(images,gt_keywords)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(), skip_special_tokens=True)
@@ -180,12 +180,12 @@ for epoch in range(current_epoch-1,num_epochs):
     res_test = {}
     with torch.no_grad():
         for batch_idx,batch in enumerate(tqdm(test_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
-            image_ids, images, desc_tokens, target_tokens, one_hot = batch
+            image_ids, images, desc_tokens, target_tokens, one_hot, gt_keywords = batch
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
             with torch.cuda.amp.autocast():
-                generated_captions = model.generate(images) 
+                generated_captions = model.generate(images,gt_keywords) 
 
         for i,image_id in enumerate(image_ids):
             groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy(),skip_special_tokens=True)
