@@ -200,7 +200,7 @@ class ExpertTransformer(nn.Module):
         # print('keyword_tokens max:', keyword_tokens.max().item())
         # print('vocab_size:', self.We.num_embeddings)
 
-        gt_keywords_tokens = self.encode_keywords(gt_keywords) #Feed groundtruth keywords
+        gt_keywords_tokens = self.encode_keywords(gt_keywords,self.tokenizer) #Feed groundtruth keywords
 
         keyword_emb = self.We(gt_keywords_tokens) #B,max_len,hidden_size
 
