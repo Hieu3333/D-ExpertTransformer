@@ -172,6 +172,8 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"METEOR: {eval_scores['METEOR']}")
         logger.info(f"CIDER: {eval_scores['Cider']}")
         logger.info(f"ROUGE_L: {eval_scores['ROUGE_L']}")
+        print("GTS Val Example:", list(gts_val.items())[:5])
+        print("Res Val Example:", list(res_val.items())[:5])
         
         
 
@@ -188,10 +190,10 @@ for epoch in range(current_epoch-1,num_epochs):
             with torch.cuda.amp.autocast():
                 generated_captions = model.generate(images,gt_keyword_tokens) 
 
-        for i,image_id in enumerate(image_ids):
-            groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy())
-            gts_test[image_id] = [groundtruth_caption]
-            res_test[image_id] = [generated_captions[i]]
+            for i,image_id in enumerate(image_ids):
+                groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy())
+                gts_test[image_id] = [groundtruth_caption]
+                res_test[image_id] = [generated_captions[i]]
 
         
         
