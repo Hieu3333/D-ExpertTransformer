@@ -132,9 +132,9 @@ class MLP(nn.Module):
     def forward(self,x):
         return self.dropout(self.c_proj(self.gelu(self.c_fc(x))))
 
-class ImageKeywordFuser(nn.Module):
+class TransfusionEncoder(nn.Module):
     def __init__(self,args):
-        super(ImageKeywordFuser,self).__init__()
+        super(TransfusionEncoder,self).__init__()
         self.attn = DiffMultiHeadedAttention(args,depth=0,mask=False)
         self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
         self.ln1 = nn.LayerNorm(args.hidden_size)
@@ -164,9 +164,9 @@ class ImageKeywordFuser(nn.Module):
 
 
 
-class ContextualTransformerDecoderLayer(nn.Module):
+class LanguageDecoderLayer(nn.Module):
     def __init__(self,args,depth):
-        super(ContextualTransformerDecoderLayer,self).__init__()
+        super(LanguageDecoderLayer,self).__init__()
         self.decoder_attn = DiffMultiHeadedAttention(args,depth=depth,mask=True)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.ln2 = nn.LayerNorm(args.hidden_size)
@@ -180,6 +180,7 @@ class ContextualTransformerDecoderLayer(nn.Module):
         x = x + self.ln3(self.mlp(x))
         return x
     
+
 
 
 
@@ -203,9 +204,10 @@ class ExpertTransformer(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
         
         self.visual_extractor = ResNet50()
-        self.fuser = ImageKeywordFuser(args)
+        self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
+        self.fuser = TransfusionEncoder(args)
         # self.mlp_classifier = Classifier(args)
-        self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
+        self.contextual_decoder = nn.ModuleList([LanguageDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
         self.keywords = keywords
         self.device = args.device
@@ -230,6 +232,7 @@ class ExpertTransformer(nn.Module):
         # print('vocab_size:', self.We.num_embeddings
 
         keyword_emb = self.We(gt_keyword_tokens) #B,max_len,hidden_size
+        keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
 
         encoder_features = self.fuser(visual_features,keyword_emb)
         pos = torch.arange(0,T,dtype=torch.long,device=device)

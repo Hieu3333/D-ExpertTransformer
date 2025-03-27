@@ -1,5 +1,5 @@
 python train.py \
-  --epochs 200 \
+  --epochs 100 \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-3 \
@@ -8,7 +8,7 @@ python train.py \
   --accum_steps 1 \
   --bias \
   --early_stopping 10 \
-  --max_length 30 \
+  --max_length 50 \
   --step_size 10 \
   --max_gen 100 \
   --hidden_size 512 \
@@ -31,4 +31,3 @@ python train.py \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
-  --from_pretrained "results/checkpoint_epoch_100.pth"
