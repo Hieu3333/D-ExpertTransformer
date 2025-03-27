@@ -1,5 +1,5 @@
 python train.py \
-  --epochs 30 \
+  --epochs 100 \
   --lr_ed 1e-3 \
   --lr_ve 1e-4 \
   --weight_decay 1e-3 \
