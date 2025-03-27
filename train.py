@@ -81,7 +81,7 @@ scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=args.step_size,gamma=0
 
 if args.from_pretrained is not None:
     checkpoint_path = os.path.join(args.project_root,args.from_pretrained)
-    checkpoint = torch.load(checkpoint_path,map_location=args.device)
+    checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optim'])
     current_epoch = checkpoint['epoch']
