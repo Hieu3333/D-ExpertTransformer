@@ -253,7 +253,7 @@ class ImageKeywordFuser(nn.Module):
     def forward(self,visual_features,x):
         vf = self.attn.q_proj(visual_features)
         vf = vf + self.ln1(self.attn(visual_features,x))
-        vf = vf + self.ln2(self.mlp(x))
+        vf = vf + self.ln2(self.mlp(vf))
         return vf
     
 # class Classifier(nn.Module):
