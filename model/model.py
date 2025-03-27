@@ -245,7 +245,7 @@ class MLP(nn.Module):
 class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
-        self.attn = MultiHeadedCrossAttention(args,depth=0)
+        self.attn = MultiHeadedCrossAttention(args)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
         self.ln2 = nn.LayerNorm(args.hidden_size)
