@@ -5,7 +5,7 @@ tokenizer = Tokenizer()
 tokenizer.load_vocab('vocab.json')
 
 # Test cases
-examples = ["26 year old female amn macular neuroretinopathy"]
+examples = ["26 year old female amn macular neuroretinopathy elephant"]
 
 for example in examples:
     encoding = tokenizer.encode(example)

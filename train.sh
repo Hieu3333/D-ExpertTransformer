@@ -18,7 +18,7 @@ python train.py \
   --delta1 1 \
   --delta2 0.01 \
   --topk 5 \
-  --temperature 1.2 \
+  --temperature 1 \
   --lambda_init 0.8 \
   --dropout 0.2 \
   --beam_width 1 \
