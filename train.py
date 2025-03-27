@@ -81,10 +81,16 @@ scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=args.step_size,gamma=0
 
 if args.from_pretrained is not None:
     checkpoint_path = os.path.join(args.project_root,args.from_pretrained)
-    checkpoint = torch.load(checkpoint_path)
+    checkpoint = torch.load(checkpoint_path,map_location=args.device)
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optim'])
     current_epoch = checkpoint['epoch']
+    # Move optimizer tensors to correct device
+    for param in optimizer.state.values():
+        if isinstance(param, torch.Tensor):
+            param.data = param.data.to(args.device)
+            if param.grad is not None:
+                param.grad.data = param.grad.data.to(args.device)
 else:
     current_epoch = 1
 
