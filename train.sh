@@ -1,6 +1,6 @@
 python train.py \
   --epochs 30 \
-  --lr_ed 1e-4 \
+  --lr_ed 1e-3 \
   --lr_ve 1e-4 \
   --weight_decay 1e-3 \
   --save_path "results" \
@@ -9,6 +9,7 @@ python train.py \
   --bias \
   --early_stopping 10 \
   --max_length 30 \
+  --step_size 10 \
   --max_gen 100 \
   --hidden_size 1024 \
   --vocab_size 2681 \

@@ -11,6 +11,7 @@ def parser_arg():
     parser.add_argument('--threshold',type=float, required=True)
     parser.add_argument('--num_layers',type=int, required=True)
     parser.add_argument('--lr_ve',type=float, required=True)
+    parser.add_argument('--step_size',type=int, required=True)
     parser.add_argument('--lr_ed',type=float, required=True)
     parser.add_argument('--delta1',type=float, required=True)
     parser.add_argument('--delta2',type=float, required=True)

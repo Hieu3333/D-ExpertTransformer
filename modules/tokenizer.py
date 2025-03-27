@@ -15,6 +15,7 @@ class Tokenizer:
         text = re.sub(r'-+', ' ', text)  # Replace multiple hyphens with spaces
         text = re.sub(r"\b(\w+)'s\b", r'\1', text)  # Remove possessive 's
         text = re.sub(r'\s+', ' ', text).strip()  # Normalize spaces
+        text = text.replace('.', '')  # Remove all dots
         return text.lower()
 
     def collect_texts(self, filepaths):
@@ -108,62 +109,62 @@ class Tokenizer:
 # Step 1: Load and Process Data
 # ===========================
 
-# tokenizer = Tokenizer()
-# filepaths = [
-#     "data/DeepEyeNet_train.json",
-#     "data/DeepEyeNet_val.json",
-#     "data/DeepEyeNet_test.json"
-# ]
+tokenizer = Tokenizer()
+filepaths = [
+    "data/DeepEyeNet_train.json",
+    "data/DeepEyeNet_val.json",
+    "data/DeepEyeNet_test.json"
+]
 
-# cleaned_filepaths = [
-#     "data/cleaned_DeepEyeNet_train.json",
-#     "data/cleaned_DeepEyeNet_val.json",
-#     "data/cleaned_DeepEyeNet_test.json"
-# ]
+cleaned_filepaths = [
+    "data/cleaned_DeepEyeNet_train.json",
+    "data/cleaned_DeepEyeNet_val.json",
+    "data/cleaned_DeepEyeNet_test.json"
+]
 
-# print("🔎 Loading and cleaning text...")
-# all_texts, cleaned_data = tokenizer.collect_texts(filepaths)
+print("🔎 Loading and cleaning text...")
+all_texts, cleaned_data = tokenizer.collect_texts(filepaths)
 
-# print("📊 Building vocabulary...")
-# tokenizer.build_vocab(all_texts)
+print("📊 Building vocabulary...")
+tokenizer.build_vocab(all_texts)
 
-# # Save vocabulary
-# vocab_path = "data/vocab.json"
-# tokenizer.save_vocab(vocab_path)
-# print(f"✅ Vocabulary saved to {vocab_path}")
+# Save vocabulary
+vocab_path = "data/vocab.json"
+tokenizer.save_vocab(vocab_path)
+print(f"✅ Vocabulary saved to {vocab_path}")
 
-# # ===========================
-# # Step 2: Replace Rare Words & Write Cleaned Data
-# # ===========================
+# ===========================
+# Step 2: Replace Rare Words & Write Cleaned Data
+# ===========================
 
-# print("\n📝 Replacing rare words and saving cleaned files...")
+print("\n📝 Replacing rare words and saving cleaned files...")
 
-# for orig_path, out_path in zip(filepaths, cleaned_filepaths):
-#     anns, cleaned_entries = cleaned_data[orig_path]
+for orig_path, out_path in zip(filepaths, cleaned_filepaths):
+    anns, cleaned_entries = cleaned_data[orig_path]
     
-#     print(f"Processing {orig_path} -> {out_path}...")
+    print(f"Processing {orig_path} -> {out_path}...")
 
-#     idx = 0
-#     for item in anns:
-#         for meta in item.values():
-#             # Replace rare words in keywords
-#             cleaned_keywords = cleaned_entries[idx]['keywords']
-#             if cleaned_keywords:
-#                 cleaned_kw_list = [tokenizer.replace_rare(kw) for kw in cleaned_keywords.split(', ')]
-#                 meta['keywords'] = ', '.join(cleaned_kw_list)
+    idx = 0
+    for item in anns:
+        for meta in item.values():
+            # Replace rare words in keywords
+            cleaned_keywords = cleaned_entries[idx]['keywords']
+            if cleaned_keywords:
+                cleaned_kw_list = [tokenizer.replace_rare(kw) for kw in cleaned_keywords.split(', ')]
+                meta['keywords'] = ', '.join(cleaned_kw_list)
             
-#             # Replace rare words in clinical-description
-#             cleaned_description = cleaned_entries[idx]['clinical-description']
-#             if cleaned_description:
-#                 meta['clinical-description'] = tokenizer.replace_rare(cleaned_description)
+            # Replace rare words in clinical-description
+            cleaned_description = cleaned_entries[idx]['clinical-description']
+            if cleaned_description:
+                meta['clinical-description'] = tokenizer.replace_rare(cleaned_description)
             
-#             idx += 1
+            idx += 1
     
-#     # Write to cleaned file
-#     with open(out_path, 'w') as f:
-#         json.dump(anns, f, indent=2)
+    # Write to cleaned file
+    with open(out_path, 'w') as f:
+        json.dump(anns, f, indent=2)
 
-#     print(f"✅ Cleaned data saved to {out_path}")
+    print(f"✅ Cleaned data saved to {out_path}")
 
-# print("\n🎉 All files processed successfully!")
+print("\n🎉 All files processed successfully!")
 

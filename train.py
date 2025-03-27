@@ -77,7 +77,7 @@ optimizer =torch.optim.AdamW(
         )
 
 
-scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=10,gamma=0.1)
+scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=args.step_size,gamma=0.1)
 
 if args.from_pretrained is not None:
     checkpoint = os.path.join(args.project_root,args.from_pretrained)
@@ -224,6 +224,7 @@ for epoch in range(current_epoch-1,num_epochs):
             'model': model.state_dict(),  # Save model weights
             'optim': optimizer.state_dict(),  # Save optimizer state
         }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+        logger.info("Test score improved")
 
     if avg_eval_metric > best_avg_val:
         best_avg_val = avg_eval_metric
