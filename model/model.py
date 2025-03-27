@@ -6,7 +6,10 @@ import math
 from modules.visual_extractor import ResNet50
 import sys
 from collections import Counter
+from modules.RMSNorm import RMSNorm
 
+def lambda_init_fn(depth):
+    return 0.8 - 0.6 * math.exp(-0.3 * depth)
 
 class MultiHeadedCrossAttention(nn.Module):
     def __init__(self,args):
@@ -49,14 +52,14 @@ class MultiHeadedCrossAttention(nn.Module):
         return out
     
 class DiffMultiHeadedCrossAttention(nn.Module):
-    def __init__(self, args):
+    def __init__(self, args, depth):
         super(DiffMultiHeadedCrossAttention, self).__init__()
         self.hidden_size = args.hidden_size
         self.encoder_size = args.encoder_size
         self.decoder_size = args.decoder_size
         self.diff_num_heads = args.diff_num_heads
         self.diff_head_size = self.hidden_size // self.diff_num_heads
-        self.lambda_init = args.lambda_init
+        self.lambda_init = lambda_init_fn(depth)
 
         # Learnable lambda parameters
         self.lambda_q1 = nn.Parameter(torch.zeros(self.diff_head_size // 2).normal_(mean=0, std=0.1))
@@ -67,7 +70,7 @@ class DiffMultiHeadedCrossAttention(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
 
         # Apply RMSNorm to each head
-        self.rmsnorm = nn.ModuleList([RMSNorm(self.diff_head_size) for _ in range(self.diff_num_heads)])
+        self.rmsnorm = RMSNorm(self.diff_head_size, eps=1e-5, elementwise_affine=True)
 
         assert self.hidden_size % self.diff_num_heads == 0
 
@@ -110,7 +113,7 @@ class DiffMultiHeadedCrossAttention(nn.Module):
         out = torch.matmul(att, v)  # (B, nh, T, head_size)
 
         # Apply RMSNorm to each head separately
-        out = torch.stack([self.rmsnorm[i](out[:, i, :, :]) for i in range(self.diff_num_heads)], dim=1)  # (B, nh, T, head_size)
+        out = self.rmsnorm(out) * (1-self.lambda_init)
         # out = out * (1-self.lambda_init)
         # Reshape and project output
         out = out.transpose(1, 2).contiguous().view(B, T, self.hidden_size)  # (B, T, hidden_size)
@@ -167,7 +170,7 @@ class MultiHeadedAttention(nn.Module):
         return out
 
 class DiffMultiHeadedAttention(nn.Module):
-    def __init__(self,args,mask=True):
+    def __init__(self,args,depth,mask=True):
         super(DiffMultiHeadedAttention,self).__init__()
         self.hidden_size = args.hidden_size
         self.diff_num_heads = args.diff_num_heads
@@ -177,7 +180,7 @@ class DiffMultiHeadedAttention(nn.Module):
 
         assert self.hidden_size % self.diff_num_heads == 0
 
-        self.lambda_init = args.lambda_init
+        self.lambda_init = lambda_init_fn(depth)
         self.lambda_q1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
         self.lambda_q2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
         self.lambda_k1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
@@ -186,7 +189,7 @@ class DiffMultiHeadedAttention(nn.Module):
         self.k_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
         self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
 
-        self.rmsnorm = nn.ModuleList([RMSNorm(self.diff_head_size) for _ in range(self.diff_num_heads)])
+        self.rmsnorm = RMSNorm(self.diff_head_size, eps=1e-5, elementwise_affine=True)
 
         self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
         self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
@@ -219,7 +222,7 @@ class DiffMultiHeadedAttention(nn.Module):
         att = att.reshape(B,self.diff_num_heads,2,T,-1)
         att = att[:,:,0] - lambda_full * att[:,:,1]
         out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
-        out = torch.stack([self.rmsnorm[i](out[:, i, :, :]) for i in range(self.diff_num_heads)], dim=1)  # (B, nh, T, head_size)
+        out = self.rmsnorm(out) * (1-self.lambda_init)  # (B, nh, T, head_size)
         # out = out * (1-self.lambda_init)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
         out = self.out_proj(out) 
@@ -241,7 +244,7 @@ class MLP(nn.Module):
 class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
-        self.attn = DiffMultiHeadedCrossAttention(args)
+        self.attn = DiffMultiHeadedCrossAttention(args,depth=1)
         self.ln_enc = RMSNorm(args.encoder_size)
         self.ln_dec = RMSNorm(args.hidden_size)
         self.mlp = MLP(args)
@@ -252,32 +255,32 @@ class ImageKeywordFuser(nn.Module):
         x = x + self.mlp(self.ln2(x))
         return x
     
-class Classifier(nn.Module):
-    def __init__(self,args):
-        super(Classifier,self).__init__()
-        self.c_fc = nn.Linear(args.encoder_size,args.encoder_size,bias=args.bias)
-        self.GELU = nn.GELU()
-        self.c_proj = nn.Linear(args.encoder_size,args.keyword_vocab_size,bias=args.bias)
-        self.sigmoid = nn.Sigmoid()
+# class Classifier(nn.Module):
+#     def __init__(self,args):
+#         super(Classifier,self).__init__()
+#         self.c_fc = nn.Linear(args.encoder_size,args.encoder_size,bias=args.bias)
+#         self.GELU = nn.GELU()
+#         self.c_proj = nn.Linear(args.encoder_size,args.keyword_vocab_size,bias=args.bias)
+#         self.sigmoid = nn.Sigmoid()
 
-    def forward(self,x):
-        logits = self.c_proj(self.GELU(self.c_fc(x)))
-        logits = logits.mean(dim=1) #Average over N -> (B,1,encoder_size)
-        probs = self.sigmoid(logits)
-        probs = probs.mean(dim=1)
-        return probs, logits
+#     def forward(self,x):
+#         logits = self.c_proj(self.GELU(self.c_fc(x)))
+#         logits = logits.mean(dim=1) #Average over N -> (B,1,encoder_size)
+#         probs = self.sigmoid(logits)
+#         probs = probs.mean(dim=1)
+#         return probs, logits
 
 
 
 class ContextualTransformerDecoderLayer(nn.Module):
-    def __init__(self,args):
+    def __init__(self,args,depth):
         super(ContextualTransformerDecoderLayer,self).__init__()
-        self.decoder_attn = DiffMultiHeadedAttention(args,mask=True)
+        self.decoder_attn = DiffMultiHeadedAttention(args,depth=depth,mask=True)
         self.ln1 = RMSNorm(args.hidden_size)
         self.ln_enc = RMSNorm(args.hidden_size)
         self.ln_dec = RMSNorm(args.hidden_size)
         self.ln3 = RMSNorm(args.hidden_size)
-        self.encoder_decoder = DiffMultiHeadedAttention(args,mask=False)
+        self.encoder_decoder = DiffMultiHeadedAttention(args,depth=depth,mask=False)
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
@@ -287,18 +290,7 @@ class ContextualTransformerDecoderLayer(nn.Module):
         x = x+ self.mlp(self.ln3(x))
         return x
     
-class RMSNorm(nn.Module):
-    def __init__(self, dim: int, eps: float = 1e-8):
-        """ Root Mean Square Layer Normalization (RMSNorm). """
-        super().__init__()
-        self.eps = eps
-        self.weight = nn.Parameter(torch.ones(dim))  # Learnable scale parameter
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Forward pass of RMSNorm. """
-        norm = x.norm(2, dim=-1, keepdim=True)  # L2 norm along last dimension
-        rms = norm * (x.shape[-1] ** -0.5)  # Root mean square normalization
-        return self.weight * (x / (rms + self.eps))  # Apply learnable scale
 
 
 class ExpertTransformer(nn.Module):
@@ -321,8 +313,8 @@ class ExpertTransformer(nn.Module):
         
         self.visual_extractor = ResNet50()
         self.fuser = ImageKeywordFuser(args)
-        self.mlp_classifier = Classifier(args)
-        self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args) for _ in range(args.num_layers)])
+        # self.mlp_classifier = Classifier(args)
+        self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
         self.cl_proj = nn.Linear(args.decoder_size,args.hidden_size)
         self.keywords = keywords
