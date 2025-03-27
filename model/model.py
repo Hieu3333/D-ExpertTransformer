@@ -275,11 +275,11 @@ class ImageKeywordFuser(nn.Module):
 class ContextualTransformerDecoderLayer(nn.Module):
     def __init__(self,args,depth):
         super(ContextualTransformerDecoderLayer,self).__init__()
-        self.decoder_attn = MultiHeadedAttention(args,depth=depth,mask=True)
+        self.decoder_attn = MultiHeadedAttention(args,mask=True)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.ln2 = nn.LayerNorm(args.hidden_size)
         self.ln3 = nn.LayerNorm(args.hidden_size)
-        self.encoder_decoder = MultiHeadedAttention(args,depth=depth,mask=False)
+        self.encoder_decoder = MultiHeadedAttention(args,mask=False)
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
