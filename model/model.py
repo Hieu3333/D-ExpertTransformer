@@ -211,6 +211,7 @@ class ExpertTransformer(nn.Module):
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
         self.keywords = keywords
         self.device = args.device
+        self.beam_width = args.beam_width
         #Weight tying
         self.We.weight = self.lm_head.weight
 
