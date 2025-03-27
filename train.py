@@ -123,31 +123,31 @@ for epoch in range(current_epoch-1,num_epochs):
     model.train()
     running_loss = 0.0
 
-    for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
-        image_ids, images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = batch
-        images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device), gt_keyword_tokens.to(device)
+    # for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
+    #     image_ids, images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = batch
+    #     images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device), gt_keyword_tokens.to(device)
 
-        outputs, loss, loss_ce = model(images, desc_tokens, gt_keyword_tokens, target_tokens, one_hot)
-        loss = loss / args.accum_steps  # Normalize for gradient accumulation
+    #     outputs, loss, loss_ce = model(images, desc_tokens, gt_keyword_tokens, target_tokens, one_hot)
+    #     loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
-        loss.backward()
+    #     loss.backward()
 
-        # Gradient accumulation step
-        if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-            optimizer.step()
-            optimizer.zero_grad()  # Zero gradients after step
+    #     # Gradient accumulation step
+    #     if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
+    #         optimizer.step()
+    #         optimizer.zero_grad()  # Zero gradients after step
 
-        running_loss += loss.item()
+    #     running_loss += loss.item()
         
-        # Logging
-        if (batch_idx+1== len(train_dataloader)) :
-            avg_loss = running_loss / log_interval
-            logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
-            running_loss = 0.0  # Reset running loss
+    #     # Logging
+    #     if (batch_idx+1== len(train_dataloader)) :
+    #         avg_loss = running_loss / log_interval
+    #         logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
+    #         running_loss = 0.0  # Reset running loss
     
-    scheduler.step()  
-    if epoch < args.epochs-1:
-        continue
+    # scheduler.step()  
+    # if epoch < args.epochs-1:
+    #     continue
 
 
 
@@ -186,7 +186,7 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"ROUGE_L: {eval_scores['ROUGE_L']}")
         print("GTS Val Example:", list(gts_val.items())[:5])
         print("Res Val Example:", list(res_val.items())[:5])
-        
+        logger.info(f"{eval_scores}")
         
 
     model.eval()
@@ -218,6 +218,9 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"METEOR: {test_scores['METEOR']}")
         logger.info(f"CIDER: {test_scores['Cider']}")
         logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
+
+        
+
         print("GTS Test Example:", list(gts_test.items())[:5])
         print("Res Test Example:", list(res_test.items())[:5])
     avg_eval_metric = eval_scores['BLEU_4'] + 0.5*eval_scores['BLEU_1']

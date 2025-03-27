@@ -1,10 +1,10 @@
-python train.py \
+python sample.py \
   --epochs 100 \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-3 \
   --save_path "results" \
-  --batch_size 64 \
+  --batch_size 1 \
   --accum_steps 1 \
   --bias \
   --early_stopping 10 \
@@ -17,11 +17,11 @@ python train.py \
   --num_layers 2 \
   --delta1 1 \
   --delta2 0.01 \
-  --topk 5 \
+  --topk 3 \
   --temperature 1 \
   --lambda_init 0.8 \
   --dropout 0.2 \
-  --beam_width 1 \
+  --beam_width 3 \
   --encoder_size 2048 \
   --decoder_size 512 \
   --num_heads 8 \
@@ -30,5 +30,4 @@ python train.py \
   --keyword_vocab_size 602 \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
-  --project_root "/workspace/D-ExpertTransformer" \
- 
+  --project_root "/mnt/c/D-ExpertTransformer" \
