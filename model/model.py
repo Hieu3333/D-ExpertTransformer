@@ -370,6 +370,8 @@ class ExpertTransformer(nn.Module):
         """
         Computes contrastive loss using cosine similarity and InfoNCE loss.
         """
+        image_emb = image_emb.mean(dim=1)
+        text_emb = text_emb.mean(dim=1)
         image_emb = F.normalize(image_emb, dim=-1)
         text_emb = F.normalize(text_emb, dim=-1)
 
