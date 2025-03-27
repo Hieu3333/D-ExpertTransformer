@@ -1,4 +1,4 @@
-python train.py \
+python sample.py \
   --epochs 100 \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
