@@ -17,7 +17,7 @@ python train.py \
   --num_layers 2 \
   --delta1 1 \
   --delta2 0.01 \
-  --topk 5 \
+  --topk 1 \
   --temperature 1 \
   --lambda_init 0.8 \
   --dropout 0.2 \

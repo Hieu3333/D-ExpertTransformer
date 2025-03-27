@@ -2,13 +2,14 @@
 2. Add weight tying ???????
 3. Use beam search
 4. Use V100 to train, it is much faster than P100
-5. The test branch has much faster eval and test time but horrible result??? -> Because it still has max_length = 10
 6. BCELoss makes the model run much slower?????
 7. Separate layernorm??
 8. Rebuild the tokenzier and clean the report
 9. INcrease max_length
-10. Use contrastive loss??
+10. Use contrastive loss?? -> No?
 11. Add (1-lambda_init)
+12. Check really hard the cleaning and tokenizing 
+13. smaller topk?
 Ways to get better:
 -Clean report
 -Use beam search
