@@ -246,12 +246,13 @@ class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
         self.attn = MultiHeadedCrossAttention(args)
+        self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
-        vf = self.attn.q_proj(visual_features)
+        vf = self.vf_proj(visual_features)
         vf = vf + self.ln1(self.attn(visual_features,x))
         vf = vf + self.ln2(self.mlp(vf))
         return vf
