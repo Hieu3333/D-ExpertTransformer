@@ -11,116 +11,6 @@ from modules.RMSNorm import RMSNorm
 def lambda_init_fn(depth):
     return 0.8 - 0.6 * math.exp(-0.3 * depth)
 
-class MultiHeadedCrossAttention(nn.Module):
-    def __init__(self,args):
-        super(MultiHeadedCrossAttention,self).__init__()
-        self.hidden_size = args.hidden_size
-        self.encoder_size = args.encoder_size
-        self.decoder_size = args.decoder_size
-        self.num_heads = args.num_heads
-        self.head_size = self.hidden_size // self.num_heads
-        self.dropout = nn.Dropout(args.dropout)
-        assert self.hidden_size % self.num_heads == 0
-
-        self.q_proj = nn.Linear(self.encoder_size,self.hidden_size,bias=args.bias)
-        self.k_proj = nn.Linear(self.decoder_size, self.hidden_size,bias=args.bias)
-        self.v_proj = nn.Linear(self.decoder_size,self.hidden_size,bias=args.bias)
-
-        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
-    
-    def forward(self,encoder_feature,decoder_feature):
-        B,N,_ = encoder_feature.shape
-        B,T,_ = decoder_feature.shape #T is number of keywords
-
-        # print("decoder:",decoder_feature.shape)
-        # print("encoder:",encoder_feature.shape)
-    
-        q = self.q_proj(encoder_feature) #(B,N,C)
-        k = self.k_proj(decoder_feature) #(B,T,C)
-        v = self.v_proj(decoder_feature) #(B,T,C)
-
-        q = q.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
-        k = k.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
-        v = v.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
-        assert q.shape[-1] == k.shape[-1]
-        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,N,T)
-        att = F.softmax(att,dim=-1)
-        out = torch.matmul(att,v) #(B,nh,N,T) @ (B,nh,T,head_size) -> (B,nh,N,head_size)
-        out = out.transpose(1,2).contiguous().view(B,N,self.hidden_size)
-        out = self.out_proj(out) 
-        out = self.dropout(out)
-        return out
-    
-class DiffMultiHeadedCrossAttention(nn.Module):
-    def __init__(self, args, depth):
-        super(DiffMultiHeadedCrossAttention, self).__init__()
-        self.hidden_size = args.hidden_size
-        self.encoder_size = args.encoder_size
-        self.decoder_size = args.decoder_size
-        self.diff_num_heads = args.diff_num_heads
-        self.diff_head_size = self.hidden_size // self.diff_num_heads
-        self.lambda_init = lambda_init_fn(depth)
-
-        # Learnable lambda parameters
-        self.lambda_q1 = nn.Parameter(torch.zeros(self.diff_head_size // 2).normal_(mean=0, std=0.1))
-        self.lambda_q2 = nn.Parameter(torch.zeros(self.diff_head_size // 2).normal_(mean=0, std=0.1))
-        self.lambda_k1 = nn.Parameter(torch.zeros(self.diff_head_size // 2).normal_(mean=0, std=0.1))
-        self.lambda_k2 = nn.Parameter(torch.zeros(self.diff_head_size // 2).normal_(mean=0, std=0.1))
-
-        self.dropout = nn.Dropout(args.dropout)
-
-        # Apply RMSNorm to each head
-        self.rmsnorm = RMSNorm(self.diff_head_size, eps=1e-5, elementwise_affine=True)
-
-        assert self.hidden_size % self.diff_num_heads == 0
-
-        # Projection layers
-        self.q_proj = nn.Linear(self.decoder_size, self.hidden_size, bias=args.bias)
-        self.k_proj = nn.Linear(self.encoder_size, self.hidden_size, bias=args.bias)
-        self.v_proj = nn.Linear(self.encoder_size, self.hidden_size, bias=args.bias)
-        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size, bias=args.bias)
-
-    def forward(self, encoder_feature, decoder_feature):
-        B, N, _ = encoder_feature.shape
-        B, T, _ = decoder_feature.shape  # T is the number of keywords
-
-        # Project input features
-        q = self.q_proj(encoder_feature)  # (B, T, C)
-        k = self.k_proj(decoder_feature)  # (B, N, C)
-        v = self.v_proj(decoder_feature )  # (B, N, C)
-
-        # Compute lambda values
-        lambda1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1).float())
-        lambda2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1).float())
-        lambda_full = lambda1 - lambda2 + self.lambda_init
-
-        # Reshape for multi-head attention
-        q = q.view(B, T, 2 * self.diff_num_heads, self.diff_head_size // 2).transpose(1, 2)  # (B, 2*nh, T, head_size/2)
-        k = k.view(B, N, 2 * self.diff_num_heads, self.diff_head_size // 2).transpose(1, 2)  # (B, 2*nh, N, head_size/2)
-        v = v.view(B, N, self.diff_num_heads, self.diff_head_size).transpose(1, 2)  # (B, nh, N, head_size)
-
-        assert q.shape[-1] == k.shape[-1], "Q and K must have the same head dimension"
-
-        # Compute attention scores
-        att = torch.matmul(q, k.transpose(-1, -2)) / math.sqrt(q.shape[-1])  # (B, 2*nh, T, N)
-        att = F.softmax(att, dim=-1)
-
-        # Reshape attention for differential computation
-        att = att.view(B, self.diff_num_heads, 2, T, N)  # (B, nh, 2, T, N)
-        att = att[:, :, 0] - lambda_full * att[:, :, 1]  # (B, nh, T, N)
-
-        # Compute output values
-        out = torch.matmul(att, v)  # (B, nh, T, head_size)
-
-        # Apply RMSNorm to each head separately
-        out = self.rmsnorm(out) * (1-self.lambda_init)
-        # out = out * (1-self.lambda_init)
-        # Reshape and project output
-        out = out.transpose(1, 2).contiguous().view(B, T, self.hidden_size)  # (B, T, hidden_size)
-        out = self.out_proj(out) 
-        out = self.dropout(out)
-
-        return out
     
 class MultiHeadedAttention(nn.Module):
     def __init__(self,args, mask=True):
@@ -141,13 +31,13 @@ class MultiHeadedAttention(nn.Module):
         if self.mask:
             self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
 
-    def forward(self,encoder_feature,x):
-        B,T,_ = x.shape #T is number of keywords
-        B,N,_ = encoder_feature.shape
+    def forward(self,query,key,value):
+        B,T,_ = query.shape #T is number of keywords
+        B,N,_ = key.shape
 
-        q = self.q_proj(x) #(B,T,C)
-        k = self.k_proj(encoder_feature) 
-        v = self.v_proj(encoder_feature) 
+        q = self.q_proj(query) #(B,T,C)
+        k = self.k_proj(key) 
+        v = self.v_proj(value) 
         
 
         q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
@@ -195,13 +85,13 @@ class DiffMultiHeadedAttention(nn.Module):
         self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
         self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
 
-    def forward(self,encoder_feature,x):
-        B,T,_ = x.shape #T is number of keywords
-        B,N,_ = encoder_feature.shape
+    def forward(self,query,key,value):
+        B,T,_ = query.shape #T is number of keywords
+        B,N,_ = value.shape
 
-        q = self.q_proj(x) #(B,T,C)
-        k = self.k_proj(encoder_feature) 
-        v = self.v_proj(encoder_feature) 
+        q = self.q_proj(query) #(B,T,C)
+        k = self.k_proj(key) 
+        v = self.v_proj(value) 
         
         lambda1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1).float())
         lambda2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1).float())
@@ -245,7 +135,7 @@ class MLP(nn.Module):
 class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
-        self.attn = MultiHeadedCrossAttention(args)
+        self.attn = MultiHeadedAttention(args,mask=False)
         self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
@@ -253,7 +143,7 @@ class ImageKeywordFuser(nn.Module):
     
     def forward(self,visual_features,x):
         vf = self.vf_proj(visual_features)
-        vf = vf + self.ln1(self.attn(visual_features,x))
+        vf = vf + self.ln1(self.attn(vf,x,x))
         vf = vf + self.ln2(self.mlp(vf))
         return vf
     
@@ -285,8 +175,8 @@ class ContextualTransformerDecoderLayer(nn.Module):
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
-        x = self.ln1(self.decoder_attn(x,x))
-        x = self.ln2(self.encoder_decoder(encoder_feature,x))
+        x = x+ self.ln1(self.decoder_attn(x,x,x))
+        x = x+ self.ln2(self.encoder_decoder(x,encoder_feature,encoder_feature))
         x = x + self.ln3(self.mlp(x))
         return x
     
