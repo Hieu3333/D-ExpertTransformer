@@ -70,7 +70,7 @@ class DiffMultiHeadedCrossAttention(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
 
         # Apply RMSNorm to each head
-        self.rmsnorm = RMSNorm(self.diff_head_size, eps=1e-5, elementwise_affine=True)
+        self.rmsnorm = nn.LayerNorm(self.diff_head_size, eps=1e-5, elementwise_affine=True)
 
         assert self.hidden_size % self.diff_num_heads == 0
 
@@ -189,7 +189,7 @@ class DiffMultiHeadedAttention(nn.Module):
         self.k_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
         self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
 
-        self.rmsnorm = RMSNorm(self.diff_head_size, eps=1e-5, elementwise_affine=True)
+        self.rmsnorm = nn.LayerNorm(self.diff_head_size, eps=1e-5, elementwise_affine=True)
 
         self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
         self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
@@ -245,9 +245,9 @@ class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
         self.attn = DiffMultiHeadedCrossAttention(args,depth=0)
-        self.ln1 = RMSNorm(args.hidden_size)
+        self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
-        self.ln2 = RMSNorm(args.hidden_size)
+        self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
         x = x + self.ln1(self.attn(visual_features,x))
@@ -275,9 +275,9 @@ class ContextualTransformerDecoderLayer(nn.Module):
     def __init__(self,args,depth):
         super(ContextualTransformerDecoderLayer,self).__init__()
         self.decoder_attn = DiffMultiHeadedAttention(args,depth=depth,mask=True)
-        self.ln1 = RMSNorm(args.hidden_size)
-        self.ln2 = RMSNorm(args.hidden_size)
-        self.ln3 = RMSNorm(args.hidden_size)
+        self.ln1 = nn.LayerNorm(args.hidden_size)
+        self.ln2 = nn.LayerNorm(args.hidden_size)
+        self.ln3 = nn.LayerNorm(args.hidden_size)
         self.encoder_decoder = DiffMultiHeadedAttention(args,depth=depth,mask=False)
         self.mlp = MLP(args)
 
@@ -355,29 +355,11 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.permute(0, 2, 1), targets, ignore_index=-1)
-            # vf = self.cl_proj(visual_features)
-            # contrastive_loss = self.contrastive_loss(x,vf)    
-            # loss = self.delta1*loss_ce + self.delta2*contrastive_loss
             loss = loss_ce
         else:
             loss = None
             loss_ce = None
         return logits, loss, loss_ce
-    
-    def contrastive_loss(self, image_emb, text_emb, temperature=0.07):
-        """
-        Computes contrastive loss using cosine similarity and InfoNCE loss.
-        """
-        image_emb = image_emb.mean(dim=1)
-        text_emb = text_emb.mean(dim=1)
-        image_emb = F.normalize(image_emb, dim=-1)
-        text_emb = F.normalize(text_emb, dim=-1)
-
-        logits = torch.matmul(image_emb, text_emb.T) / temperature  # Cosine similarity
-        labels = torch.arange(image_emb.size(0), device=image_emb.device)
-
-        loss = F.cross_entropy(logits, labels)  # InfoNCE Loss
-        return loss
     
 
     @torch.no_grad()
