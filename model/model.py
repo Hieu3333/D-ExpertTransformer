@@ -316,7 +316,7 @@ class ExpertTransformer(nn.Module):
         # self.mlp_classifier = Classifier(args)
         self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
-        self.cl_proj = nn.Linear(args.decoder_size,args.hidden_size)
+        self.cl_proj = nn.Linear(args.encoder_size,args.hidden_size)
         self.keywords = keywords
         self.device = args.device
         #Weight tying
