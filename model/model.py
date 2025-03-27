@@ -350,8 +350,7 @@ class ExpertTransformer(nn.Module):
         for i in range(self.num_layers):
             x = self.contextual_decoder[i](encoder_features,x)
         
-        vf = self.cl_proj(visual_features)
-        contrastive_loss = self.contrastive_loss(x,vf)    
+        
         logits = self.lm_head(x)
         # print("logits:",logits.shape)
         # print("target:",targets.shape)
@@ -359,7 +358,8 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.permute(0, 2, 1), targets, ignore_index=-1)
-
+            vf = self.cl_proj(visual_features)
+            contrastive_loss = self.contrastive_loss(x,vf)    
             loss = self.delta1*loss_ce + self.delta2*contrastive_loss
         else:
             loss = None
