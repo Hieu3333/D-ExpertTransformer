@@ -85,12 +85,10 @@ if args.from_pretrained is not None:
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optim'])
     current_epoch = checkpoint['epoch']
-    # Move optimizer tensors to correct device
-    for param in optimizer.state.values():
-        if isinstance(param, torch.Tensor):
-            param.data = param.data.to(args.device)
-            if param.grad is not None:
-                param.grad.data = param.grad.data.to(args.device)
+    for param_id, param_state in optimizer.state.items():
+        for key, value in param_state.items():
+            if isinstance(value, torch.Tensor):
+                param_state[key] = value.to(args.device)
 else:
     current_epoch = 1
 
