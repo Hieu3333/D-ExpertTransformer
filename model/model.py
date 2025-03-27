@@ -142,7 +142,8 @@ class TransfusionEncoder(nn.Module):
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
-        vf = self.vf_proj(visual_features)
+        vf = self.vf_proj(visual_features) 
+        print('vf:',vf.shape)
         vf = vf + self.ln1(self.attn(vf,x,x))
         vf = vf + self.ln2(self.mlp(vf))
         return vf
