@@ -146,7 +146,7 @@ for epoch in range(current_epoch-1,num_epochs):
             running_loss = 0.0  # Reset running loss
     
     scheduler.step()  
-    if (epoch+1) % 25 != 0  and (epoch+1 < 50):
+    if (epoch+1) % 25 != 0:
         continue
 
 
