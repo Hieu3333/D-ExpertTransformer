@@ -319,7 +319,6 @@ class ExpertTransformer(nn.Module):
         self.cl_proj = nn.Linear(args.decoder_size,args.hidden_size)
         self.keywords = keywords
         self.device = args.device
-        self.max_n = args.max_n
         #Weight tying
         self.We.weight = self.lm_head.weight
 
