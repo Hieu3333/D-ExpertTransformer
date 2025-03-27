@@ -251,9 +251,10 @@ class ImageKeywordFuser(nn.Module):
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
-        visual_features = visual_features + self.ln1(self.attn(visual_features,x))
-        visual_features = visual_features + self.ln2(self.mlp(x))
-        return x
+        vf = self.attn.q_proj(visual_features)
+        vf = vf + self.ln1(self.attn(visual_features,x))
+        vf = vf + self.ln2(self.mlp(x))
+        return vf
     
 # class Classifier(nn.Module):
 #     def __init__(self,args):
