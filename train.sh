@@ -1,5 +1,5 @@
 python train.py \
-  --epochs 100 \
+  --epochs 200 \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-3 \
@@ -30,4 +30,5 @@ python train.py \
   --keyword_vocab_size 602 \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
-  --project_root "/workspace/D-ExpertTransformer"
+  --project_root "/workspace/D-ExpertTransformer" \
+  --from_pretrained "results/checkpoint_epoch_100.pth"
