@@ -135,7 +135,7 @@ class MLP(nn.Module):
 class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
-        self.attn = DiffMultiHeadedAttention(args,mask=False)
+        self.attn = DiffMultiHeadedAttention(args,depth=0,mask=False)
         self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
@@ -167,7 +167,7 @@ class ImageKeywordFuser(nn.Module):
 class ContextualTransformerDecoderLayer(nn.Module):
     def __init__(self,args,depth):
         super(ContextualTransformerDecoderLayer,self).__init__()
-        self.decoder_attn = DiffMultiHeadedAttention(args,mask=True)
+        self.decoder_attn = DiffMultiHeadedAttention(args,depth=depth,mask=True)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.ln2 = nn.LayerNorm(args.hidden_size)
         self.ln3 = nn.LayerNorm(args.hidden_size)
