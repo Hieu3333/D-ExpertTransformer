@@ -39,9 +39,9 @@ class MultiHeadedCrossAttention(nn.Module):
         k = self.k_proj(decoder_feature) #(B,T,C)
         v = self.v_proj(decoder_feature) #(B,T,C)
 
-        q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
-        k = k.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
-        v = v.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
+        q = q.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
+        k = k.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
+        v = v.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
         assert q.shape[-1] == k.shape[-1]
         att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,N,T)
         att = F.softmax(att,dim=-1)
