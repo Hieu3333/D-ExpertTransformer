@@ -90,7 +90,7 @@ else:
 # Define device
 device = args.device
 model.to(device)
-model = torch.compile(model)
+# model = torch.compile(model)
 
 # Training parameters
 num_epochs = args.epochs
@@ -141,7 +141,8 @@ for epoch in range(current_epoch-1,num_epochs):
             running_loss = 0.0  # Reset running loss
     
     scheduler.step()  
-    
+    if epoch+1 <=5:
+        continue
 
 
     #Evaluation
