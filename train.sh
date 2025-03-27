@@ -17,11 +17,11 @@ python train.py \
   --num_layers 2 \
   --delta1 1 \
   --delta2 0.01 \
-  --topk 1 \
+  --topk 3 \
   --temperature 1 \
   --lambda_init 0.8 \
   --dropout 0.2 \
-  --beam_width 1 \
+  --beam_width 3 \
   --encoder_size 2048 \
   --decoder_size 512 \
   --num_heads 8 \

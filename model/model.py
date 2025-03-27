@@ -259,47 +259,65 @@ class ExpertTransformer(nn.Module):
     
 
     @torch.no_grad()
-    def generate(self, images, gt_keywords):
+    def generate(self, images, gt_keywords, beam_size=3):
         device = self.device
         batch_size = images.size(0)
-        
-
 
         bos_id = self.tokenizer.word2idx["<BOS>"]
         eos_id = self.tokenizer.word2idx["<EOS>"]
 
+        # Initialize beam search
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
-        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
+        scores = torch.zeros(batch_size, 1, device=device)  # Log probabilities
+
+        finished = torch.zeros(batch_size, beam_size, dtype=torch.bool, device=device)
+        beam_sequences = sequences.unsqueeze(1).expand(-1, beam_size, -1)  # Shape: (B, beam_size, 1)
 
         for t in range(1, self.max_gen):
-            logits, _, _ = self(images, sequences, gt_keywords)  # (batch_size, seq_len, vocab_size)
-            logits = logits[:, -1, :] / self.temperature  # Scale logits
+            # Expand images for beam size
+            images_expanded = images.unsqueeze(1).expand(-1, beam_size, -1, -1, -1).reshape(batch_size * beam_size, *images.shape[1:])
+            beam_sequences_flat = beam_sequences.reshape(batch_size * beam_size, -1)
 
-            # Apply softmax to convert logits to probabilities
-            probs = torch.softmax(logits, dim=-1)
+            logits, _, _ = self(images_expanded, beam_sequences_flat, gt_keywords)  # (B*beam_size, seq_len, vocab_size)
+            logits = logits[:, -1, :]  # Get last token's logits (B*beam_size, vocab_size)
+            log_probs = F.log_softmax(logits, dim=-1)  # Convert logits to log probabilities
 
-            # Top-k Sampling
-            if self.topk > 0:
-                topk_probs, topk_indices = torch.topk(probs, self.topk, dim=-1)
-                best_tokens = torch.gather(topk_indices, -1, torch.multinomial(topk_probs, 1)).squeeze(-1)
+            # Reshape to (B, beam_size, vocab_size)
+            log_probs = log_probs.view(batch_size, beam_size, -1)
 
-            # Append token to sequence
-            sequences = torch.cat([sequences, best_tokens.unsqueeze(1)], dim=-1)
+            # Add previous scores
+            new_scores = scores.unsqueeze(-1) + log_probs  # Shape: (B, beam_size, vocab_size)
+            new_scores = new_scores.view(batch_size, -1)  # Flatten (B, beam_size * vocab_size)
+
+            # Select top-k sequences
+            topk_scores, topk_indices = torch.topk(new_scores, beam_size, dim=-1)  # (B, beam_size)
+
+            # Compute new sequences
+            prev_beam_indices = topk_indices // log_probs.shape[-1]  # Previous beam index
+            next_tokens = topk_indices % log_probs.shape[-1]  # New tokens
+
+            # Gather previous sequences
+            beam_sequences = torch.gather(beam_sequences, 1, prev_beam_indices.unsqueeze(-1).expand(-1, -1, beam_sequences.shape[-1]))
+            beam_sequences = torch.cat([beam_sequences, next_tokens.unsqueeze(-1)], dim=-1)
+
+            # Update scores
+            scores = topk_scores
 
             # Check if EOS is reached
-            finished |= best_tokens == eos_id
+            finished |= next_tokens == eos_id
             if finished.all():
                 break
 
-        # Decode sequences
+        # Decode the best sequence from each batch
         final_sequences = []
-        for seq in sequences.tolist():
-            if eos_id in seq:
-                seq = seq[:seq.index(eos_id) + 1]
-            text = self.tokenizer.decode(seq)
+        for seqs in beam_sequences[:, 0, :].tolist():  # Take the highest-ranked beam
+            if eos_id in seqs:
+                seqs = seqs[:seqs.index(eos_id) + 1]
+            text = self.tokenizer.decode(seqs)
             final_sequences.append(text)
 
         return final_sequences
+
 
 
     
