@@ -350,8 +350,8 @@ class ExpertTransformer(nn.Module):
         for i in range(self.num_layers):
             x = self.contextual_decoder[i](encoder_features,x)
         
-        visual_features = self.cl_proj(visual_features)
-        contrastive_loss = self.contrastive_loss(x,visual_features)    
+        vf = self.cl_proj(visual_features)
+        contrastive_loss = self.contrastive_loss(x,vf)    
         logits = self.lm_head(x)
         # print("logits:",logits.shape)
         # print("target:",targets.shape)
