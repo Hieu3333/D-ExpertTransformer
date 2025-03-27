@@ -46,7 +46,7 @@ class MultiHeadedCrossAttention(nn.Module):
         att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,N,T)
         att = F.softmax(att,dim=-1)
         out = torch.matmul(att,v) #(B,nh,N,T) @ (B,nh,T,head_size) -> (B,nh,N,head_size)
-        out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
+        out = out.transpose(1,2).contiguous().view(B,N,self.hidden_size)
         out = self.out_proj(out) 
         out = self.dropout(out)
         return out
