@@ -1,5 +1,5 @@
 python train.py \
-  --epochs 100 \
+  --epochs 30 \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-3 \
@@ -14,7 +14,7 @@ python train.py \
   --hidden_size 1024 \
   --vocab_size 2681 \
   --threshold 0.5 \
-  --num_layers 2 \
+  --num_layers 3 \
   --delta1 1 \
   --delta2 0.01 \
   --topk 5 \
