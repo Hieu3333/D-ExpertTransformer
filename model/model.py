@@ -295,7 +295,7 @@ class ExpertTransformer(nn.Module):
                     all_candidates.append((new_seq, new_score))
 
             # Select the top beam_width sequences across all candidates
-            all_candidates.sort(key=lambda x: x[1], reverse=True)  # Sort by score (higher is better)
+            all_candidates.sort(key=lambda x: x[1].sum().item(), reverse=True)  # Convert tensor to scalar for sorting
             beam_sequences = [x[0] for x in all_candidates[:beam_width]]
             beam_scores = [x[1] for x in all_candidates[:beam_width]]
 
