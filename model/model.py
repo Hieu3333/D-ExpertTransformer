@@ -142,9 +142,7 @@ class TransfusionEncoder(nn.Module):
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
-        print('visual_feature:',visual_features.shape)
         vf = self.vf_proj(visual_features) 
-        print('vf:',vf.shape)
         vf = vf + self.ln1(self.attn(vf,x,x))
         vf = vf + self.ln2(self.mlp(vf))
         return vf
@@ -224,6 +222,7 @@ class ExpertTransformer(nn.Module):
         device = tokens.device
 
         visual_features = self.visual_extractor(images) #(B,N,encoder_size)
+        print('visual_features:',visual_features.shape)
         # probs = probs.mean(dim=1) 
         # keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
         # keyword_tokens = self.encode_keywords(keywords_list,self.tokenizer)
