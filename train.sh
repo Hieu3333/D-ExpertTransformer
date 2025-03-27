@@ -11,10 +11,10 @@ python train.py \
   --max_length 30 \
   --step_size 10 \
   --max_gen 100 \
-  --hidden_size 1024 \
+  --hidden_size 512 \
   --vocab_size 2681 \
   --threshold 0.5 \
-  --num_layers 3 \
+  --num_layers 2 \
   --delta1 1 \
   --delta2 0.01 \
   --topk 5 \
@@ -23,7 +23,7 @@ python train.py \
   --dropout 0.2 \
   --beam_width 1 \
   --encoder_size 2048 \
-  --decoder_size 1024 \
+  --decoder_size 512 \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \

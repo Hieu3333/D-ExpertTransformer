@@ -22,9 +22,9 @@ class MultiHeadedCrossAttention(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
         assert self.hidden_size % self.num_heads == 0
 
-        self.q_proj = nn.Linear(self.decoder_size,self.hidden_size,bias=args.bias)
-        self.k_proj = nn.Linear(self.encoder_size, self.hidden_size,bias=args.bias)
-        self.v_proj = nn.Linear(self.encoder_size,self.hidden_size,bias=args.bias)
+        self.q_proj = nn.Linear(self.encoder_size,self.hidden_size,bias=args.bias)
+        self.k_proj = nn.Linear(self.decoder_size, self.hidden_size,bias=args.bias)
+        self.v_proj = nn.Linear(self.decoder_size,self.hidden_size,bias=args.bias)
 
         self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
     
@@ -35,17 +35,17 @@ class MultiHeadedCrossAttention(nn.Module):
         # print("decoder:",decoder_feature.shape)
         # print("encoder:",encoder_feature.shape)
     
-        q = self.q_proj(decoder_feature) #(B,T,C)
-        k = self.k_proj(encoder_feature) #(B,N,C)
-        v = self.v_proj(encoder_feature) #(B,N,C)
+        q = self.q_proj(encoder_feature) #(B,N,C)
+        k = self.k_proj(decoder_feature) #(B,T,C)
+        v = self.v_proj(decoder_feature) #(B,T,C)
 
-        q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
-        k = k.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
-        v = v.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
+        q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
+        k = k.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
+        v = v.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
         assert q.shape[-1] == k.shape[-1]
-        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
+        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,N,T)
         att = F.softmax(att,dim=-1)
-        out = torch.matmul(att,v) #(B,nh,T,N) @ (B,nh,N,head_size) -> (B,nh,T,head_size)
+        out = torch.matmul(att,v) #(B,nh,N,T) @ (B,nh,T,head_size) -> (B,nh,N,head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
         out = self.out_proj(out) 
         out = self.dropout(out)
@@ -85,9 +85,9 @@ class DiffMultiHeadedCrossAttention(nn.Module):
         B, T, _ = decoder_feature.shape  # T is the number of keywords
 
         # Project input features
-        q = self.q_proj(decoder_feature)  # (B, T, C)
-        k = self.k_proj(encoder_feature)  # (B, N, C)
-        v = self.v_proj(encoder_feature)  # (B, N, C)
+        q = self.q_proj(encoder_feature)  # (B, T, C)
+        k = self.k_proj(decoder_feature)  # (B, N, C)
+        v = self.v_proj(decoder_feature )  # (B, N, C)
 
         # Compute lambda values
         lambda1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1).float())
@@ -235,8 +235,8 @@ class MLP(nn.Module):
     def __init__(self,args):
         super(MLP,self).__init__()
         self.c_fc = nn.Linear(args.hidden_size,4*args.hidden_size,bias=args.bias)
-        self.gelu = nn.GELU()
-        self.c_proj = nn.Linear(args.hidden_size*4,args.hidden_size,bias=args.bias)
+        self.gelu = nn.ReLU()
+        self.c_proj = nn.Linear(4*args.hidden_size,args.hidden_size,bias=args.bias)
         self.dropout = nn.Dropout(args.dropout)
     
     def forward(self,x):
@@ -245,14 +245,14 @@ class MLP(nn.Module):
 class ImageKeywordFuser(nn.Module):
     def __init__(self,args):
         super(ImageKeywordFuser,self).__init__()
-        self.attn = DiffMultiHeadedCrossAttention(args,depth=0)
+        self.attn = MultiHeadedCrossAttention(args,depth=0)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
-        x = x + self.ln1(self.attn(visual_features,x))
-        x = x + self.ln2(self.mlp(x))
+        visual_features = visual_features + self.ln1(self.attn(visual_features,x))
+        visual_features = visual_features + self.ln2(self.mlp(x))
         return x
     
 # class Classifier(nn.Module):
@@ -275,11 +275,11 @@ class ImageKeywordFuser(nn.Module):
 class ContextualTransformerDecoderLayer(nn.Module):
     def __init__(self,args,depth):
         super(ContextualTransformerDecoderLayer,self).__init__()
-        self.decoder_attn = DiffMultiHeadedAttention(args,depth=depth,mask=True)
+        self.decoder_attn = MultiHeadedAttention(args,depth=depth,mask=True)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.ln2 = nn.LayerNorm(args.hidden_size)
         self.ln3 = nn.LayerNorm(args.hidden_size)
-        self.encoder_decoder = DiffMultiHeadedAttention(args,depth=depth,mask=False)
+        self.encoder_decoder = MultiHeadedAttention(args,depth=depth,mask=False)
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
@@ -307,6 +307,7 @@ class ExpertTransformer(nn.Module):
         self.topk = args.topk
         self.temperature = args.temperature
 
+
         self.dropout = nn.Dropout(args.dropout)
         
         self.visual_extractor = ResNet50()
@@ -314,7 +315,6 @@ class ExpertTransformer(nn.Module):
         # self.mlp_classifier = Classifier(args)
         self.contextual_decoder = nn.ModuleList([ContextualTransformerDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
-        self.cl_proj = nn.Linear(args.encoder_size,args.hidden_size)
         self.keywords = keywords
         self.device = args.device
         #Weight tying
@@ -407,29 +407,6 @@ class ExpertTransformer(nn.Module):
         return final_sequences
 
 
-
-    
-    def extract_keywords(self,probs, keywords, threshold=0.9, pad_token_id=0):
-        #probs (B,keyword_vocab_size)
-        keywords_list = []
-        # print(f"Threshold: {threshold}")
-        # print(f"probs > threshold: {probs > threshold}")  # Should show True/False per element
-        # print(f"indices: {torch.nonzero(probs > threshold, as_tuple=True)[0]}")
-
-        
-        for i in range(probs.shape[0]):
-            # Get indices of keywords where prob > threshold
-            indices = torch.nonzero(probs[i] > threshold, as_tuple=True)[0]
-            # print("indices:",indices)
-            # print("probs",probs[i].shape)
-            
-            # Get token IDs of those keywords
-            selected_keywords = [keywords[i] for i in indices.tolist()]
-            
-            # Convert to tensor
-            keywords_list.append(selected_keywords)
-
-        return keywords_list
     
     def encode_keywords(self, batch_keywords, tokenizer):
         encoded_batch = []
