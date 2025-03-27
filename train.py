@@ -77,7 +77,7 @@ optimizer =torch.optim.AdamW(
         )
 
 
-scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=args.step_size,gamma=0.1)
+scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=args.step_size,gamma=0.5)
 
 if args.from_pretrained is not None:
     checkpoint = os.path.join(args.project_root,args.from_pretrained)
