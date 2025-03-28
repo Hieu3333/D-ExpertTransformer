@@ -11,7 +11,7 @@ python train.py \
   --max_length 50 \
   --step_size 10 \
   --max_gen 100 \
-  --hidden_size 512 \
+  --hidden_size 1024 \
   --vocab_size 2681 \
   --threshold 0.5 \
   --num_layers 2 \
