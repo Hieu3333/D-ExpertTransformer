@@ -3,10 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 import math
-from modules.visual_extractor import ResNet50
+from modules.visual_extractor import ResNet50,EfficientNet
 import sys
 from collections import Counter
 from modules.RMSNorm import RMSNorm
+from modules.GCA import GuidedContextAttention
 
 def lambda_init_fn(depth):
     return 0.8 - 0.6 * math.exp(-0.3 * depth)
@@ -147,20 +148,6 @@ class TransfusionEncoder(nn.Module):
         vf = vf + self.ln2(self.mlp(vf))
         return vf
     
-# class Classifier(nn.Module):
-#     def __init__(self,args):
-#         super(Classifier,self).__init__()
-#         self.c_fc = nn.Linear(args.encoder_size,args.encoder_size,bias=args.bias)
-#         self.GELU = nn.GELU()
-#         self.c_proj = nn.Linear(args.encoder_size,args.keyword_vocab_size,bias=args.bias)
-#         self.sigmoid = nn.Sigmoid()
-
-#     def forward(self,x):
-#         logits = self.c_proj(self.GELU(self.c_fc(x)))
-#         logits = logits.mean(dim=1) #Average over N -> (B,1,encoder_size)
-#         probs = self.sigmoid(logits)
-#         probs = probs.mean(dim=1)
-#         return probs, logits
 
 
 
@@ -203,7 +190,8 @@ class ExpertTransformer(nn.Module):
 
         self.dropout = nn.Dropout(args.dropout)
         
-        self.visual_extractor = ResNet50()
+        self.visual_extractor = EfficientNet()
+        self.gca = GuidedContextAttention(args)
         self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
         self.fuser = TransfusionEncoder(args)
         # self.mlp_classifier = Classifier(args)
@@ -222,7 +210,8 @@ class ExpertTransformer(nn.Module):
         B,T = tokens.shape
         device = tokens.device
 
-        visual_features = self.visual_extractor(images) #(B,N,encoder_size)
+        visual_features = self.visual_extractor(images) #(B,D,H,W)
+        visual_features = self.gca(visual_features) #(B,H*W,D)
         # probs = probs.mean(dim=1) 
         # keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
         # keyword_tokens = self.encode_keywords(keywords_list,self.tokenizer)

@@ -50,3 +50,5 @@
 2025-03-26 12:49:34,745 - INFO - Epoch 1:
 2025-03-26 12:49:40,152 - INFO - Batch 1/147 Loss: 0.0174
 2025-03-26 12:51:15,543 - INFO - Batch 147/147 Loss: 0.5570
+2025-03-31 04:34:26,104 - INFO - Namespace(epochs=100, batch_size=64, max_length=50, max_gen=100, hidden_size=1024, vocab_size=2681, ve_name='efficientnet', channel_reduction=2, threshold=0.5, num_layers=2, lr_ve=0.0001, step_size=10, lr_ed=0.0001, delta1=1.0, delta2=0.01, beam_width=3, dropout=0.2, topk=3, temperature=1.0, encoder_size=1280, decoder_size=512, num_heads=8, diff_num_heads=4, bias=True, num_workers=16, keyword_vocab_size=602, weight_decay=0.001, log_interval=500, save_path='results', image_path='/data/eyenet0420', ann_path='data', randaug=None, resnet_dim=2048, device='cuda', accum_steps=1, early_stopping=10, project_root='/mnt/c/D-ExpertTransformer', lambda_init=0.8, from_pretrained=None)
+2025-03-31 04:34:26,105 - INFO - Epoch 1:

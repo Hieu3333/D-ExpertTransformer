@@ -10,8 +10,12 @@
 11. Add (1-lambda_init)
 12. Check really hard the cleaning and tokenizing 
 13. smaller topk?
+14. Change visual extractor
+15. maybe use a pretrained decoder for better caption
 Ways to get better:
 -Clean report
 -Use beam search
 -Change or fix binary classifier
 -Tuning learning rate/delta
+
+Lowest ce loss: 0.0219

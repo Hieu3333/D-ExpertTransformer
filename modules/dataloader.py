@@ -12,39 +12,32 @@ class DENDataLoader(DataLoader):
         self.split = split
         self.drop_last = True if split == 'train' else False
 
-
-        # Image Transformations
-        if split == 'train':
-            if args.randaug:
-                print('Random augmentation applied for ' + split + ' dataset.')
-                self.transform = transforms.Compose([
-                    transforms.Resize(256),
-                    transforms.RandomCrop(224),
-                    transforms.RandomApply([
-                        transforms.RandomRotation(10, interpolation=transforms.InterpolationMode.BICUBIC),
-                        transforms.RandomAffine(0, scale=(0.8, 1.2),
-                                                interpolation=transforms.InterpolationMode.BICUBIC)
-                    ]),
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.485, 0.456, 0.406),
-                                         (0.229, 0.224, 0.225))
-                ])
-            else:
+        if args.ve_name == "resnet":
+            # Image Transformations
+            if split == 'train':
+                
                 self.transform = transforms.Compose([
                     transforms.Resize(256),
                     transforms.RandomCrop(224),
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     transforms.Normalize((0.485, 0.456, 0.406),
-                                         (0.229, 0.224, 0.225))
+                                            (0.229, 0.224, 0.225))
                 ])
-        else:
+            else:
+                self.transform = transforms.Compose([
+                    transforms.Resize((224, 224)),
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.485, 0.456, 0.406),
+                                        (0.229, 0.224, 0.225))
+                ])
+                
+        if args.ve_name == "efficientnet":
             self.transform = transforms.Compose([
-                transforms.Resize((224, 224)),
-                transforms.ToTensor(),
-                transforms.Normalize((0.485, 0.456, 0.406),
-                                     (0.229, 0.224, 0.225))
-            ])
+            transforms.Resize((356, 356)),  # Resize to match input size
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ])
 
         # Initialize Dataset
         self.dataset = DeepEyeNet(
