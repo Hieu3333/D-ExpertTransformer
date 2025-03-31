@@ -57,7 +57,7 @@ args = parser_arg()
 keywords = load_all_keywords()
 
 # Load custom tokenizer
-tokenizer = Tokenizer()
+tokenizer = Tokenizer(args)
 tokenizer.load_vocab("vocab.json")
 
 # Initialize dataset and dataloader
