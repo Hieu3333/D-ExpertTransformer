@@ -204,7 +204,7 @@ class ExpertTransformer(nn.Module):
         self.We.weight = self.lm_head.weight
         self.apply(self.init_weights)
 
-    def init_weights(module):
+    def init_weights(self,module):
         if isinstance(module, nn.Linear):
             nn.init.xavier_uniform_(module.weight)
             if module.bias is not None:
