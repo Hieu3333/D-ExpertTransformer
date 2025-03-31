@@ -28,7 +28,8 @@ class ChannelContext(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=self.reduction_size,out_channels=self.D,kernel_size=1)
     
     def forward(self,spatial_feature,context_feature):
-        context_feature = self.relu(self.norm(self.conv1(context_feature))) #(b,d/k,1,1)
+        context_feature = self.relu(self.norm(self.conv1(context_feature).permute(0,2,3,1))) #(b,1,1,d/k)
+        context_feature = context_feature.permute(0,3,1,2) #(b,d/k,1,1)
         context_feature = self.conv2(context_feature) #(b,d,1,1)
         out = spatial_feature + context_feature #(b,d,h,w) + (b,d,1,1) -> (b,d,h,w)
         return out
