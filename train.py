@@ -127,9 +127,9 @@ for epoch in range(current_epoch-1,num_epochs):
     for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
         image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
         images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
-        print("desc_tokens:",desc_tokens)
-        print("target_tokens:",target_tokens)
-        print('gt:',gt_clinical_desc)
+        # print("desc_tokens:",desc_tokens)
+        # print("target_tokens:",target_tokens)
+        # print('gt:',gt_clinical_desc)
         outputs, loss, loss_ce = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
         loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
