@@ -158,6 +158,8 @@ for epoch in range(current_epoch-1,num_epochs):
     with torch.no_grad():  
         for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
             image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
+            print("desc_tokens:",desc_tokens)
+            print("target_tokens:",target_tokens)
             images = images.to(device)
             target_tokens = target_tokens.to(device)
             gt_keyword_tokens = gt_keyword_tokens.to(device)
