@@ -10,7 +10,7 @@ class SpatialContext(nn.Module):
     def forward(self,x):
         b,d,h,w = x.shape
         y = self.conv1d(x) #(B,1,H,W)
-        y = F.softmax(y.view(b,1,-1)) #(b,1,h,w) -> (b,1,h*w) 
+        y = F.softmax(y.view(b,1,-1),dim=-1) #(b,1,h,w) -> (b,1,h*w) 
         x = x.view(b,d,-1) #(b,d,h*w)
         out = x * y #(b,d,h*w)
         out = out.sum(dim=-1,keepdim=True) #(b,d,1)
@@ -28,6 +28,8 @@ class ChannelContext(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=self.reduction_size,out_channels=self.D,kernel_size=1)
     
     def forward(self,spatial_feature,context_feature):
+        print('context feature:', context_feature.shape)
+        print('spatial_feature:',spatial_feature.shape)
         context_feature = self.conv1(context_feature) #(b,d/k,1,1)
         context_feature = context_feature.permute(0,2,3,1) #(b,1,1,d/k)
         context_feature = self.relu(self.norm(context_feature)) #(b,1,1,d/k)
