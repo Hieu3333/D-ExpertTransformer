@@ -103,7 +103,7 @@ log_interval = args.log_interval
 save_path = args.save_path
 os.makedirs(save_path, exist_ok=True)
 total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
-print('Total params:',total_params)
+print(f'Total params: {total_params//1e6:.2f}M')
 
 num_epoch_not_improved = 0
 best_epoch = 0
