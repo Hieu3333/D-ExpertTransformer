@@ -126,7 +126,7 @@ class MLP(nn.Module):
     def __init__(self,args):
         super(MLP,self).__init__()
         self.c_fc = nn.Linear(args.hidden_size,4*args.hidden_size,bias=args.bias)
-        self.gelu = nn.ReLU()
+        self.gelu = nn.GELU()
         self.c_proj = nn.Linear(4*args.hidden_size,args.hidden_size,bias=args.bias)
         self.dropout = nn.Dropout(args.dropout)
     

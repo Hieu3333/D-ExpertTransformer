@@ -16,7 +16,7 @@ python train.py \
   --hidden_size 1024 \
   --vocab_size 2681 \
   --threshold 0.5 \
-  --num_layers 1 \
+  --num_layers 2 \
   --delta1 1 \
   --delta2 0.01 \
   --topk 3 \

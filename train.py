@@ -77,7 +77,8 @@ optimizer =torch.optim.AdamW(
         )
 
 
-scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=args.step_size,gamma=0.5)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
+
 
 if args.from_pretrained is not None:
     checkpoint_path = os.path.join(args.project_root,args.from_pretrained)
