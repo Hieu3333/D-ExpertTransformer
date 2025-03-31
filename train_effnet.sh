@@ -32,4 +32,4 @@ python train.py \
   --keyword_vocab_size 602 \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
-  --project_root "/mnt/c/D-ExpertTransformer" \
+  --project_root "/workspace/D-ExpertTransformer" \
