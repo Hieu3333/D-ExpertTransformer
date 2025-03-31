@@ -4,7 +4,7 @@ python train.py \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-4 \
-  --channel_reduction 2 \
+  --channel_reduction 4 \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
