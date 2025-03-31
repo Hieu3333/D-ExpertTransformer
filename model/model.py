@@ -144,8 +144,8 @@ class TransfusionEncoder(nn.Module):
     
     def forward(self,visual_features,x):
         vf = self.vf_proj(visual_features)
-        vf = vf + self.ln1(self.attn(vf,x,x))
-        vf = vf + self.ln2(self.mlp(vf))
+        vf = self.ln1(vf + self.attn(vf,x,x))
+        vf = self.ln2(vf +self.mlp(vf))
         return vf
     
 
@@ -162,9 +162,9 @@ class LanguageDecoderLayer(nn.Module):
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
-        x = x+ self.ln1(self.decoder_attn(x,x,x))
-        x = x+ self.ln2(self.encoder_decoder(x,encoder_feature,encoder_feature))
-        x = x + self.ln3(self.mlp(x))
+        x = self.ln1(x+self.decoder_attn(x,x,x))
+        x = self.ln2(x+self.encoder_decoder(x,encoder_feature,encoder_feature))
+        x = self.ln3(x +self.mlp(x))
         return x
     
 
