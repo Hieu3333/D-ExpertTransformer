@@ -22,17 +22,17 @@ class ChannelContext(nn.Module):
         self.k = args.channel_reduction
         self.D = args.encoder_size
         self.reduction_size = max(1,self.D // self.k)
-        self.conv1 = nn.Conv2d(in_channels=self.D,out_channels=1,kernel_size=1)
+        self.conv1 = nn.Conv2d(in_channels=self.D,out_channels=self.reduction_size,kernel_size=1)
         self.norm = nn.LayerNorm(self.reduction_size)
         self.relu = nn.ReLU()
         self.conv2 = nn.Conv2d(in_channels=self.reduction_size,out_channels=self.D,kernel_size=1)
     
     def forward(self,spatial_feature,context_feature):
-        print('context feature:', context_feature.shape)
-        print('spatial_feature:',spatial_feature.shape)
+        # print('context feature:', context_feature.shape)
+        # print('spatial_feature:',spatial_feature.shape)
         context_feature = self.conv1(context_feature) #(b,d/k,1,1)
-        print('after conv1:',context_feature.shape)
-        print('self.reduction_size:',self.reduction_size)
+        # print('after conv1:',context_feature.shape)
+        # print('self.reduction_size:',self.reduction_size)
         context_feature = context_feature.permute(0,2,3,1) #(b,1,1,d/k)
         context_feature = self.relu(self.norm(context_feature)) #(b,1,1,d/k)
         context_feature = context_feature.permute(0,3,1,2) #(b,d/k,1,1)
