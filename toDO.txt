@@ -18,4 +18,5 @@ Ways to get better:
 -Change or fix binary classifier
 -Tuning learning rate/delta
 
-Lowest ce loss: 0.0219
+Lowest Resnet Baseline ce loss: 0.0219
+EfficientNet + GCA + Baseline: 0.0083

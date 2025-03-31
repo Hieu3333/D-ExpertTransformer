@@ -1,5 +1,5 @@
 python train.py \
-  --epochs 100 \
+  --epochs 50 \
   --ve_name "efficientnet" \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
@@ -7,7 +7,7 @@ python train.py \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
-  --channel_reduction 2 \
+  --channel_reduction 4 \
   --bias \
   --early_stopping 10 \
   --max_length 50 \
@@ -16,7 +16,7 @@ python train.py \
   --hidden_size 1024 \
   --vocab_size 2681 \
   --threshold 0.5 \
-  --num_layers 2 \
+  --num_layers 1 \
   --delta1 1 \
   --delta2 0.01 \
   --topk 3 \
