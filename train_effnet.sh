@@ -1,5 +1,5 @@
 python train.py \
-  --epochs 50 \
+  --epochs 100 \
   --ve_name "efficientnet" \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
@@ -32,3 +32,4 @@ python train.py \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
+  --from_pretrained "results/checkpoint_epoch_50.pth"
