@@ -125,10 +125,10 @@ for epoch in range(current_epoch-1,num_epochs):
     running_loss = 0.0
 
     for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
-        image_ids, images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = batch
-        images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), one_hot.to(device), gt_keyword_tokens.to(device)
+        image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
+        images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
 
-        outputs, loss, loss_ce = model(images, desc_tokens, gt_keyword_tokens, target_tokens, one_hot)
+        outputs, loss, loss_ce = model(images=images, desc_tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, target_tokens=target_tokens)
         loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
         loss.backward()
@@ -147,9 +147,8 @@ for epoch in range(current_epoch-1,num_epochs):
             running_loss = 0.0  # Reset running loss
     
     scheduler.step()  
-    if epoch < args.epochs-1:
+    if (epoch+1) != 50 or (epoch+1) !=100:
         continue
-
 
 
     #Evaluation
@@ -158,7 +157,7 @@ for epoch in range(current_epoch-1,num_epochs):
     res_val = {}
     with torch.no_grad():  
         for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
-            image_ids, images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = batch
+            image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
             images = images.to(device)
             target_tokens = target_tokens.to(device)
             gt_keyword_tokens = gt_keyword_tokens.to(device)
@@ -171,7 +170,7 @@ for epoch in range(current_epoch-1,num_epochs):
                 generated_captions = model.generate(images,gt_keyword_tokens)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
-                groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy())
+                groundtruth_caption = gt_clinical_desc[i]
                 gts_val[image_id] = [groundtruth_caption]
                 res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
 
@@ -195,7 +194,7 @@ for epoch in range(current_epoch-1,num_epochs):
     res_test = {}
     with torch.no_grad():
         for batch_idx,batch in enumerate(tqdm(test_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
-            image_ids, images, desc_tokens, target_tokens, one_hot, gt_keyword_tokens = batch
+            image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
             gt_keyword_tokens = gt_keyword_tokens.to(device)
@@ -204,7 +203,7 @@ for epoch in range(current_epoch-1,num_epochs):
                 generated_captions = model.generate(images,gt_keyword_tokens) 
 
             for i,image_id in enumerate(image_ids):
-                groundtruth_caption = tokenizer.decode(target_tokens[i].cpu().numpy())
+                groundtruth_caption = gt_clinical_desc[i]
                 gts_test[image_id] = [groundtruth_caption]
                 res_test[image_id] = [generated_captions[i]]
 

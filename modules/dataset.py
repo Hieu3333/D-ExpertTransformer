@@ -3,6 +3,7 @@ import os
 from torch.utils.data import Dataset
 from PIL import Image
 import torch
+import copy
 
 class DeepEyeNet(Dataset):
     def __init__(self, args, tokenizer, keywords_list, split, transform=None):
@@ -37,6 +38,7 @@ class DeepEyeNet(Dataset):
 
         # Define special token IDs
         self.pad_token_id = self.tokenizer.word2idx["<PAD>"]
+        self.eos_token_id = self.tokenizer.word2idx["<EOS>"]
 
     def __len__(self):
         return len(self.data)
@@ -60,13 +62,14 @@ class DeepEyeNet(Dataset):
 
         # --- Tokenize clinical description ---
         desc_tokens = self.tokenizer.encode(clinical_desc)
-        desc_tokens = self._pad_or_truncate(desc_tokens)  # Extract token IDs
-        desc_tokens = torch.tensor(desc_tokens, dtype=torch.long)
+        
 
         # --- Create target tokens (shift left) ---
-        target_tokens = desc_tokens.clone()
+        target_tokens = copy.deepcopy(desc_tokens)
         target_tokens[:-1] = desc_tokens[1:]  # Shift left
         target_tokens[-1] = self.pad_token_id  # Set last token as <PAD>
+
+        desc_tokens = torch.tensor(desc_tokens, dtype=torch.long)
 
         # --- Encode keywords with <SEP> separator ---
         if keywords_list:
@@ -74,16 +77,8 @@ class DeepEyeNet(Dataset):
         else:
             raw_keywords = "<SEP>"  # Handle empty keywords case
         
-        keyword_tokens = self.tokenizer.encode(raw_keywords)
-        keyword_tokens = self._pad_or_truncate(keyword_tokens)
+        keyword_tokens = self.tokenizer.encode_keywords(raw_keywords)
         keyword_tokens = torch.tensor(keyword_tokens, dtype=torch.long)
 
-        return image_id, image, desc_tokens, target_tokens, one_hot, keyword_tokens
+        return image_id, image, desc_tokens, target_tokens, keyword_tokens, clinical_desc
 
-    def _pad_or_truncate(self, tokens):
-        """Pad or truncate tokens to `max_length`."""
-        if len(tokens) < self.max_length:
-            tokens += [self.pad_token_id] * (self.max_length - len(tokens))
-        else:
-            tokens = tokens[:self.max_length]
-        return tokens

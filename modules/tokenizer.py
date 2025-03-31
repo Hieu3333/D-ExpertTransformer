@@ -3,11 +3,12 @@ import json
 from collections import Counter
 
 class Tokenizer:
-    def __init__(self):
+    def __init__(self,args):
         self.counter = Counter()
         self.special_tokens = ['<PAD>', '<UNK>', '<SEP>', '<BOS>', '<EOS>']
         self.word2idx = {token: idx for idx, token in enumerate(self.special_tokens)}
         self.idx2word = {idx: token for token, idx in self.word2idx.items()}
+        self.max_length = args.max_length
 
     def clean_text(self, text):
         """Clean text by removing unwanted characters and normalizing spaces."""
@@ -93,10 +94,29 @@ class Tokenizer:
         tokens = text.split()
         token_ids = [self.word2idx.get('<BOS>', 0)]  # Start with BOS
         for token in tokens:
+            if len(token_ids) == self.max_length-1:
+                break
             token_ids.append(self.word2idx.get(token, self.word2idx['<UNK>']))  # Replace unknown words
+            
         token_ids.append(self.word2idx.get('<EOS>', 0))  # End with EOS
+        if len(token_ids) < self.max_length:
+            token_ids += [self.word2idx.get('<PAD>')] * (self.max_length-len(token_ids))
         return token_ids
 
+    def encode_keywords(self, text):
+        """
+        Convert a text into a list of token indices.
+        Adds <BOS> at the start and <EOS> at the end.
+        Replaces unknown words with <UNK>.
+        """
+        tokens = text.split()
+        token_ids = [self.word2idx.get('<BOS>', 0)]  # Start with BOS
+        for token in tokens:
+            if len(token_ids) == self.max_length:
+                break
+            token_ids.append(self.word2idx.get(token, self.word2idx['<UNK>']))  # Replace unknown words
+        return token_ids
+    
     def decode(self, token_ids):
         """
         Convert a list of token indices back into text.

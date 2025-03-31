@@ -217,7 +217,7 @@ class ExpertTransformer(nn.Module):
 
 
     
-    def forward(self,images,tokens,gt_keyword_tokens, targets = None, target_keywords=None):
+    def forward(self,images,tokens,gt_keyword_tokens, targets = None):
         #keywords is a list of un-tokenized keywords
         #target_keywords are hot_encoding of true keywords
         B,T = tokens.shape
