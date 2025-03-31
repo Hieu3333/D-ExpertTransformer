@@ -65,11 +65,12 @@ class DeepEyeNet(Dataset):
         
 
         # --- Create target tokens (shift left) ---
+        desc_tokens = torch.tensor(desc_tokens, dtype=torch.long)
         target_tokens = copy.deepcopy(desc_tokens)
         target_tokens[:-1] = desc_tokens[1:]  # Shift left
         target_tokens[-1] = self.pad_token_id  # Set last token as <PAD>
 
-        desc_tokens = torch.tensor(desc_tokens, dtype=torch.long)
+        
 
         # --- Encode keywords with <SEP> separator ---
         if keywords_list:
