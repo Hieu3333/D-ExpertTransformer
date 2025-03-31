@@ -234,7 +234,7 @@ class ExpertTransformer(nn.Module):
         # print('keyword_tokens max:', keyword_tokens.max().item())
         # print('vocab_size:', self.We.num_embeddings
 
-        keyword_emb = self.We(gt_keyword_tokens) #B,max_len,hidden_size
+        keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
         keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
 
         encoder_features = self.fuser(visual_features,keyword_emb)

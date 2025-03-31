@@ -149,9 +149,14 @@ for epoch in range(current_epoch-1,num_epochs):
             running_loss = 0.0  # Reset running loss
     
     scheduler.step()  
-    if (epoch+1) != 50 or (epoch+1) !=100:
+    if (epoch+1) < args.epoch:
         continue
 
+    torch.save({
+            'epoch': epoch + 1,  # Save current epoch
+            'model': model.state_dict(),  # Save model weights
+            'optim': optimizer.state_dict(),  # Save optimizer state
+        }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
 
     #Evaluation
     model.eval()
@@ -232,12 +237,7 @@ for epoch in range(current_epoch-1,num_epochs):
     if avg_test_metric > best_avg_test:
         best_avg_test = avg_test_metric
         
-        torch.save({
-            'epoch': epoch + 1,  # Save current epoch
-            'model': model.state_dict(),  # Save model weights
-            'optim': optimizer.state_dict(),  # Save optimizer state
-        }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
-        logger.info("Test score improved")
+        
 
     if avg_eval_metric > best_avg_val:
         best_avg_val = avg_eval_metric
