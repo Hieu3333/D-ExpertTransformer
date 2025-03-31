@@ -18,5 +18,10 @@ Ways to get better:
 -Change or fix binary classifier
 -Tuning learning rate/delta
 
+
+To fix:
+-weight decay for 2d matrix only, not layernorm, ...
+-cross_entropy loss
+
 Lowest Resnet Baseline ce loss: 0.0219
 EfficientNet + GCA + Baseline: 0.0083

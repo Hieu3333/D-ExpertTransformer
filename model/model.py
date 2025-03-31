@@ -253,7 +253,7 @@ class ExpertTransformer(nn.Module):
         # print("target_keywords:",target_keywords.shape)
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
-            loss_ce = F.cross_entropy(logits.permute(0, 2, 1), targets, ignore_index=-1)
+            loss_ce = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.size(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
             loss = loss_ce
         else:
             loss = None
@@ -323,32 +323,7 @@ class ExpertTransformer(nn.Module):
             
 
 
-    
-    def encode_keywords(self, batch_keywords, tokenizer):
-        encoded_batch = []
-        pad_token_id = tokenizer.word2idx["<PAD>"]
 
-        for keywords in batch_keywords:
-            keyword_list = [kw.strip() for kw in keywords]
-            sep_joined = " <SEP> ".join(keyword_list)
-            encoded = tokenizer.encode(sep_joined)
-            
-            # Truncate if longer than self.max_length
-            if len(encoded) > self.max_length:
-                encoded = encoded[:self.max_length]
-            
-            # Pad if shorter than self.max_length
-            padding_length = self.max_length - len(encoded)
-            padded_seq = encoded + [pad_token_id] * padding_length
-            
-            encoded_batch.append(torch.tensor(padded_seq))
-        
-        # Stack all sequences into one tensor
-        padded_tensor = torch.stack(encoded_batch, dim=0)
-        
-        return padded_tensor
-
-    
 
 
 
