@@ -22,7 +22,6 @@ def parser_arg():
     parser.add_argument('--topk',type=int, required=True)
     parser.add_argument('--temperature',type=float, required=True)
     parser.add_argument('--encoder_size',type=int, required=True)
-    parser.add_argument('--decoder_size',type=int, required=True)
     parser.add_argument('--num_heads',type=int, required=True)
     parser.add_argument('--diff_num_heads',type=int, required=True)
     parser.add_argument('--bias', action='store_true')
@@ -34,7 +33,6 @@ def parser_arg():
     parser.add_argument('--image_path',type=str, required=True)
     parser.add_argument('--ann_path',type=str, required=True)
     parser.add_argument('--randaug',type=bool, required=False)
-    parser.add_argument('--resnet_dim',type=int, default=2048)
     parser.add_argument('--device',type=str, default='cuda')
     parser.add_argument('--accum_steps',type=int,required=True)
     parser.add_argument('--early_stopping',type=int,default=10)
@@ -64,7 +62,7 @@ def load_all_keywords():
                     keyword_list = [kw.strip() for kw in keywords.split(',')]
                     all_keywords.update(keyword_list)
     
-    all_keywords = [kw for kw in all_keywords if "<UNK>" not in kw]
+    # all_keywords = [kw for kw in all_keywords if "<UNK>" not in kw]
     print(f"Total {len(all_keywords)} keywords collected!")
     all_keywords = sorted(list(all_keywords))
     # print(all_keywords)
