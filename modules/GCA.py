@@ -10,10 +10,11 @@ class SpatialContext(nn.Module):
     def forward(self,x):
         b,d,h,w = x.shape
         y = self.conv1d(x) #(B,1,H,W)
-        y = F.softmax(y.view(b,1,-1)).transpose(1,2).unsqueeze(-1) #(b,h*w,1,1)
+        y = F.softmax(y.view(b,1,-1)).transpose(1,2) #(b,1,h,w) -> (b,1,h*w) -> (b,h*w,1) 
         x = x.view(b,d,-1) #(b,d,h*w)
-        out = x * y #(b,d,1,1)
-        return x
+        out = x * y #(b,d,1)
+        out = out.unsqueeze(-1)
+        return out
     
 class ChannelContext(nn.Module):
     def __init__(self,args):
