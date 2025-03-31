@@ -202,6 +202,19 @@ class ExpertTransformer(nn.Module):
         self.beam_width = args.beam_width
         #Weight tying
         self.We.weight = self.lm_head.weight
+        self.apply(self.init_weights)
+
+    def init_weights(module):
+        if isinstance(module, nn.Linear):
+            nn.init.xavier_uniform_(module.weight)
+            if module.bias is not None:
+                nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            nn.init.normal_(module.weight, mean=0, std=1)
+        elif isinstance(module, nn.LayerNorm):
+            module.bias.data.zero_()
+            module.weight.data.fill_(1.0)
+
 
     
     def forward(self,images,tokens,gt_keyword_tokens, targets = None, target_keywords=None):
