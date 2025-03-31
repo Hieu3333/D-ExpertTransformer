@@ -129,6 +129,7 @@ for epoch in range(current_epoch-1,num_epochs):
         images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
         print("desc_tokens:",desc_tokens)
         print("target_tokens:",target_tokens)
+        print('gt:',gt_clinical_desc)
         outputs, loss, loss_ce = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
         loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
