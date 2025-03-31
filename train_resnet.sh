@@ -3,7 +3,7 @@ python train.py \
   --ve_name "resnet" \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
-  --weight_decay 1e-3 \
+  --weight_decay 1e-4 \
   --channel_reduction 2 \
   --save_path "results" \
   --batch_size 64 \
@@ -28,7 +28,6 @@ python train.py \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
-  --keyword_vocab_size 602 \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
