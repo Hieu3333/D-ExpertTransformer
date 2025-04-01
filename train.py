@@ -142,28 +142,28 @@ for epoch in range(current_epoch-1,num_epochs):
             running_loss = 0.0  # Reset running loss
     
 
-    val_loss = 0.0
-    model.eval()
-    with torch.no_grad():  
-        for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
-            image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
+    # val_loss = 0.0
+    # model.eval()
+    # with torch.no_grad():  
+    #     for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
+    #         image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
             
-            images = images.to(device)
-            target_tokens = target_tokens.to(device)
-            gt_keyword_tokens = gt_keyword_tokens.to(device)
-            desc_tokens = desc_tokens.to(device)
+    #         images = images.to(device)
+    #         target_tokens = target_tokens.to(device)
+    #         gt_keyword_tokens = gt_keyword_tokens.to(device)
+    #         desc_tokens = desc_tokens.to(device)
 
 
-            _, loss = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
-            val_loss += loss.item()
+    #         _, loss = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+    #         val_loss += loss.item()
 
-        avg_val_loss = val_loss / len(val_dataloader)
-        logger.info(f"Validation loss: {avg_val_loss:.2f}")
-        if avg_val_loss < best_val_loss:
-            best_val_loss = avg_val_loss
-            num_epoch_not_improved = 0
-        else:
-            num_epoch_not_improved += 1
+    #     avg_val_loss = val_loss / len(val_dataloader)
+    #     logger.info(f"Validation loss: {avg_val_loss:.2f}")
+    #     if avg_val_loss < best_val_loss:
+    #         best_val_loss = avg_val_loss
+    #         num_epoch_not_improved = 0
+    #     else:
+    #         num_epoch_not_improved += 1
     
     scheduler.step()  
     if (epoch+1) < 95 and (epoch+1) != 50:
