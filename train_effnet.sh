@@ -1,4 +1,5 @@
 python train.py \
+  --exp_name "effnet-diff-0" \
   --epochs 100 \
   --ve_name "efficientnet" \
   --lr 1e-4 \

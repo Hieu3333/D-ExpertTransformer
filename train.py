@@ -11,6 +11,7 @@ import torch.optim as optim
 import logging
 import random
 import numpy as np
+import json
 
 
 def set_seed(seed=42):
@@ -52,6 +53,7 @@ logger.addHandler(file_handler)
 
 # Parse arguments (ensure parser_arg() is defined appropriately)
 args = parser_arg()
+
 
 # Load all keywords
 keywords = load_all_keywords()
@@ -96,7 +98,7 @@ model.to(device)
 # Training parameters
 num_epochs = args.epochs
 log_interval = args.log_interval
-save_path = args.save_path
+save_path = os.path.join(args.save_path,args.exp_name)
 os.makedirs(save_path, exist_ok=True)
 total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
 print(f'Total params: {total_params/1e6:.2f}M')
@@ -117,63 +119,44 @@ for epoch in range(current_epoch-1,num_epochs):
     model.train()
     running_loss = 0.0
 
-    for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
-        image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
-        images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
-        # print("desc_tokens:",desc_tokens)
-        # print("target_tokens:",target_tokens)
-        # print('gt:',gt_clinical_desc)
-        outputs, loss = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
-        loss = loss / args.accum_steps  # Normalize for gradient accumulation
+    # for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
+    #     image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
+    #     images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
+    #     # print("desc_tokens:",desc_tokens)
+    #     # print("target_tokens:",target_tokens)
+    #     # print('gt:',gt_clinical_desc)
+    #     outputs, loss = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+    #     loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
-        loss.backward()
-        norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        # Gradient accumulation step
-        if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-            optimizer.step()
-            optimizer.zero_grad()  # Zero gradients after step
+    #     loss.backward()
+    #     norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    #     # Gradient accumulation step
+    #     if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
+    #         optimizer.step()
+    #         optimizer.zero_grad()  # Zero gradients after step
 
-        running_loss += loss.item()
+    #     running_loss += loss.item()
         
-        # Logging
-        if (batch_idx+1== len(train_dataloader)) :
-            avg_loss = running_loss / len(train_dataloader)
-            logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
-            running_loss = 0.0  # Reset running loss
+    #     # Logging
+    #     if (batch_idx+1== len(train_dataloader)) :
+    #         avg_loss = running_loss / len(train_dataloader)
+    #         logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
+    #         running_loss = 0.0  # Reset running loss
     
-
-    # val_loss = 0.0
-    # model.eval()
-    # with torch.no_grad():  
-    #     for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
-    #         image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
-            
-    #         images = images.to(device)
-    #         target_tokens = target_tokens.to(device)
-    #         gt_keyword_tokens = gt_keyword_tokens.to(device)
-    #         desc_tokens = desc_tokens.to(device)
-
-
-    #         _, loss = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
-    #         val_loss += loss.item()
-
-    #     avg_val_loss = val_loss / len(val_dataloader)
-    #     logger.info(f"Validation loss: {avg_val_loss:.2f}")
-    #     if avg_val_loss < best_val_loss:
-    #         best_val_loss = avg_val_loss
-    #         num_epoch_not_improved = 0
-    #     else:
-    #         num_epoch_not_improved += 1
     
-    scheduler.step()  
-    if (epoch+1) < 95 and (epoch+1) != 50:
-        continue
+    # scheduler.step()  
+    # if (epoch+1) < 95 and (epoch+1) != 50:
+    #     continue
 
-    torch.save({
-            'epoch': epoch + 1,  # Save current epoch
-            'model': model.state_dict(),  # Save model weights
-            'optim': optimizer.state_dict(),  # Save optimizer state
-        }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+    # torch.save({
+    #         'epoch': epoch + 1,  # Save current epoch
+    #         'model': model.state_dict(),  # Save model weights
+    #         'optim': optimizer.state_dict(),  # Save optimizer state
+    #     }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+
+
+    val_results = []
+    test_results = []
 
     #Evaluation
     model.eval()
@@ -201,7 +184,12 @@ for epoch in range(current_epoch-1,num_epochs):
                 groundtruth_caption = gt_clinical_desc[i]
                 gts_val[image_id] = [groundtruth_caption]
                 res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
+                val_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})        
             val_loss += loss.item()
+
+        val_path = os.path.join(save_path,f"val_result_epoch_{epoch+1}.json")
+        with open(val_path, "w") as f:
+            json.dump(val_results, f, indent=4)
         # Compute evaluation metrics
         eval_scores = compute_scores(gts_val, res_val)
         avg_val_loss = val_loss / len(val_dataloader)
@@ -236,6 +224,11 @@ for epoch in range(current_epoch-1,num_epochs):
                 groundtruth_caption = gt_clinical_desc[i]
                 gts_test[image_id] = [groundtruth_caption]
                 res_test[image_id] = [generated_captions[i]]
+                test_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})
+        
+        test_path = os.path.join(save_path,f"test_result_epoch_{epoch+1}.json")
+        with open(test_path, "w") as f:
+            json.dump(test_results, f, indent=4)
 
         
         

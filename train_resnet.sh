@@ -1,4 +1,5 @@
 python train.py \
+  --exp_name "resnet-diff-0" \
   --epochs 200 \
   --ve_name "resnet" \
   --lr 1e-4 \
@@ -30,3 +31,4 @@ python train.py \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
+  --from_pretrained "results/checkpoint_epoch_95.pth"

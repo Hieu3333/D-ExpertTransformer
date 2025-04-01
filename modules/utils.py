@@ -2,6 +2,7 @@ import argparse
 import json
 def parser_arg():
     parser = argparse.ArgumentParser('Training script')
+    parser.add_argument('--exp_name',type=str, required=True)
     parser.add_argument('--epochs',type=int, required=True)
     parser.add_argument('--batch_size',type=int, required=True)
     parser.add_argument('--max_length',type=int, required=True)

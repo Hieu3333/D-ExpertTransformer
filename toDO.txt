@@ -13,6 +13,7 @@
 14. Change visual extractor
 15. maybe use a pretrained decoder for better caption
 16. feed-forward layer 512-256?
+17. Check GCA carefully
 Ways to get better:
 -Clean report
 -Use beam search
