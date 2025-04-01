@@ -20,6 +20,7 @@ class MultiHeadedAttention(nn.Module):
         self.num_heads = args.num_heads
         self.head_size = self.hidden_size // self.num_heads
         self.dropout = nn.Dropout(args.dropout)
+        self.resid_dropout = nn.Dropout(args.dropout)
         assert self.hidden_size % self.num_heads == 0
         self.mask = mask
         
@@ -54,10 +55,11 @@ class MultiHeadedAttention(nn.Module):
                     torch.finfo(att.dtype).min  # Ensures proper handling in mixed precision
                 )
         att = F.softmax(att,dim=-1)
+        att = self.dropout(att)
         out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
         out = self.out_proj(out)
-        out = self.dropout(out)
+        out = self.resid_dropout(out)
         return out
 
 class DiffMultiHeadedAttention(nn.Module):
@@ -136,14 +138,19 @@ class MLP(nn.Module):
 class TransfusionEncoder(nn.Module):
     def __init__(self,args,depth):
         super(TransfusionEncoder,self).__init__()
-        self.attn = DiffMultiHeadedAttention(args,depth=depth,mask=False)
-        self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
+        self.attn = MultiHeadedAttention(args,mask=False)
+        self.depth = depth
+        if depth == 0:
+            self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
-        vf = self.vf_proj(visual_features)
+        if self.depth == 0:
+            vf = self.vf_proj(visual_features)
+        else:
+            vf = visual_features
         vf = self.ln1(vf + self.attn(vf,x,x))
         vf = self.ln2(vf +self.mlp(vf))
         return vf
@@ -165,11 +172,11 @@ class VisualEncoder(nn.Module):
 class LanguageDecoderLayer(nn.Module):
     def __init__(self,args,depth):
         super(LanguageDecoderLayer,self).__init__()
-        self.decoder_attn = DiffMultiHeadedAttention(args,depth=depth,mask=True)
+        self.decoder_attn = MultiHeadedAttention(args,mask=True)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.ln2 = nn.LayerNorm(args.hidden_size)
         self.ln3 = nn.LayerNorm(args.hidden_size)
-        self.encoder_decoder = DiffMultiHeadedAttention(args,depth=depth,mask=False)
+        self.encoder_decoder = MultiHeadedAttention(args,mask=False)
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
@@ -202,7 +209,7 @@ class ExpertTransformer(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
         
         self.visual_encoder = VisualEncoder(args)
-        self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
+        self.language_encoder = MultiHeadedAttention(args,mask=False)
         self.fuser = nn.ModuleList([TransfusionEncoder(args,depth=depth) for depth in range(args.num_layers)])
         self.contextual_decoder = nn.ModuleList([LanguageDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
