@@ -165,13 +165,14 @@ for epoch in range(current_epoch-1,num_epochs):
             images = images.to(device)
             target_tokens = target_tokens.to(device)
             gt_keyword_tokens = gt_keyword_tokens.to(device)
+            desc_tokens = desc_tokens.to(device)
             # print("Image:",images.shape)
             # print("target_tokens:",target_tokens.shape)
             
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
             with torch.cuda.amp.autocast():
-                _, loss, _ = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+                _, loss = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
                 generated_captions = model.generate_beam(images,gt_keyword_tokens)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
