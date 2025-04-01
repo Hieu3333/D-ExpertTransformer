@@ -102,9 +102,7 @@ total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
 print(f'Total params: {total_params/1e6:.2f}M')
 
 num_epoch_not_improved = 0
-best_epoch = 0
-best_avg_val = 0
-best_avg_test = 0
+best_val_loss = 1e6
 
 logger.info(args)
 
@@ -161,6 +159,11 @@ for epoch in range(current_epoch-1,num_epochs):
 
         avg_val_loss = val_loss / len(val_dataloader)
         logger.info(f"Validation loss: {avg_val_loss:.2f}")
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            num_epoch_not_improved = 0
+        else:
+            num_epoch_not_improved += 1
     
     scheduler.step()  
     if (epoch+1) < 95 and (epoch+1) != 50:
@@ -250,23 +253,7 @@ for epoch in range(current_epoch-1,num_epochs):
 
         print("GTS Test Example:", list(gts_test.items())[-5:-1])
         print("Res Test Example:", list(res_test.items())[-5:-1])
-    avg_eval_metric = eval_scores['BLEU_4'] + 0.5*eval_scores['BLEU_1']
-    avg_test_metric = test_scores['BLEU_4'] + 0.5*test_scores['METEOR'] + 0.25*test_scores['BLEU_1']
-    
-    if avg_test_metric > best_avg_test:
-        best_avg_test = avg_test_metric
-        
-        
-
-    if avg_eval_metric > best_avg_val:
-        best_avg_val = avg_eval_metric
-        best_epoch = epoch+1
-        logger.info(f"Best epoch: {epoch+1}")
-        num_epoch_not_improved = 0
-    else:
-        num_epoch_not_improved+=1 
-
-    
+  
     logger.info("--------------------------------------------------------------------------------")
 
 
