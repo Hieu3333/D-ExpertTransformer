@@ -68,13 +68,8 @@ test_dataloader = DENDataLoader(args,tokenizer,keywords,split='test',shuffle=Fal
 # Initialize model
 model = ExpertTransformer(args, tokenizer, keywords)
 
-ve_params = list(map(id, model.visual_extractor.parameters()))
-ed_params = filter(lambda x: id(x) not in ve_params, model.parameters())
-optimizer =torch.optim.AdamW(
-            [{'params': model.visual_extractor.parameters(), 'lr': args.lr_ve},
-             {'params': ed_params, 'lr': args.lr_ed}],
-            weight_decay=args.weight_decay
-        )
+
+optimizer =model.configure_optimizer(args)
 
 
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)

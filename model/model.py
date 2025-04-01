@@ -317,6 +317,24 @@ class ExpertTransformer(nn.Module):
             final_sequences.append(text)
 
         return final_sequences
+    
+
+    def configure_optimizer(self,args):
+        param_dict = {pn:p for pn,p in self.named_parameters()}
+        param_dict = {pn:p for pn,p in param_dict.items() if p.requires_grad}
+        decay_params = {p for n,p in param_dict.items() if p.dim>=2}
+        nodecay_params = {p for n,p in param_dict.items() if p.dim<2}
+
+        optim_group = [
+            {'params':nodecay_params,'weight_decay':0.0},
+            {'params':decay_params,'weight_decay':args.weight_decay}
+        ]
+        num_decay_params = sum(p.numel() for p in decay_params)
+        num_nodecay_params = sum(p.numel() for p in nodecay_params)
+        print(f'Num decay params: {len(decay_params)} with {num_decay_params} params')
+        print(f'Num nodecay params: {len(nodecay_params)} with {num_nodecay_params} params')
+        optimizer = torch.optim.AdamW(optim_group,lr=args.lr_ed,betas=(0.9,0.95),eps=1e-8)
+        return optimizer
 
 
 
