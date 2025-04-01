@@ -119,39 +119,39 @@ for epoch in range(current_epoch-1,num_epochs):
     model.train()
     running_loss = 0.0
 
-    for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
-        image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
-        images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
-        # print("desc_tokens:",desc_tokens)
-        # print("target_tokens:",target_tokens)
-        # print('gt:',gt_clinical_desc)
-        outputs, loss, loss_ce = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
-        loss = loss / args.accum_steps  # Normalize for gradient accumulation
+    # for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
+    #     image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
+    #     images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
+    #     # print("desc_tokens:",desc_tokens)
+    #     # print("target_tokens:",target_tokens)
+    #     # print('gt:',gt_clinical_desc)
+    #     outputs, loss, loss_ce = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+    #     loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
-        loss.backward()
-        norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        # Gradient accumulation step
-        if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-            optimizer.step()
-            optimizer.zero_grad()  # Zero gradients after step
+    #     loss.backward()
+    #     norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    #     # Gradient accumulation step
+    #     if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
+    #         optimizer.step()
+    #         optimizer.zero_grad()  # Zero gradients after step
 
-        running_loss += loss.item()
+    #     running_loss += loss.item()
         
-        # Logging
-        if (batch_idx+1== len(train_dataloader)) :
-            avg_loss = running_loss / len(train_dataloader)
-            logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
-            running_loss = 0.0  # Reset running loss
+    #     # Logging
+    #     if (batch_idx+1== len(train_dataloader)) :
+    #         avg_loss = running_loss / len(train_dataloader)
+    #         logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
+    #         running_loss = 0.0  # Reset running loss
     
-    scheduler.step()  
-    if (epoch+1) < 90:
-        continue
+    # scheduler.step()  
+    # if (epoch+1) < 90:
+    #     continue
 
-    torch.save({
-            'epoch': epoch + 1,  # Save current epoch
-            'model': model.state_dict(),  # Save model weights
-            'optim': optimizer.state_dict(),  # Save optimizer state
-        }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+    # torch.save({
+    #         'epoch': epoch + 1,  # Save current epoch
+    #         'model': model.state_dict(),  # Save model weights
+    #         'optim': optimizer.state_dict(),  # Save optimizer state
+    #     }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
 
     #Evaluation
     model.eval()
@@ -171,7 +171,7 @@ for epoch in range(current_epoch-1,num_epochs):
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
             with torch.cuda.amp.autocast():
-                generated_captions, batch_loss = model.generate_greedy(images,gt_keyword_tokens)
+                generated_captions, batch_loss = model.generate_beam(images,gt_keyword_tokens)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
@@ -206,7 +206,7 @@ for epoch in range(current_epoch-1,num_epochs):
             gt_keyword_tokens = gt_keyword_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
             with torch.cuda.amp.autocast():
-                generated_captions = model.generate_greedy(images,gt_keyword_tokens) 
+                generated_captions, _ = model.generate_beam(images,gt_keyword_tokens) 
 
             for i,image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
