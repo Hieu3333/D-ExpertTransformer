@@ -125,9 +125,9 @@ class DiffMultiHeadedAttention(nn.Module):
 class MLP(nn.Module):
     def __init__(self,args):
         super(MLP,self).__init__()
-        self.c_fc = nn.Linear(args.hidden_size,4*args.hidden_size,bias=args.bias)
+        self.c_fc = nn.Linear(args.hidden_size,args.hidden_size//2,bias=args.bias)
         self.gelu = nn.GELU()
-        self.c_proj = nn.Linear(4*args.hidden_size,args.hidden_size,bias=args.bias)
+        self.c_proj = nn.Linear(args.hidden_size//2,args.hidden_size,bias=args.bias)
         self.dropout = nn.Dropout(args.dropout)
     
     def forward(self,x):
@@ -262,7 +262,7 @@ class ExpertTransformer(nn.Module):
     
 
     @torch.no_grad()
-    def generate(self, images, gt_keywords):
+    def generate(self, images, gt_keywords, targets):
         device = self.device
         batch_size = images.size(0)
         beam_width = self.beam_width
