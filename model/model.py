@@ -169,7 +169,7 @@ class VisualEncoder(nn.Module):
         vf = self.ve(images)
         B,C,_,_ = vf.size()
         vf = vf.view(B,C,-1)
-        return vf
+        return vf.transpose(-2,-1)
 
 
 class LanguageDecoderLayer(nn.Module):
