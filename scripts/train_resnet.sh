@@ -1,0 +1,34 @@
+python train.py \
+  --exp_name "resnet-diff-0" \
+  --epochs 50 \
+  --ve_name "resnet" \
+  --lr 3e-4 \
+  --weight_decay 1e-4 \
+  --channel_reduction 4 \
+  --save_path "results" \
+  --batch_size 64 \
+  --accum_steps 1 \
+  --bias \
+  --early_stopping 10 \
+  --max_length 50 \
+  --step_size 10 \
+  --max_gen 100 \
+  --hidden_size 1024 \
+  --vocab_size 2681 \
+  --threshold 0.5 \
+  --num_layers 2 \
+  --delta1 1 \
+  --delta2 0.01 \
+  --topk 3 \
+  --temperature 1 \
+  --lambda_init 0.8 \
+  --dropout 0 \
+  --beam_width 5 \
+  --encoder_size 2048 \
+  --num_heads 8 \
+  --diff_num_heads 4 \
+  --num_workers 16 \
+  --image_path "/data/eyenet0420" \
+  --ann_path "data" \
+  --project_root "/workspace/D-ExpertTransformer" \
+  --from_pretrained "results/checkpoint_epoch_50.pth"

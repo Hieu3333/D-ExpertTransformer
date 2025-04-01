@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from modules.dataset import DeepEyeNet
+from modules.dataset import DeepEyeNet, DeepEyeNet_GPT
 import torch
 
 class DENDataLoader(DataLoader):
@@ -40,7 +40,16 @@ class DENDataLoader(DataLoader):
             ])
 
         # Initialize Dataset
-        self.dataset = DeepEyeNet(
+        if args.decoder == "custom":
+            self.dataset = DeepEyeNet(
+            args=args,
+            tokenizer=tokenizer,
+            keywords_list=keywords_vocab_set,  # set of keywords, non-duplicated
+            split=split,
+            transform=self.transform
+        )
+        if args.decoder == "gpt2":
+            self.dataset = DeepEyeNet_GPT(
             args=args,
             tokenizer=tokenizer,
             keywords_list=keywords_vocab_set,  # set of keywords, non-duplicated

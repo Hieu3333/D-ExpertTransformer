@@ -1,3 +1,4 @@
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,6 +9,7 @@ import sys
 from collections import Counter
 from modules.RMSNorm import RMSNorm
 from modules.GCA import GuidedContextAttention
+from transformers import GPT2Model, GPT2Tokenizer
 
 
 
@@ -148,7 +150,7 @@ class TransfusionEncoder(nn.Module):
         self.mlp = MLP(args)
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
-    def forward(self,visual_features,x):
+    def forward(self,visual_features,x):   #args.hidden_size = gpt2 embed dim
         if self.depth == 0:
             vf = self.vf_proj(visual_features)
         else:
@@ -174,58 +176,53 @@ class VisualEncoder(nn.Module):
         return vf.transpose(-2,-1)
 
 
-class LanguageDecoderLayer(nn.Module):
-    def __init__(self,args,depth):
-        super(LanguageDecoderLayer,self).__init__()
-        self.decoder_attn = DiffMultiHeadedAttention(args,depth,mask=True)
-        self.ln1 = nn.LayerNorm(args.hidden_size)
-        self.ln2 = nn.LayerNorm(args.hidden_size)
-        self.ln3 = nn.LayerNorm(args.hidden_size)
-        self.encoder_decoder = DiffMultiHeadedAttention(args,depth,mask=False)
-        self.mlp = MLP(args)
-
-    def forward(self,encoder_feature,x): 
-        x = self.ln1(x+self.decoder_attn(x,x,x))
-        x = self.ln2(x+self.encoder_decoder(x,encoder_feature,encoder_feature))
-        x = self.ln3(x +self.mlp(x))
-        return x
-    
-
 
 
 
 class ExpertTransformer(nn.Module):
-    def __init__(self,args,tokenizer,keywords):
-        super(ExpertTransformer,self).__init__()
-        self.We = nn.Embedding(args.vocab_size,args.hidden_size)
-        self.wpe = nn.Embedding(args.max_gen,args.hidden_size)
+    def __init__(self, args, tokenizer, keywords):
+        super(ExpertTransformer, self).__init__()
+        
+        # Initialize GPT-2 model and freeze its parameters
+        self.gpt2 = GPT2Model.from_pretrained('gpt2')
+        for param in self.gpt2.parameters():
+            param.requires_grad = False  # Freeze GPT-2 parameters
+        
+        self.tokenizer = tokenizer
+        
         self.args = args
         self.max_length = args.max_length
         self.max_gen = args.max_gen
         self.threshold = args.threshold
         self.num_layers = args.num_layers
-        self.tokenizer = tokenizer
         self.delta1 = args.delta1
         self.delta2 = args.delta2
         self.topk = args.topk
         self.temperature = args.temperature
-
-
+        
         self.dropout = nn.Dropout(args.dropout)
         
-        self.visual_encoder = VisualEncoder(args)
-        self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
-        self.fuser = nn.ModuleList([TransfusionEncoder(args,depth=depth) for depth in range(args.num_layers)])
-        self.contextual_decoder = nn.ModuleList([LanguageDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
-        self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
+        # Visual encoder and feature fusion
+        self.visual_encoder = VisualEncoder(args)  # assuming you have your visual encoder
+        self.fuser = nn.ModuleList([TransfusionEncoder(args, depth=depth) for depth in range(args.num_layers)])
+        
+        # Language modeling head (output vocabulary logits)
+        self.lm_head = nn.Linear(self.gpt2.config.n_embd, self.gpt2.config.vocab_size, bias=False)
+        
         self.keywords = keywords
         self.device = args.device
         self.beam_width = args.beam_width
-        #Weight tying
-        self.We.weight = self.lm_head.weight
+        
+        # Weight tying: use GPT-2's embeddings
+        self.lm_head.weight = self.gpt2.transformer.wte.weight
+
+        for param in self.gpt2.parameters():
+            param.requires_grad = False  # Freeze GPT-2 parameters
+        
+        # Apply initialization to all layers
         self.apply(self.init_weights)
 
-    def init_weights(self,module):
+    def init_weights(self, module):
         if isinstance(module, nn.Linear):
             nn.init.xavier_uniform_(module.weight)
             if module.bias is not None:
@@ -235,44 +232,41 @@ class ExpertTransformer(nn.Module):
         elif isinstance(module, nn.LayerNorm):
             module.bias.data.zero_()
             module.weight.data.fill_(1.0)
-
-
     
-    def forward(self,images,tokens,gt_keyword_tokens, targets = None):
-        #keywords is a list of un-tokenized keywords
-        #target_keywords are hot_encoding of true keywords
-        B,T = tokens.shape
+    def forward(self, images, tokens, gt_keyword_tokens, targets=None):
+        # Assume images and tokens are already on the correct device (device of tokens)
+        B, T = tokens.shape
         device = tokens.device
 
-        visual_features = self.visual_encoder(images)
+        # Extract visual features
+        visual_features = self.visual_encoder(images)  # B,N,C  (adjust according to your model)
 
-        keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
-        keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
+        # Token embedding using GPT-2's word embeddings
+        tok_emb = self.gpt2.transformer.wte(tokens)  # B, T, hidden_size
+        pos_emb = self.gpt2.transformer.wpe(torch.arange(0, T, dtype=torch.long, device=device))  # T, hidden_size
+        tok_emb += pos_emb  # Add positional embeddings
+        
+        # Dropout on token embeddings
+        x = self.dropout(tok_emb)
 
+        # Keyword processing (if any)
+        keyword_emb = self.gpt2.transformer.wte(gt_keyword_tokens)  # Project keywords to token embedding space
+        encoder_feature = self.fuser[0](visual_features, keyword_emb)  # (B,N,hidden_size)
         
-        pos = torch.arange(0,T,dtype=torch.long,device=device)
-        tok_emb = self.We(tokens)
-        pos_emb = self.wpe(pos)
-        x = self.dropout(tok_emb+pos_emb)
+        x = torch.cat([encoder_feature,x],dim=1) #Prepend visual feature to token embedding
 
-        for i in range(self.num_layers):
-            if i==0:
-                encoder_features = self.fuser[i](visual_features,keyword_emb)
-            else:
-                encoder_features = self.fuser[i](encoder_features,keyword_emb)
-            x = self.contextual_decoder[i](encoder_features,x)
+        # Pass the combined embeddings through GPT-2's transformer layers (frozen)
+        transformer_outputs = self.gpt2.transformer(inputs_embeds=x)
+        hidden_states = transformer_outputs.last_hidden_state  # B, T, hidden_size
+
+        # Output logits from GPT-2's last hidden states
+        logits = self.lm_head(hidden_states)  # B, T, vocab_size (logits for each token in sequence)
         
-        
-        logits = self.lm_head(x)
-        # print("logits:",logits.shape)
-        # print("target:",targets.shape)
-        # print("target_keywords:",target_keywords.shape)
+        # Compute loss if targets are provided (next token prediction)
+        loss_ce = None
         if targets is not None:
-            # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
-            loss_ce = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
-        else:
-            loss = None
-            loss_ce = None
+            loss_ce = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.pad_token_id)
+        
         return logits, loss_ce
     
 
@@ -282,8 +276,12 @@ class ExpertTransformer(nn.Module):
         batch_size = images.size(0)
         beam_width = self.beam_width
 
-        bos_id = self.tokenizer.word2idx["<BOS>"]
-        eos_id = self.tokenizer.word2idx["<EOS>"]
+        # Get the BOS and EOS token IDs from the GPT-2 tokenizer
+        bos_id = self.tokenizer.bos_token_id
+        eos_id = self.tokenizer.eos_token_id
+
+        # Set pad_token_id to eos_token_id
+        pad_token_id = eos_id
 
         # Initialize sequences and log probabilities
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
@@ -298,7 +296,7 @@ class ExpertTransformer(nn.Module):
             all_candidates = []
 
             for i in range(beam_width):  # Iterate over beams
-                logits, _= self(images, beam_sequences[i], gt_keywords)  # (B, seq_len, vocab_size)
+                logits, _ = self(images, beam_sequences[i], gt_keywords)  # (B, seq_len, vocab_size)
                 logits = logits[:, -1, :] / self.temperature  # Get logits for last token
                 probs = F.log_softmax(logits, dim=-1)  # Convert to log probabilities
 
@@ -327,8 +325,8 @@ class ExpertTransformer(nn.Module):
         for i in range(batch_size):
             best_seq = beam_sequences[0][i].tolist()  # Take the highest-scoring sequence for each batch
             if eos_id in best_seq:
-                best_seq = best_seq[:best_seq.index(eos_id) + 1]
-            text = self.tokenizer.decode(best_seq)
+                best_seq = best_seq[:best_seq.index(eos_id) + 1]  # Trim sequence at EOS token
+            text = self.tokenizer.decode(best_seq, skip_special_tokens=True)  # Decode using GPT-2 tokenizer
             final_sequences.append(text)
 
         return final_sequences
@@ -341,33 +339,31 @@ class ExpertTransformer(nn.Module):
         device = self.device
         batch_size = images.size(0)
 
-        bos_id = self.tokenizer.word2idx["<BOS>"]
-        eos_id = self.tokenizer.word2idx["<EOS>"]
+        # Get the BOS and EOS token IDs from the GPT-2 tokenizer
+        bos_id = self.tokenizer.bos_token_id
+        eos_id = self.tokenizer.eos_token_id
 
         # Initialize sequences with <BOS> token
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
 
-
-
-        for _ in range(self.max_gen):  
+        for _ in range(self.max_gen):
             logits, _ = self(images, sequences, gt_keywords)  # Forward pass
-            logits = logits[:, -1, :] / self.temperature  # Get logits for last token
+            logits = logits[:, -1, :] / self.temperature  # Get logits for the last token
             next_token = torch.argmax(logits, dim=-1).unsqueeze(1)  # Shape: (batch_size, 1)
 
             # Append the predicted token
             sequences = torch.cat((sequences, next_token), dim=1)
 
             # Stop generation if EOS is reached
-            finished |= (sequences[:, -1] == eos_id)  
+            finished |= (sequences[:, -1] == eos_id)
             if finished.all():
                 break
 
-
         # Decode sequences
-        final_sequences = [self.tokenizer.decode(seq.tolist()) for seq in sequences]
+        final_sequences = [self.tokenizer.decode(seq.tolist(), skip_special_tokens=True) for seq in sequences]
 
-        return final_sequences # Average loss over generated tokens
+        return final_sequences  # Return decoded sequences
 
 
     

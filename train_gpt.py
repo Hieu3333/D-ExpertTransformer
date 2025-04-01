@@ -1,6 +1,6 @@
 import torch
 from modules.tokenizer import Tokenizer
-from model.model import ExpertTransformer
+from model.model_gpt2 import ExpertTransformer
 from modules.dataloader import DENDataLoader
 from modules.metrics import compute_scores
 from tqdm import tqdm
@@ -12,7 +12,7 @@ import logging
 import random
 import numpy as np
 import json
-
+from transformers import GPT2Model, GPT2Tokenizer
 
 def set_seed(seed=42):
     random.seed(seed)  
@@ -59,8 +59,8 @@ args = parser_arg()
 keywords = load_all_keywords()
 
 # Load custom tokenizer
-tokenizer = Tokenizer(args)
-tokenizer.load_vocab("vocab.json")
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+tokenizer.pad_token = tokenizer.eos_token 
 
 # Initialize dataset and dataloader
 train_dataloader = DENDataLoader(args, tokenizer, keywords, split='train',shuffle=True)
@@ -103,16 +103,13 @@ os.makedirs(save_path, exist_ok=True)
 total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
 print(f'Total params: {total_params/1e6:.2f}M')
 
-num_epoch_not_improved = 0
-best_val_loss = 1e6
+
 
 logger.info(args)
 
 
 
 for epoch in range(current_epoch-1,num_epochs):
-    if num_epoch_not_improved == args.early_stopping:
-        break
 
     logger.info(f"Epoch {epoch+1}:")
 
@@ -145,8 +142,8 @@ for epoch in range(current_epoch-1,num_epochs):
     
     
     scheduler.step()  
-    if (epoch+1) < 95 and (epoch+1) != 50:
-        continue
+    # if (epoch+1) < 95 and (epoch+1) != 50:
+    #     continue
 
     torch.save({
             'epoch': epoch + 1,  # Save current epoch
@@ -177,7 +174,6 @@ for epoch in range(current_epoch-1,num_epochs):
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
             with torch.cuda.amp.autocast():
-                _, loss = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
                 generated_captions = model.generate_beam(images,gt_keyword_tokens)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
@@ -185,15 +181,13 @@ for epoch in range(current_epoch-1,num_epochs):
                 gts_val[image_id] = [groundtruth_caption]
                 res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
                 val_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})        
-            val_loss += loss.item()
 
         val_path = os.path.join(save_path,f"val_result_epoch_{epoch+1}.json")
         with open(val_path, "w") as f:
             json.dump(val_results, f, indent=4)
         # Compute evaluation metrics
         eval_scores = compute_scores(gts_val, res_val)
-        avg_val_loss = val_loss / len(val_dataloader)
-        logger.info(f"Validation loss: {avg_val_loss:.2f}")
+
         logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
         logger.info(f"BLEU_1: {eval_scores['BLEU_1']}")
         logger.info(f"BLEU_2: {eval_scores['BLEU_2']}")

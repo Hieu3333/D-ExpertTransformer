@@ -1,8 +1,9 @@
-python train.py \
-  --exp_name "resnet-diff-0" \
-  --epochs 200 \
+python train_gpt.py \
+  --exp_name "resnet-diff-gpt-0" \
+  --epochs 50 \
   --ve_name "resnet" \
-  --lr 1e-4 \
+  --decoder "gpt2" \
+  --lr 3e-4 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --save_path "results" \
@@ -12,8 +13,8 @@ python train.py \
   --early_stopping 10 \
   --max_length 50 \
   --step_size 10 \
-  --max_gen 100 \
-  --hidden_size 1024 \
+  --max_gen 50 \
+  --hidden_size 768 \
   --vocab_size 2681 \
   --threshold 0.5 \
   --num_layers 2 \

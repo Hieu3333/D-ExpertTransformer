@@ -1,8 +1,8 @@
 python train.py \
   --exp_name "effnet-diff-0" \
-  --epochs 100 \
+  --epochs 50 \
   --ve_name "efficientnet" \
-  --lr 1e-4 \
+  --lr 3e-4 \
   --weight_decay 1e-4 \
   --save_path "results" \
   --batch_size 64 \
