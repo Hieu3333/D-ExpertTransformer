@@ -261,6 +261,8 @@ class ExpertTransformer(nn.Module):
 
         # Output logits from GPT-2's last hidden states
         logits = self.lm_head(hidden_states)  # B, T, vocab_size (logits for each token in sequence)
+        print('logits:',logits.shape)
+        print('targets:',targets.shape)
         
         # Compute loss if targets are provided (next token prediction)
         loss_ce = None
