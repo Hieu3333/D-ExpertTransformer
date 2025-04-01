@@ -169,8 +169,8 @@ for epoch in range(current_epoch-1,num_epochs):
             
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
-            with torch.cuda.amp.autocast():
-                generated_captions = model.generate_greedy(images,gt_keyword_tokens)
+            # with torch.cuda.amp.autocast():
+            generated_captions = model.generate_greedy(images,gt_keyword_tokens)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
@@ -202,8 +202,8 @@ for epoch in range(current_epoch-1,num_epochs):
             target_tokens = target_tokens.to(device)
             gt_keyword_tokens = gt_keyword_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
-            with torch.cuda.amp.autocast():
-                generated_captions = model.generate_greedy(images,gt_keyword_tokens) 
+            # with torch.cuda.amp.autocast():
+            generated_captions = model.generate_greedy(images,gt_keyword_tokens) 
 
             for i,image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
