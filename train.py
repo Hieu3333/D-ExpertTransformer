@@ -125,7 +125,7 @@ for epoch in range(current_epoch-1,num_epochs):
         # print("desc_tokens:",desc_tokens)
         # print("target_tokens:",target_tokens)
         # print('gt:',gt_clinical_desc)
-        outputs, loss, loss_ce = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+        outputs, loss = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
         loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
         loss.backward()
@@ -154,11 +154,7 @@ for epoch in range(current_epoch-1,num_epochs):
             target_tokens = target_tokens.to(device)
             gt_keyword_tokens = gt_keyword_tokens.to(device)
             desc_tokens = desc_tokens.to(device)
-            # print("Image:",images.shape)
-            # print("target_tokens:",target_tokens.shape)
-            
-            # Generate captions for the whole batch
-            # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
+
 
             _, loss = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
             val_loss += loss.item()
