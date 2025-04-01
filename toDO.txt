@@ -23,3 +23,4 @@ Ways to get better:
 To fix:
 -weight decay for 2d matrix only, not layernorm, ...
 -cross_entropy loss
+-add clip_grad_norm

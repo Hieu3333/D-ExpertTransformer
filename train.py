@@ -129,7 +129,7 @@ for epoch in range(current_epoch-1,num_epochs):
         loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
         loss.backward()
-
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         # Gradient accumulation step
         if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
             optimizer.step()
