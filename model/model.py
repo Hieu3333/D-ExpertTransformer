@@ -322,8 +322,8 @@ class ExpertTransformer(nn.Module):
     def configure_optimizer(self,args):
         param_dict = {pn:p for pn,p in self.named_parameters()}
         param_dict = {pn:p for pn,p in param_dict.items() if p.requires_grad}
-        decay_params = {p for n,p in param_dict.items() if p.dim>=2}
-        nodecay_params = {p for n,p in param_dict.items() if p.dim<2}
+        decay_params = {p for n,p in param_dict.items() if p.dim >= 2}
+        nodecay_params = {p for n,p in param_dict.items() if p.dim < 2}
 
         optim_group = [
             {'params':nodecay_params,'weight_decay':0.0},
