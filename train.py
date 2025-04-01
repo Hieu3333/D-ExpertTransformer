@@ -144,7 +144,7 @@ for epoch in range(current_epoch-1,num_epochs):
             running_loss = 0.0  # Reset running loss
     
     scheduler.step()  
-    if (epoch+1) % 50 != 0:
+    if (epoch+1) < 90:
         continue
 
     torch.save({
@@ -157,6 +157,7 @@ for epoch in range(current_epoch-1,num_epochs):
     model.eval()
     gts_val = {}
     res_val = {}
+    val_loss = 0.0
     with torch.no_grad():  
         for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
             image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
@@ -170,15 +171,17 @@ for epoch in range(current_epoch-1,num_epochs):
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
             with torch.cuda.amp.autocast():
-                generated_captions = model.generate_greedy(images,gt_keyword_tokens)
+                generated_captions, batch_loss = model.generate_greedy(images,gt_keyword_tokens)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
                 gts_val[image_id] = [groundtruth_caption]
                 res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
-
+            val_loss += batch_loss
         # Compute evaluation metrics
         eval_scores = compute_scores(gts_val, res_val)
+        avg_val_loss = val_loss / len(val_dataloader)
+        logger.info(f"Validation loss: {avg_val_loss:.2f}")
         logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
         logger.info(f"BLEU_1: {eval_scores['BLEU_1']}")
         logger.info(f"BLEU_2: {eval_scores['BLEU_2']}")

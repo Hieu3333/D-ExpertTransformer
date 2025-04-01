@@ -268,15 +268,14 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
-            loss = loss_ce
         else:
             loss = None
             loss_ce = None
-        return logits, loss, loss_ce
+        return logits, loss_ce
     
 
     @torch.no_grad()
-    def generate_beam(self, images, gt_keywords):
+    def generate_beam(self, images, gt_keywords,targets):
         device = self.device
         batch_size = images.size(0)
         beam_width = self.beam_width
@@ -297,7 +296,7 @@ class ExpertTransformer(nn.Module):
             all_candidates = []
 
             for i in range(beam_width):  # Iterate over beams
-                logits, _, _ = self(images, beam_sequences[i], gt_keywords)  # (B, seq_len, vocab_size)
+                logits, loss= self(images, beam_sequences[i], gt_keywords,targets)  # (B, seq_len, vocab_size)
                 logits = logits[:, -1, :] / self.temperature  # Get logits for last token
                 probs = F.log_softmax(logits, dim=-1)  # Convert to log probabilities
 
@@ -336,7 +335,7 @@ class ExpertTransformer(nn.Module):
 
 
     @torch.no_grad()
-    def generate_greedy(self, images, gt_keywords):
+    def generate_greedy(self, images, gt_keywords, targets):
         device = self.device
         batch_size = images.size(0)
 
@@ -347,23 +346,27 @@ class ExpertTransformer(nn.Module):
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
 
-        for _ in range(self.max_gen):  # Generate up to max_gen tokens
-            logits, _, _ = self(images, sequences, gt_keywords)  # Forward pass
+        total_loss = 0  # Track cumulative loss
+
+        for _ in range(self.max_gen):  
+            logits, loss = self(images, sequences, gt_keywords)  # Forward pass
             logits = logits[:, -1, :] / self.temperature  # Get logits for last token
-            next_token = torch.argmax(logits, dim=-1).unsqueeze(1)  # Ensure shape is (batch_size, 1)
+            next_token = torch.argmax(logits, dim=-1).unsqueeze(1)  # Shape: (batch_size, 1)
 
             # Append the predicted token
             sequences = torch.cat((sequences, next_token), dim=1)
 
             # Stop generation if EOS is reached
-            finished |= (sequences[:,-1] == eos_id)  # Fix shape mismatch
+            finished |= (sequences[:, -1] == eos_id)  
             if finished.all():
                 break
 
+            total_loss += loss.item()  # Accumulate loss
+
         # Decode sequences
         final_sequences = [self.tokenizer.decode(seq.tolist()) for seq in sequences]
-        
-        return final_sequences
+
+        return final_sequences, total_loss / self.max_gen  # Average loss over generated tokens
 
 
     
