@@ -1,4 +1,3 @@
-CUDA_LAUNCH_BLOCKING=1 
 python train.py \
   --epochs 100 \
   --ve_name "efficientnet" \
@@ -16,7 +15,7 @@ python train.py \
   --hidden_size 1024 \
   --vocab_size 2681 \
   --threshold 0.5 \
-  --num_layers 2 \
+  --num_layers 3 \
   --delta1 1 \
   --delta2 0.01 \
   --topk 3 \
