@@ -1,3 +1,4 @@
+CUDA_LAUNCH_BLOCKING=1 
 python train.py \
   --epochs 100 \
   --ve_name "efficientnet" \
