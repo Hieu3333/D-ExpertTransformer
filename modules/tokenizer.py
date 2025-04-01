@@ -110,7 +110,7 @@ class Tokenizer:
         Replaces unknown words with <UNK>.
         """
         tokens = text.split()
-        token_ids = [self.word2idx.get('<BOS>', 0)]  # Start with BOS
+        token_ids = [self.word2idx.get('<SEP>', 0)]  # Start with BOS
         for token in tokens:
             if len(token_ids) == self.max_length:
                 break
