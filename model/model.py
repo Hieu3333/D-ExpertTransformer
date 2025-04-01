@@ -278,6 +278,9 @@ class ExpertTransformer(nn.Module):
         images = images.unsqueeze(1).repeat(1, beam_width, 1, 1, 1)
         images = images.view(batch_size * beam_width, *images.shape[2:])
 
+        gt_keywords = gt_keywords.unsqueeze(1).repeat(1,beam_width)
+        gt_keywords = gt_keywords.view(batch_size*beam_width,-1)
+
         # Initialize sequences, scores, and finished flags
         sequences = torch.full((batch_size * beam_width, 1), bos_id, dtype=torch.long, device=device)
         log_probs = torch.zeros(batch_size * beam_width, device=device)
