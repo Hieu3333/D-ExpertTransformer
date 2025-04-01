@@ -190,7 +190,10 @@ class ExpertTransformer(nn.Module):
 
         self.dropout = nn.Dropout(args.dropout)
         
-        self.visual_extractor = EfficientNet()
+        if args.ve_name == "efficientnet":
+            self.visual_extractor = EfficientNet()
+        if args.ve_name == "resnet":
+            self.visual_extractor = ResNet50()
         self.gca = GuidedContextAttention(args)
         self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
         self.fuser = TransfusionEncoder(args)
@@ -262,7 +265,7 @@ class ExpertTransformer(nn.Module):
     
 
     @torch.no_grad()
-    def generate(self, images, gt_keywords, targets):
+    def generate_beam(self, images, gt_keywords):
         device = self.device
         batch_size = images.size(0)
         beam_width = self.beam_width
@@ -317,6 +320,40 @@ class ExpertTransformer(nn.Module):
             final_sequences.append(text)
 
         return final_sequences
+    
+    @torch.no_grad()
+    def generate_greedy(self, images, gt_keywords):
+        device = self.device
+        batch_size = images.size(0)
+
+        bos_id = self.tokenizer.word2idx["<BOS>"]
+        eos_id = self.tokenizer.word2idx["<EOS>"]
+
+        # Initialize sequences with <BOS> token
+        sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
+        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
+
+        for _ in range(self.max_gen):  # Generate up to max_gen tokens
+            logits, _ = self(images, sequences, gt_keywords)  # Forward pass
+            logits = logits[:, -1, :] / self.temperature  # Get logits for last token
+            next_token = torch.argmax(logits, dim=-1)  # Greedy decoding
+
+            # Append the predicted token
+            sequences = torch.cat((sequences, next_token.unsqueeze(1)), dim=-1)
+
+            # Stop generation if EOS is reached
+            finished |= next_token == eos_id
+            if finished.all():
+                break
+
+        # Decode sequences
+        final_sequences = []
+        for seq in sequences:
+            text = self.tokenizer.decode(seq.tolist())
+            final_sequences.append(text)
+        
+        return final_sequences
+
     
 
     def configure_optimizer(self,args):
