@@ -274,12 +274,12 @@ class ExpertTransformer(nn.Module):
         bos_id = self.tokenizer.word2idx["<BOS>"]
         eos_id = self.tokenizer.word2idx["<EOS>"]
 
-        # Expand images for beam search
+        # Expand images and keywords for beam search
         images = images.unsqueeze(1).repeat(1, beam_width, 1, 1, 1)
         images = images.view(batch_size * beam_width, *images.shape[2:])
 
-        gt_keywords = gt_keywords.unsqueeze(1).repeat(1,beam_width,1)
-        gt_keywords = gt_keywords.view(batch_size*beam_width,-1)
+        gt_keywords = gt_keywords.unsqueeze(1).repeat(1, beam_width, 1)
+        gt_keywords = gt_keywords.view(batch_size * beam_width, -1)
 
         # Initialize sequences, scores, and finished flags
         sequences = torch.full((batch_size * beam_width, 1), bos_id, dtype=torch.long, device=device)
@@ -293,17 +293,24 @@ class ExpertTransformer(nn.Module):
 
             # Select top-k candidates (beam search step)
             top_probs, top_indices = torch.topk(probs, beam_width, dim=-1)  # (B*beam_width, beam_width)
-            log_probs = log_probs.unsqueeze(1) + top_probs  # Update log probability scores (B*beam_width, beam_width)
+            log_probs = log_probs.unsqueeze(1) + top_probs  # Update log probability scores
             log_probs = log_probs.view(batch_size, beam_width**2)  # Reshape for ranking
 
             # Get the best beam_width sequences for each batch
             top_log_probs, top_beam_indices = torch.topk(log_probs, beam_width, dim=-1)  # (B, beam_width)
-            top_beam_indices_flat = top_beam_indices + torch.arange(batch_size, device=device).unsqueeze(1) * beam_width**2
-            sequences = torch.cat([sequences[top_beam_indices_flat], top_indices.view(batch_size, beam_width**2)[top_beam_indices].unsqueeze(-1)], dim=-1)
+
+            # Correctly compute flattened beam indices
+            top_beam_indices_flat = (top_beam_indices + torch.arange(batch_size, device=device).unsqueeze(1) * beam_width).view(-1)
+
+            # Correct shape mismatch before concatenation
+            new_tokens = top_indices.view(batch_size * beam_width**2)[top_beam_indices_flat].unsqueeze(-1)  # (B*beam_width, 1)
+            sequences = torch.cat([sequences[top_beam_indices_flat], new_tokens], dim=-1)
+
+            # Update log_probs
             log_probs = top_log_probs.view(-1)
 
             # Check if all sequences have reached EOS
-            finished |= sequences[:, -1] == eos_id
+            finished |= (sequences[:, -1] == eos_id)
             if finished.all():
                 break
 
@@ -315,8 +322,9 @@ class ExpertTransformer(nn.Module):
                 best_seq = best_seq[:best_seq.index(eos_id) + 1]
             text = self.tokenizer.decode(best_seq)
             final_sequences.append(text)
-        
+
         return final_sequences
+
 
     
     @torch.no_grad()
