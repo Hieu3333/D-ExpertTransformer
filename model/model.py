@@ -342,7 +342,8 @@ class ExpertTransformer(nn.Module):
         for _ in range(self.max_gen):  # Generate up to max_gen tokens
             logits, _, _ = self(images, sequences, gt_keywords)  # Forward pass
             logits = logits[:, -1, :] / self.temperature  # Get logits for last token
-            next_token = torch.argmax(logits, dim=-1)  # Greedy decoding
+            probs = F.softmax(logits,dim=-1)
+            next_token = torch.multinomial(probs,num_samples=1)
 
             # Append the predicted token
             sequences = torch.cat((sequences, next_token.unsqueeze(1)), dim=-1)
