@@ -1,7 +1,7 @@
 python train.py \
   --epochs 200 \
   --ve_name "resnet" \
-  --lr 1e-3 \
+  --lr 1e-4 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --save_path "results" \
