@@ -333,7 +333,7 @@ class ExpertTransformer(nn.Module):
         num_nodecay_params = sum(p.numel() for p in nodecay_params)
         print(f'Num decay params: {len(decay_params)} with {num_decay_params} params')
         print(f'Num nodecay params: {len(nodecay_params)} with {num_nodecay_params} params')
-        optimizer = torch.optim.AdamW(optim_group,lr=args.lr_ed,betas=(0.9,0.95),eps=1e-8)
+        optimizer = torch.optim.AdamW(optim_group,lr=args.lr,betas=(0.9,0.95),eps=1e-8)
         return optimizer
 
 

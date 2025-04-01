@@ -1,8 +1,7 @@
 python train.py \
   --epochs 50 \
   --ve_name "efficientnet" \
-  --lr_ed 1e-4 \
-  --lr_ve 1e-4 \
+  --lr 1e-4 \
   --weight_decay 1e-4 \
   --save_path "results" \
   --batch_size 64 \
