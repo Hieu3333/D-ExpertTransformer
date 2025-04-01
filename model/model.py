@@ -233,14 +233,6 @@ class ExpertTransformer(nn.Module):
         device = tokens.device
 
         visual_features = self.visual_encoder(images)
-        # probs = probs.mean(dim=1) 
-        # keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
-        # keyword_tokens = self.encode_keywords(keywords_list,self.tokenizer)
-        
-        # keyword_tokens = keyword_tokens.to(device)
-
-        # print('keyword_tokens max:', keyword_tokens.max().item())
-        # print('vocab_size:', self.We.num_embeddings
 
         keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
         keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
@@ -252,7 +244,10 @@ class ExpertTransformer(nn.Module):
         x = self.dropout(tok_emb+pos_emb)
 
         for i in range(self.num_layers):
-            encoder_features = self.fuser[i](visual_features,keyword_emb)
+            if i==0:
+                encoder_features = self.fuser[i](visual_features,keyword_emb)
+            else:
+                encoder_features = self.fuser[i](encoder_features,keyword_emb)
             x = self.contextual_decoder[i](encoder_features,x)
         
         
@@ -295,6 +290,7 @@ class ExpertTransformer(nn.Module):
         for t in range(max_gen):
             logits, _, _ = self(images, sequences, gt_keywords)  # (B*beam_width, seq_len, vocab_size)
             logits = logits[:, -1, :] / self.temperature  # Get logits for last token
+            logits[finished] = float('-inf')  # Mask finished sequences
             probs = F.log_softmax(logits, dim=-1)  # Convert to log probabilities
 
             # Select top-k candidates (beam search step)
@@ -305,11 +301,14 @@ class ExpertTransformer(nn.Module):
             # Get the best beam_width sequences for each batch
             top_log_probs, top_beam_indices = torch.topk(log_probs, beam_width, dim=-1)  # (B, beam_width)
 
-            # Correctly compute flattened beam indices
-            top_beam_indices_flat = (top_beam_indices + torch.arange(batch_size, device=device).unsqueeze(1) * beam_width).view(-1)
+            # Correct beam index computation
+            top_beam_indices_flat = top_beam_indices + (torch.arange(batch_size, device=device).unsqueeze(1) * beam_width**2)
+            top_beam_indices_flat = top_beam_indices_flat.view(-1)
 
-            # Correct shape mismatch before concatenation
-            new_tokens = top_indices.view(batch_size * beam_width**2)[top_beam_indices_flat].unsqueeze(-1)  # (B*beam_width, 1)
+            # Correct indexing for new tokens
+            new_tokens = top_indices.gather(1, top_beam_indices % beam_width).view(-1, 1)
+
+            # Append new tokens
             sequences = torch.cat([sequences[top_beam_indices_flat], new_tokens], dim=-1)
 
             # Update log_probs
@@ -323,7 +322,8 @@ class ExpertTransformer(nn.Module):
         # Decode sequences
         final_sequences = []
         for i in range(batch_size):
-            best_seq = sequences[i * beam_width].tolist()  # Take the highest-scoring sequence for each batch
+            best_seq_index = log_probs[i * beam_width:(i + 1) * beam_width].argmax()
+            best_seq = sequences[i * beam_width + best_seq_index].tolist()
             if eos_id in best_seq:
                 best_seq = best_seq[:best_seq.index(eos_id) + 1]
             text = self.tokenizer.decode(best_seq)
@@ -332,7 +332,9 @@ class ExpertTransformer(nn.Module):
         return final_sequences
 
 
-    
+
+
+
     @torch.no_grad()
     def generate_greedy(self, images, gt_keywords):
         device = self.device
@@ -348,25 +350,21 @@ class ExpertTransformer(nn.Module):
         for _ in range(self.max_gen):  # Generate up to max_gen tokens
             logits, _, _ = self(images, sequences, gt_keywords)  # Forward pass
             logits = logits[:, -1, :] / self.temperature  # Get logits for last token
-            probs = F.softmax(logits,dim=-1)
-            next_token = torch.multinomial(probs,num_samples=1)
-
+            next_token = torch.argmax(logits, dim=-1).unsqueeze(1)  # Ensure shape is (batch_size, 1)
 
             # Append the predicted token
-            sequences = torch.cat((sequences, next_token), dim=-1)
+            sequences = torch.cat((sequences, next_token), dim=1)
 
             # Stop generation if EOS is reached
-            finished |= (next_token == eos_id).squeeze(1)
+            finished |= (next_token == eos_id)  # Fix shape mismatch
             if finished.all():
                 break
 
         # Decode sequences
-        final_sequences = []
-        for seq in sequences:
-            text = self.tokenizer.decode(seq.tolist())
-            final_sequences.append(text)
+        final_sequences = [self.tokenizer.decode(seq.tolist()) for seq in sequences]
         
         return final_sequences
+
 
     
 
