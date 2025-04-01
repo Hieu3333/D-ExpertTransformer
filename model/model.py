@@ -344,15 +344,13 @@ class ExpertTransformer(nn.Module):
             logits = logits[:, -1, :] / self.temperature  # Get logits for last token
             probs = F.softmax(logits,dim=-1)
             next_token = torch.multinomial(probs,num_samples=1)
-            print('next token:',next_token.shape)
-            print('sequence:',sequences.shape)
-            next_token = next_token.unsqueeze(-1)
+
 
             # Append the predicted token
             sequences = torch.cat((sequences, next_token), dim=-1)
 
             # Stop generation if EOS is reached
-            finished |= next_token == eos_id
+            finished |= (next_token == eos_id).squeeze(1)
             if finished.all():
                 break
 
