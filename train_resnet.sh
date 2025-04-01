@@ -23,7 +23,7 @@ python train.py \
   --temperature 1 \
   --lambda_init 0.8 \
   --dropout 0 \
-  --beam_width 3 \
+  --beam_width 5 \
   --encoder_size 2048 \
   --num_heads 8 \
   --diff_num_heads 4 \
@@ -31,4 +31,4 @@ python train.py \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
-  --from_pretrained "results/checkpoint_epoch_95.pth"
+  --from_pretrained "results/checkpoint_epoch_50.pth"

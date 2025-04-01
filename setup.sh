@@ -25,3 +25,7 @@ unzip DeepEyeNet.zip -d data
 mkdir -p /workspace/D-ExpertTransformer/pycocoevalcap/meteor/data/
 cd /workspace/D-ExpertTransformer/pycocoevalcap/meteor/data/
 wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-en.gz
+
+
+scp -P 23643 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-diff-0/val_result_epoch_95.json "/mnt/c/D-ExpertTransformer/"
+scp -P 23643 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-diff-0/test_result_epoch_95.json "/mnt/c/D-ExpertTransformer/"
