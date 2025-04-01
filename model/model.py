@@ -134,9 +134,9 @@ class MLP(nn.Module):
         return self.dropout(self.c_proj(self.gelu(self.c_fc(x))))
 
 class TransfusionEncoder(nn.Module):
-    def __init__(self,args):
+    def __init__(self,args,depth):
         super(TransfusionEncoder,self).__init__()
-        self.attn = DiffMultiHeadedAttention(args,depth=0,mask=False)
+        self.attn = DiffMultiHeadedAttention(args,depth=depth,mask=False)
         self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
@@ -148,7 +148,18 @@ class TransfusionEncoder(nn.Module):
         vf = self.ln2(vf +self.mlp(vf))
         return vf
     
+class VisualEncoder(nn.Module):
+    def __init__(self,args):
+        super(VisualEncoder,self).__init__()
+        if args.ve_name == 'resnet':
+            self.ve = ResNet50()
+        else:
+            self.ve = EfficientNet()
 
+        self.gca = GuidedContextAttention(args)
+
+    def forward(self,images):
+        return self.gca(self.ve(images))
 
 
 class LanguageDecoderLayer(nn.Module):
@@ -190,14 +201,9 @@ class ExpertTransformer(nn.Module):
 
         self.dropout = nn.Dropout(args.dropout)
         
-        if args.ve_name == "efficientnet":
-            self.visual_extractor = EfficientNet()
-        if args.ve_name == "resnet":
-            self.visual_extractor = ResNet50()
-        self.gca = GuidedContextAttention(args)
+        self.visual_encoder = VisualEncoder(args)
         self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
-        self.fuser = TransfusionEncoder(args)
-        # self.mlp_classifier = Classifier(args)
+        self.fuser = nn.ModuleList([TransfusionEncoder(args,depth=depth) for depth in range(args.num_layers)])
         self.contextual_decoder = nn.ModuleList([LanguageDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
         self.keywords = keywords
@@ -226,8 +232,7 @@ class ExpertTransformer(nn.Module):
         B,T = tokens.shape
         device = tokens.device
 
-        visual_features = self.visual_extractor(images) #(B,D,H,W)
-        visual_features = self.gca(visual_features) #(B,H*W,D)
+        visual_features = self.visual_encoder(images)
         # probs = probs.mean(dim=1) 
         # keywords_list = self.extract_keywords(probs,self.keywords,self.threshold)
         # keyword_tokens = self.encode_keywords(keywords_list,self.tokenizer)
@@ -240,13 +245,14 @@ class ExpertTransformer(nn.Module):
         keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
         keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
 
-        encoder_features = self.fuser(visual_features,keyword_emb)
+        
         pos = torch.arange(0,T,dtype=torch.long,device=device)
         tok_emb = self.We(tokens)
         pos_emb = self.wpe(pos)
         x = self.dropout(tok_emb+pos_emb)
 
         for i in range(self.num_layers):
+            encoder_features = self.fuser[i](visual_features,keyword_emb)
             x = self.contextual_decoder[i](encoder_features,x)
         
         
