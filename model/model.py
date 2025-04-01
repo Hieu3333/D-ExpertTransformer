@@ -275,7 +275,7 @@ class ExpertTransformer(nn.Module):
     
 
     @torch.no_grad()
-    def generate_beam(self, images, gt_keywords,targets):
+    def generate_beam(self, images, gt_keywords):
         device = self.device
         batch_size = images.size(0)
         beam_width = self.beam_width
@@ -296,7 +296,7 @@ class ExpertTransformer(nn.Module):
             all_candidates = []
 
             for i in range(beam_width):  # Iterate over beams
-                logits, loss= self(images, beam_sequences[i], gt_keywords,targets)  # (B, seq_len, vocab_size)
+                logits, _= self(images, beam_sequences[i], gt_keywords)  # (B, seq_len, vocab_size)
                 logits = logits[:, -1, :] / self.temperature  # Get logits for last token
                 probs = F.log_softmax(logits, dim=-1)  # Convert to log probabilities
 
@@ -335,7 +335,7 @@ class ExpertTransformer(nn.Module):
 
 
     @torch.no_grad()
-    def generate_greedy(self, images, gt_keywords, targets):
+    def generate_greedy(self, images, gt_keywords):
         device = self.device
         batch_size = images.size(0)
 
@@ -346,10 +346,10 @@ class ExpertTransformer(nn.Module):
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
 
-        total_loss = 0  # Track cumulative loss
+
 
         for _ in range(self.max_gen):  
-            logits, loss = self(images, sequences, gt_keywords)  # Forward pass
+            logits, _ = self(images, sequences, gt_keywords)  # Forward pass
             logits = logits[:, -1, :] / self.temperature  # Get logits for last token
             next_token = torch.argmax(logits, dim=-1).unsqueeze(1)  # Shape: (batch_size, 1)
 
@@ -361,12 +361,11 @@ class ExpertTransformer(nn.Module):
             if finished.all():
                 break
 
-            total_loss += loss.item()  # Accumulate loss
 
         # Decode sequences
         final_sequences = [self.tokenizer.decode(seq.tolist()) for seq in sequences]
 
-        return final_sequences, total_loss / self.max_gen  # Average loss over generated tokens
+        return final_sequences # Average loss over generated tokens
 
 
     

@@ -171,13 +171,14 @@ for epoch in range(current_epoch-1,num_epochs):
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
             with torch.cuda.amp.autocast():
-                generated_captions, batch_loss = model.generate_beam(images,gt_keyword_tokens,target_tokens)
+                _, loss, _ = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+                generated_captions = model.generate_beam(images,gt_keyword_tokens)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
                 gts_val[image_id] = [groundtruth_caption]
                 res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
-            val_loss += batch_loss
+            val_loss += loss.item()
         # Compute evaluation metrics
         eval_scores = compute_scores(gts_val, res_val)
         avg_val_loss = val_loss / len(val_dataloader)
@@ -206,7 +207,7 @@ for epoch in range(current_epoch-1,num_epochs):
             gt_keyword_tokens = gt_keyword_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
             with torch.cuda.amp.autocast():
-                generated_captions, _ = model.generate_beam(images,gt_keyword_tokens,target_tokens) 
+                generated_captions = model.generate_beam(images,gt_keyword_tokens) 
 
             for i,image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
