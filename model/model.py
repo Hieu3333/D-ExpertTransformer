@@ -345,8 +345,9 @@ class ExpertTransformer(nn.Module):
             probs = F.softmax(logits,dim=-1)
             next_token = torch.multinomial(probs,num_samples=1)
 
+
             # Append the predicted token
-            sequences = torch.cat((sequences, next_token.unsqueeze(1)), dim=-1)
+            sequences = torch.cat((sequences, next_token), dim=-1)
 
             # Stop generation if EOS is reached
             finished |= next_token == eos_id

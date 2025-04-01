@@ -119,33 +119,33 @@ for epoch in range(current_epoch-1,num_epochs):
     model.train()
     running_loss = 0.0
 
-    for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
-        image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
-        images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
-        # print("desc_tokens:",desc_tokens)
-        # print("target_tokens:",target_tokens)
-        # print('gt:',gt_clinical_desc)
-        outputs, loss, loss_ce = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
-        loss = loss / args.accum_steps  # Normalize for gradient accumulation
+    # for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
+    #     image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
+    #     images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
+    #     # print("desc_tokens:",desc_tokens)
+    #     # print("target_tokens:",target_tokens)
+    #     # print('gt:',gt_clinical_desc)
+    #     outputs, loss, loss_ce = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+    #     loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
-        loss.backward()
+    #     loss.backward()
 
-        # Gradient accumulation step
-        if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-            optimizer.step()
-            optimizer.zero_grad()  # Zero gradients after step
+    #     # Gradient accumulation step
+    #     if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
+    #         optimizer.step()
+    #         optimizer.zero_grad()  # Zero gradients after step
 
-        running_loss += loss.item()
+    #     running_loss += loss.item()
         
-        # Logging
-        if (batch_idx+1== len(train_dataloader)) :
-            avg_loss = running_loss / log_interval
-            logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
-            running_loss = 0.0  # Reset running loss
+    #     # Logging
+    #     if (batch_idx+1== len(train_dataloader)) :
+    #         avg_loss = running_loss / log_interval
+    #         logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f}")
+    #         running_loss = 0.0  # Reset running loss
     
-    scheduler.step()  
-    if (epoch+1) % 10 != 0:
-        continue
+    # scheduler.step()  
+    # if (epoch+1) % 10 != 0:
+    #     continue
 
     torch.save({
             'epoch': epoch + 1,  # Save current epoch
