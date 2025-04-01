@@ -252,8 +252,10 @@ class ExpertTransformer(nn.Module):
         # Keyword processing (if any)
         keyword_emb = self.gpt2.transformer.wte(gt_keyword_tokens)  # Project keywords to token embedding space
         encoder_feature = self.fuser[0](visual_features, keyword_emb)  # (B,N,hidden_size)
+        print('encoder_feature:',encoder_feature.shape)
         
         x = torch.cat([encoder_feature,x],dim=1) #Prepend visual feature to token embedding
+        print('x:',x.shape)
 
         # Pass the combined embeddings through GPT-2's transformer layers (frozen)
         transformer_outputs = self.gpt2.transformer(inputs_embeds=x)
