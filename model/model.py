@@ -269,57 +269,52 @@ class ExpertTransformer(nn.Module):
         device = self.device
         batch_size = images.size(0)
         beam_width = self.beam_width
+        max_gen = self.max_gen
 
         bos_id = self.tokenizer.word2idx["<BOS>"]
         eos_id = self.tokenizer.word2idx["<EOS>"]
 
-        # Initialize sequences and log probabilities
-        sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
-        log_probs = torch.zeros(batch_size, device=device)  # Log probability of sequences
-        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
+        # Expand images for beam search
+        images = images.unsqueeze(1).repeat(1, beam_width, 1, 1, 1)
+        images = images.view(batch_size * beam_width, *images.shape[2:])
 
-        # Beam candidates (track beam_width sequences per batch)
-        beam_sequences = [sequences.clone() for _ in range(beam_width)]
-        beam_scores = [log_probs.clone() for _ in range(beam_width)]
+        # Initialize sequences, scores, and finished flags
+        sequences = torch.full((batch_size * beam_width, 1), bos_id, dtype=torch.long, device=device)
+        log_probs = torch.zeros(batch_size * beam_width, device=device)
+        finished = torch.zeros(batch_size * beam_width, dtype=torch.bool, device=device)
 
-        for t in range(1, self.max_gen):
-            all_candidates = []
+        for t in range(max_gen):
+            logits, _, _ = self(images, sequences, gt_keywords)  # (B*beam_width, seq_len, vocab_size)
+            logits = logits[:, -1, :] / self.temperature  # Get logits for last token
+            probs = F.log_softmax(logits, dim=-1)  # Convert to log probabilities
 
-            for i in range(beam_width):  # Iterate over beams
-                logits, _, _ = self(images, beam_sequences[i], gt_keywords)  # (B, seq_len, vocab_size)
-                logits = logits[:, -1, :] / self.temperature  # Get logits for last token
-                probs = F.log_softmax(logits, dim=-1)  # Convert to log probabilities
+            # Select top-k candidates (beam search step)
+            top_probs, top_indices = torch.topk(probs, beam_width, dim=-1)  # (B*beam_width, beam_width)
+            log_probs = log_probs.unsqueeze(1) + top_probs  # Update log probability scores (B*beam_width, beam_width)
+            log_probs = log_probs.view(batch_size, beam_width**2)  # Reshape for ranking
 
-                # Select top-k candidates (beam search step)
-                top_probs, top_indices = torch.topk(probs, beam_width, dim=-1)  # (B, beam_width)
-                
-                # Compute new sequence candidates
-                for j in range(beam_width):
-                    new_seq = torch.cat([beam_sequences[i], top_indices[:, j].unsqueeze(1)], dim=-1)
-                    new_score = beam_scores[i] + top_probs[:, j]  # Update log probability score
-                    all_candidates.append((new_seq, new_score))
-
-            # Select the top beam_width sequences across all candidates
-            all_candidates.sort(key=lambda x: x[1].sum().item(), reverse=True)  # Convert tensor to scalar for sorting
-            beam_sequences = [x[0] for x in all_candidates[:beam_width]]
-            beam_scores = [x[1] for x in all_candidates[:beam_width]]
+            # Get the best beam_width sequences for each batch
+            top_log_probs, top_beam_indices = torch.topk(log_probs, beam_width, dim=-1)  # (B, beam_width)
+            top_beam_indices_flat = top_beam_indices + torch.arange(batch_size, device=device).unsqueeze(1) * beam_width**2
+            sequences = torch.cat([sequences[top_beam_indices_flat], top_indices.view(batch_size, beam_width**2)[top_beam_indices].unsqueeze(-1)], dim=-1)
+            log_probs = top_log_probs.view(-1)
 
             # Check if all sequences have reached EOS
-            for i in range(beam_width):
-                finished |= beam_sequences[i][:, -1] == eos_id
+            finished |= sequences[:, -1] == eos_id
             if finished.all():
                 break
 
         # Decode sequences
         final_sequences = []
         for i in range(batch_size):
-            best_seq = beam_sequences[0][i].tolist()  # Take the highest-scoring sequence for each batch
+            best_seq = sequences[i * beam_width].tolist()  # Take the highest-scoring sequence for each batch
             if eos_id in best_seq:
                 best_seq = best_seq[:best_seq.index(eos_id) + 1]
             text = self.tokenizer.decode(best_seq)
             final_sequences.append(text)
-
+        
         return final_sequences
+
     
     @torch.no_grad()
     def generate_greedy(self, images, gt_keywords):
