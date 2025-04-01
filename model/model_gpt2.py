@@ -9,7 +9,7 @@ import sys
 from collections import Counter
 from modules.RMSNorm import RMSNorm
 from modules.GCA import GuidedContextAttention
-from transformers import GPT2Model, GPT2Tokenizer
+
 
 
 
@@ -184,7 +184,7 @@ class ExpertTransformer(nn.Module):
         super(ExpertTransformer, self).__init__()
         
         # Initialize GPT-2 model and freeze its parameters
-        self.gpt2 = GPT2Model.from_pretrained('gpt2')
+        self.gpt2 = GPT2LMHeadModel.from_pretrained('gpt2')
         for param in self.gpt2.parameters():
             param.requires_grad = False  # Freeze GPT-2 parameters
         
