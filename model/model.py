@@ -163,10 +163,13 @@ class VisualEncoder(nn.Module):
         else:
             self.ve = EfficientNet()
 
-        self.gca = GuidedContextAttention(args)
+        # self.gca = GuidedContextAttention(args)
 
     def forward(self,images):
-        return self.gca(self.ve(images))
+        vf = self.ve(images)
+        B,C,_,_ = vf.size()
+        vf = vf.view(B,C,-1)
+        return vf
 
 
 class LanguageDecoderLayer(nn.Module):
