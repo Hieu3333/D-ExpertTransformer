@@ -363,7 +363,7 @@ class ExpertTransformer(nn.Module):
             sequences = torch.cat((sequences, next_token), dim=1)
 
             # Stop generation if EOS is reached
-            finished |= (next_token == eos_id)  # Fix shape mismatch
+            finished |= (sequences[:,-1] == eos_id)  # Fix shape mismatch
             if finished.all():
                 break
 
