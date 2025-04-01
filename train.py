@@ -144,7 +144,7 @@ for epoch in range(current_epoch-1,num_epochs):
             running_loss = 0.0  # Reset running loss
     
     scheduler.step()  
-    if (epoch+1) % 10 != 0:
+    if (epoch+1) % 50 != 0:
         continue
 
     torch.save({
