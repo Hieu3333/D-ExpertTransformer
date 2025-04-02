@@ -13,6 +13,7 @@ cd D-ExpertTransformer
 sudo apt update && sudo apt install unzip -y
 pip install timm
 pip install transformers
+pip install peft
 mkdir data
 
 
