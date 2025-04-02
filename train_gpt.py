@@ -71,7 +71,11 @@ test_dataloader = DENDataLoader(args,tokenizer,keywords,split='test',shuffle=Fal
 model = ExpertTransformer(args, tokenizer, keywords)
 
 
-optimizer =model.configure_optimizer(args)
+optimizer = torch.optim.AdamW([
+    {"params": [p for n, p in model.named_parameters() if not n.startswith("gpt2.")], "lr": args.lr},  # Train non-GPT-2 parts
+    {"params": model.gpt2.transformer.h[-3:].parameters(), "lr": 5e-6},  # Train last 3 layers of GPT-2
+    {"params": model.lm_head.parameters(), "lr": args.lr},  # Train Output Layer
+], weight_decay=0.01)
 
 
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
