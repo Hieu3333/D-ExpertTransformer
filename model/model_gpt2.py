@@ -161,6 +161,7 @@ class TransfusionEncoder(nn.Module):
 
 class TokenFuser(nn.Module):
     def __init__(self,args,depth):
+        super(TokenFuser,self).__init__()
         self.attn = DiffMultiHeadedAttention(args,depth=depth,mask=False)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
