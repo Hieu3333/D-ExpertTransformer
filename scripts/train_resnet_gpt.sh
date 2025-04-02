@@ -3,11 +3,11 @@ python train_gpt.py \
   --epochs 50 \
   --ve_name "resnet" \
   --decoder "gpt2" \
-  --lr 5e-3 \
+  --lr 1e-2 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --save_path "results" \
-  --batch_size 64 \
+  --batch_size 256 \
   --accum_steps 1 \
   --bias \
   --early_stopping 10 \
