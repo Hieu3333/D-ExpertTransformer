@@ -3,7 +3,7 @@ python train_gpt.py \
   --epochs 50 \
   --ve_name "resnet" \
   --decoder "gpt2" \
-  --lr 1e-2 \
+  --lr 1e-3 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --save_path "results" \

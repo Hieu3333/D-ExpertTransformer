@@ -230,11 +230,6 @@ class ExpertTransformer(nn.Module):
         # Weight tying: use GPT-2's embeddings
         self.lm_head.weight = self.gpt2.transformer.wte.weight
 
-        for name, param in self.gpt2.named_parameters():
-            if "h.9" in name or "h.10" in name or "h.11" in name:  # Unfreeze last 3 layers
-                param.requires_grad = True
-            else:
-                param.requires_grad = False
         # Apply initialization to all layers
         self.apply(self.init_weights)
 

@@ -13,6 +13,7 @@ import random
 import numpy as np
 import json
 from transformers import GPT2Model, GPT2Tokenizer
+from peft import LoraConfig, get_peft_model
 
 def set_seed(seed=42):
     random.seed(seed)  
@@ -71,12 +72,28 @@ test_dataloader = DENDataLoader(args,tokenizer,keywords,split='test',shuffle=Fal
 model = ExpertTransformer(args, tokenizer, keywords)
 
 
-optimizer = torch.optim.AdamW([
-    {"params": [p for n, p in model.named_parameters() if not n.startswith("gpt2.")], "lr": args.lr},  # Train non-GPT-2 parts
-    {"params": model.gpt2.transformer.h[-3:].parameters(), "lr": 5e-6},  # Train last 3 layers of GPT-2
-    {"params": model.lm_head.parameters(), "lr": args.lr},  # Train Output Layer
-], weight_decay=0.01)
+lora_config = LoraConfig(
+    r=8, 
+    lora_alpha=16, 
+    lora_dropout=0.1, 
+    bias="none", 
+    task_type="CAUSAL_LM", 
+    target_modules=["c_attn", "c_proj"]  # Apply LoRA to GPT-2 attention layers
+)
 
+# Apply LoRA to only GPT-2
+model.gpt2 = get_peft_model(model.gpt2, lora_config)
+
+lora_params = list(model.gpt2.parameters())  # Only LoRA layers are trainable
+
+# Encoder and other components
+other_params = [p for n, p in model.named_parameters() if "gpt2" not in n and p.requires_grad]
+
+# Define different learning rates
+optimizer = optim.AdamW([
+    {"params": lora_params, "lr": 5e-4},    # Fine-tuning LoRA adapters in GPT-2
+    {"params": other_params, "lr": args.lr}    # Training encoder & other components
+], weight_decay=0.01)
 
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
 
