@@ -167,8 +167,8 @@ class TokenFuser(nn.Module):
         self.mlp = MLP(args)
         self.ln2 = nn.LayerNorm(args.hidden_size)
     
-    def forward(self,encoder_feat,token_embed):
-        x = self.ln1(x + self.attn(token_embed,encoder_feat,encoder_feat))
+    def forward(self,encoder_feat,x):
+        x = self.ln1(x + self.attn(x,encoder_feat,encoder_feat))
         x = self.ln2(x + self.mlp(x))
         return x
     
