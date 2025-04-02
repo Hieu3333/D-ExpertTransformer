@@ -142,8 +142,8 @@ for epoch in range(current_epoch-1,num_epochs):
     
     
     scheduler.step()  
-    # if (epoch+1) < 95 and (epoch+1) != 50:
-    #     continue
+    if (epoch+1) < args.epochs:
+        continue
 
     torch.save({
             'epoch': epoch + 1,  # Save current epoch
@@ -174,7 +174,7 @@ for epoch in range(current_epoch-1,num_epochs):
             # Generate captions for the whole batch
             # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
             with torch.cuda.amp.autocast():
-                generated_captions = model.generate_beam(images,gt_keyword_tokens)
+                generated_captions = model.generate_greedy(images,gt_keyword_tokens)
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
@@ -212,7 +212,7 @@ for epoch in range(current_epoch-1,num_epochs):
             gt_keyword_tokens = gt_keyword_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
             with torch.cuda.amp.autocast():
-                generated_captions = model.generate_beam(images,gt_keyword_tokens) 
+                generated_captions = model.generate_greedy(images,gt_keyword_tokens) 
 
             for i,image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
