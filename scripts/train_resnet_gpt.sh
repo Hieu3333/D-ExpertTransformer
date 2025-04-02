@@ -31,5 +31,5 @@ python train_gpt.py \
   --num_workers 16 \
   --image_path "/data/eyenet0420" \
   --ann_path "data" \
-  --project_root "/workspace/D-ExpertTransformer" \
+  --project_root "/mnt/c/D-ExpertTransformer" \
 

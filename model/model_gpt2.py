@@ -158,6 +158,18 @@ class TransfusionEncoder(nn.Module):
         vf = self.ln1(vf + self.attn(vf,x,x))
         vf = self.ln2(vf +self.mlp(vf))
         return vf
+
+class TokenFuser(nn.Module):
+    def __init__(self,args,depth):
+        self.attn = DiffMultiHeadedAttention(args,depth=depth,mask=False)
+        self.ln1 = nn.LayerNorm(args.hidden_size)
+        self.mlp = MLP(args)
+        self.ln2 = nn.LayerNorm(args.hidden_size)
+    
+    def forward(self,encoder_feat,token_embed):
+        x = self.ln1(x + self.attn(token_embed,encoder_feat,encoder_feat))
+        x = self.ln2(x + self.mlp(x))
+        return x
     
 class VisualEncoder(nn.Module):
     def __init__(self,args):
@@ -205,6 +217,7 @@ class ExpertTransformer(nn.Module):
         # Visual encoder and feature fusion
         self.visual_encoder = VisualEncoder(args)  # assuming you have your visual encoder
         self.fuser = nn.ModuleList([TransfusionEncoder(args, depth=depth) for depth in range(args.num_layers)])
+        self.token_fuser = nn.ModuleList([TokenFuser(args, depth=depth) for depth in range(args.num_layers)])
         
         # Language modeling head (output vocabulary logits)
         self.lm_head = nn.Linear(self.gpt2.config.n_embd, self.gpt2.config.vocab_size, bias=False)
@@ -234,43 +247,44 @@ class ExpertTransformer(nn.Module):
             module.weight.data.fill_(1.0)
     
     def forward(self, images, tokens, gt_keyword_tokens, targets=None):
-        # Assume images and tokens are already on the correct device (device of tokens)
-        B, T = tokens.shape
+   
+        B, T = tokens.shape  # Batch size, Sequence length
         device = tokens.device
 
-        # Extract visual features
-        visual_features = self.visual_encoder(images)  # B,N,C  (adjust according to your model)
+        # 1. Extract visual encoder features
+        visual_features = self.visual_encoder(images)  # (B, N, hidden_size)
 
-        # Token embedding using GPT-2's word embeddings
-        tok_emb = self.gpt2.transformer.wte(tokens)  # B, T, hidden_size
-        pos_emb = self.gpt2.transformer.wpe(torch.arange(0, T, dtype=torch.long, device=device))  # T, hidden_size
-        tok_emb += pos_emb  # Add positional embeddings
+        # 2. Process keywords (if any)
+        keyword_emb = self.gpt2.transformer.wte(gt_keyword_tokens)  # (B, K, hidden_size)
         
-        # Dropout on token embeddings
-        x = self.dropout(tok_emb)
+        # 3. Fuse visual and keyword features
+        encoder_feature = self.fuser[0](visual_features, keyword_emb)  # (B, N, hidden_size)
+        tok_emb = self.gpt2.transformer.wte(tokens)  # (B, T, hidden_size)
 
-        # Keyword processing (if any)
-        keyword_emb = self.gpt2.transformer.wte(gt_keyword_tokens)  # Project keywords to token embedding space
-        encoder_feature = self.fuser[0](visual_features, keyword_emb)  # (B,N,hidden_size)
-        print('encoder_feature:',encoder_feature.shape)
+        x = self.token_fuser[0](encoder_feature,tok_emb) #(B,T,C)
+
+        pos_ids = torch.arange(T, dtype=torch.long, device=device).unsqueeze(0)  # (1, T)
+        pos_emb = self.gpt2.transformer.wpe(pos_ids)  # (1, T, hidden_size)
         
-        x = torch.cat([encoder_feature,x],dim=1) #Prepend visual feature to token embedding
-        print('x:',x.shape)
+        # 7. Add positional embeddings
+        x = x + pos_emb  # (B, T, hidden_size)
 
-        # Pass the combined embeddings through GPT-2's transformer layers (frozen)
+        # 8. Pass through GPT-2’s transformer layers
         transformer_outputs = self.gpt2.transformer(inputs_embeds=x)
-        hidden_states = transformer_outputs.last_hidden_state  # B, T, hidden_size
+        hidden_states = transformer_outputs.last_hidden_state  # (B, T, hidden_size)
 
-        # Output logits from GPT-2's last hidden states
-        logits = self.lm_head(hidden_states)  # B, T, vocab_size (logits for each token in sequence)
-        print('logits:',logits.shape)
-        print('targets:',targets.shape)
-        
-        # Compute loss if targets are provided (next token prediction)
+        # 9. Compute logits
+        logits = self.lm_head(hidden_states)  # (B, T, vocab_size)
+
+        # 10. Compute loss if targets are provided
         loss_ce = None
         if targets is not None:
-            loss_ce = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.pad_token_id)
-        
+            loss_ce = F.cross_entropy(
+                logits.view(-1, logits.size(-1)),  # Flatten logits
+                targets.view(-1),  # Flatten targets
+                ignore_index=self.tokenizer.pad_token_id  # Ignore padding tokens
+            )
+
         return logits, loss_ce
     
 
