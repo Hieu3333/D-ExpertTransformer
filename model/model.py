@@ -172,12 +172,15 @@ class VisualEncoder(nn.Module):
         else:
             self.ve = EfficientNet()
 
-        self.gca = GuidedContextAttention(args)
+        # self.gca = GuidedContextAttention(args)
 
     def forward(self,images):
         vf = self.ve(images)
-        vf = self.gca(vf)
-        return vf
+        B,C,_,_ = vf.size()
+        vf = vf.view(B,C,-1)
+        return vf.transpose(-2,-1)
+        # vf = self.gca(vf)
+
 
 
 class LanguageDecoderLayer(nn.Module):
@@ -390,18 +393,21 @@ class ExpertTransformer(nn.Module):
     def configure_optimizer(self,args):
         param_dict = {pn:p for pn,p in self.named_parameters()}
         param_dict = {pn:p for pn,p in param_dict.items() if p.requires_grad}
-        decay_params = [p for n,p in param_dict.items() if p.dim() >= 2]
-        nodecay_params = [p for n,p in param_dict.items() if p.dim() < 2]
+        decay_params = [p for n, p in param_dict.items() if p.dim() >= 2 and 'visual_encoder' not in n]
+        nodecay_params = [p for n, p in param_dict.items() if p.dim() < 2]
 
+        # Visual encoder parameters (no weight decay applied)
+        ve = [p for n, p in param_dict.items() if 'visual_encoder' in n]
+        ed = [p for n, p in param_dict.items() if 'visual_encoder' not in n]
+
+        # Optimizer parameter groups
         optim_group = [
-            {'params':nodecay_params,'weight_decay':0.0},
-            {'params':decay_params,'weight_decay':args.weight_decay}
+            {'params': nodecay_params, 'weight_decay': 0.0},  # No weight decay for nodecay params
+            {'params': decay_params, 'weight_decay': args.weight_decay},  # Weight decay for decay params
+            {'params': ve, 'lr': args.lr_ve},  # Custom learning rate for visual encoder
+            {'params': ed, 'lr': args.lr_ed}   # Custom learning rate for other parts of the model
         ]
-        num_decay_params = sum(p.numel() for p in decay_params)
-        num_nodecay_params = sum(p.numel() for p in nodecay_params)
-        print(f'Num decay params: {len(decay_params)} with {num_decay_params} params')
-        print(f'Num nodecay params: {len(nodecay_params)} with {num_nodecay_params} params')
-        optimizer = torch.optim.AdamW(optim_group,lr=args.lr,betas=(0.9,0.95),eps=1e-8)
+        optimizer = torch.optim.AdamW(optim_group,betas=(0.9,0.95),eps=1e-8)
         return optimizer
 
 

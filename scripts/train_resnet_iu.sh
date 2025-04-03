@@ -3,8 +3,9 @@ python train_iu.py \
   --epochs 50 \
   --dataset "iu_xray" \
   --ve_name "resnet" \
-  --lr 3e-4 \
-  --weight_decay 3e-4 \
+  --lr_ed 2e-4 \
+  --lr_ve 1e-4 \
+  --weight_decay 1e-4 \
   --channel_reduction 4 \
   --save_path "results" \
   --batch_size 32 \
@@ -17,7 +18,7 @@ python train_iu.py \
   --hidden_size 1024 \
   --fc_size 512 \
   --vocab_size 1642 \
-  --num_layers 3 \
+  --num_layers 1 \
   --delta1 1 \
   --delta2 0.01 \
   --topk 3 \
