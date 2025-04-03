@@ -129,9 +129,10 @@ class DiffMultiHeadedAttention(nn.Module):
 class MLP(nn.Module):
     def __init__(self,args):
         super(MLP,self).__init__()
-        self.c_fc = nn.Linear(args.hidden_size,args.hidden_size//2,bias=args.bias)
+        
+        self.c_fc = nn.Linear(args.hidden_size,args.fc_size,bias=args.bias)
         self.gelu = nn.GELU()
-        self.c_proj = nn.Linear(args.hidden_size//2,args.hidden_size,bias=args.bias)
+        self.c_proj = nn.Linear(args.fc_size,args.hidden_size,bias=args.bias)
         self.dropout = nn.Dropout(args.dropout)
     
     def forward(self,x):
@@ -155,7 +156,7 @@ class TransfusionEncoder(nn.Module):
             vf = self.vf_proj(visual_features)
         else:
             vf = visual_features
-            
+
         if self.depth == 0 and self.dataset == 'deepeyenet':
             vf = self.ln1(vf + self.attn(vf,x,x))
         else:
