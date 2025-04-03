@@ -18,7 +18,6 @@ class IUXray(Dataset):
         
 
         self.ann_path = os.path.join(project_root, args.ann_path, ann_file)
-        import os
         print("Current Directory:", os.getcwd())  # Check where the script is running
         print("Looking for:", self.ann_path)  # Check the full file path
         self.image_path = os.path.join(project_root, 'data/iu_xray/images')
