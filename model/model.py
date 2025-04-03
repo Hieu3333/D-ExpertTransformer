@@ -400,7 +400,7 @@ class ExpertTransformer(nn.Module):
             [{'params': self.visual_encoder.parameters(), 'lr': args.lr_ve},
              {'params': ed_params, 'lr': args.lr_ed}],
             weight_decay=args.weight_decay,
-            amsgrad=args.amsgrad
+            amsgrad=True
         )
         return optimizer
 
