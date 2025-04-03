@@ -209,7 +209,6 @@ class ExpertTransformer(nn.Module):
         self.args = args
         self.max_length = args.max_length
         self.max_gen = args.max_gen
-        self.threshold = args.threshold
         self.num_layers = args.num_layers
         self.tokenizer = tokenizer
         self.delta1 = args.delta1
