@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from dataset import IUXray
+from iu_xray.dataset import IUXray
 import torch
 
 class IUXrayDataLoader(DataLoader):
