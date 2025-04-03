@@ -144,7 +144,7 @@ for epoch in range(current_epoch-1,num_epochs):
     
     
     scheduler.step()  
-    if (epoch+1) < 95 and (epoch+1) != 50:
+    if (epoch+1) < args.epochs:
         continue
 
     torch.save({
