@@ -30,6 +30,6 @@ python train_iu.py \
   --diff_num_heads 4 \
   --num_workers 16 \
   --image_path "/data" \
-  --ann_path "/iu_xray" \
+  --ann_path "iu_xray" \
   --project_root "/workspace/D-ExpertTransformer" \
 
