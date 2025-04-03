@@ -142,6 +142,8 @@ class TransfusionEncoder(nn.Module):
         super(TransfusionEncoder,self).__init__()
         self.attn = DiffMultiHeadedAttention(args,depth,mask=False)
         self.depth = depth
+        self.dataset = args.dataset
+
         if depth == 0:
             self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
         self.ln1 = nn.LayerNorm(args.hidden_size)
@@ -153,7 +155,11 @@ class TransfusionEncoder(nn.Module):
             vf = self.vf_proj(visual_features)
         else:
             vf = visual_features
-        vf = self.ln1(vf + self.attn(vf,x,x))
+            
+        if self.depth == 0 and self.dataset == 'deepeyenet':
+            vf = self.ln1(vf + self.attn(vf,x,x))
+        else:
+            vf = self.ln1(vf + self.attn(vf,vf,vf))
         vf = self.ln2(vf +self.mlp(vf))
         return vf
     
