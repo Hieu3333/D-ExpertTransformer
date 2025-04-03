@@ -16,8 +16,7 @@ class IUXray(Dataset):
         project_root = args.project_root
         ann_file = f'cleaned_iu_xray_{split}.json'
         self.ann_path = os.path.join(project_root, args.ann_path, ann_file)
-        image_folder = f'{split}_set'
-        self.image_path = os.path.join(project_root, 'data/images', image_folder)
+        self.image_path = os.path.join(project_root, 'data/iu_xray/images')
 
         # Load annotations
         with open(self.ann_path, 'r') as f:
@@ -28,7 +27,8 @@ class IUXray(Dataset):
         for entry in self.annotations:
             img_path = entry['image_path']
             cleaned_report = entry['cleaned_report']
-            self.data.append((img_path, cleaned_report))
+            image_id = entry['image_id']
+            self.data.append((image_id,img_path, cleaned_report))
 
         # Define special token IDs
         self.pad_token_id = self.tokenizer.word2idx["<PAD>"]
@@ -38,11 +38,10 @@ class IUXray(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        img_name, cleaned_report = self.data[idx]
+        image_id, img_name, cleaned_report = self.data[idx]
 
         # Load Image
-        full_img_path = os.path.join(self.image_path, os.path.basename(img_name))
-        image_id = os.path.splitext(os.path.basename(img_name))[0]
+        full_img_path = os.path.join(self.image_path, img_name)
         image = Image.open(full_img_path).convert('RGB')
         if self.transform:
             image = self.transform(image)

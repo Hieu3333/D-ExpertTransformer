@@ -29,7 +29,7 @@ python train.py \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
-  --image_path "/data/eyenet0420" \
-  --ann_path "data" \
+  --image_path "/data" \
+  --ann_path "/iu_xray" \
   --project_root "/workspace/D-ExpertTransformer" \
-  --from_pretrained "results/checkpoint_epoch_50.pth"
+
