@@ -390,15 +390,24 @@ class ExpertTransformer(nn.Module):
 
     
 
-    def configure_optimizer(self,args):
-        param_dict = {pn:p for pn,p in self.named_parameters()}
-        param_dict = {pn:p for pn,p in param_dict.items() if p.requires_grad}
-        decay_params = [p for n, p in param_dict.items() if p.dim() >= 2 and 'visual_encoder' not in n]
-        nodecay_params = [p for n, p in param_dict.items() if p.dim() < 2]
+    def configure_optimizer(self, args):
+        param_dict = {pn: p for pn, p in self.named_parameters()}
+        param_dict = {pn: p for pn, p in param_dict.items() if p.requires_grad}
 
+        # Parameters that have dim >= 2 and are not part of the visual encoder (these will have weight decay)
+        decay_params = [p for n, p in param_dict.items() if p.dim() >= 2 and 'visual_encoder' not in n]
+        # Parameters that are 1D (usually biases, which won't have weight decay)
+        nodecay_params = [p for n, p in param_dict.items() if p.dim() < 2]
+        
         # Visual encoder parameters (no weight decay applied)
         ve = [p for n, p in param_dict.items() if 'visual_encoder' in n]
+
+        # Parameters excluding the visual encoder (for custom learning rates)
         ed = [p for n, p in param_dict.items() if 'visual_encoder' not in n]
+
+        # Make sure there are no overlaps between parameter groups
+        decay_params = [p for p in decay_params if p not in ve]  # Remove ve from decay_params
+        ed = [p for p in ed if p not in ve]  # Remove ve from ed
 
         # Optimizer parameter groups
         optim_group = [
@@ -407,8 +416,11 @@ class ExpertTransformer(nn.Module):
             {'params': ve, 'lr': args.lr_ve},  # Custom learning rate for visual encoder
             {'params': ed, 'lr': args.lr_ed}   # Custom learning rate for other parts of the model
         ]
-        optimizer = torch.optim.AdamW(optim_group,betas=(0.9,0.95),eps=1e-8)
+
+        optimizer = torch.optim.AdamW(optim_group, betas=(0.9, 0.95), eps=1e-8)
+
         return optimizer
+
 
 
 
