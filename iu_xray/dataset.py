@@ -18,8 +18,6 @@ class IUXray(Dataset):
         
 
         self.ann_path = os.path.join(project_root, args.ann_path, ann_file)
-        print("Current Directory:", os.getcwd())  # Check where the script is running
-        print("Looking for:", self.ann_path)  # Check the full file path
         self.image_path = os.path.join(project_root, 'data/iu_xray/images')
 
         # Load annotations
@@ -28,7 +26,7 @@ class IUXray(Dataset):
 
         # Flatten the list of dicts into (image_path, cleaned_report)
         self.data = []
-        for entry in self.annotations:
+        for entry in self.annotations[split]:
             img_path = entry['image_path']
             cleaned_report = entry['cleaned_report']
             image_id = entry['image_id']
