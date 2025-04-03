@@ -195,7 +195,7 @@ class LanguageDecoderLayer(nn.Module):
 
 
 class ExpertTransformer(nn.Module):
-    def __init__(self,args,tokenizer,keywords):
+    def __init__(self,args,tokenizer,keywords=None):
         super(ExpertTransformer,self).__init__()
         self.We = nn.Embedding(args.vocab_size,args.hidden_size)
         self.wpe = nn.Embedding(args.max_gen,args.hidden_size)
@@ -221,6 +221,7 @@ class ExpertTransformer(nn.Module):
         self.keywords = keywords
         self.device = args.device
         self.beam_width = args.beam_width
+        self.dataset = args.dataset
         #Weight tying
         self.We.weight = self.lm_head.weight
         self.apply(self.init_weights)
@@ -238,7 +239,7 @@ class ExpertTransformer(nn.Module):
 
 
     
-    def forward(self,images,tokens,gt_keyword_tokens, targets = None):
+    def forward(self,images,tokens,gt_keyword_tokens=None, targets = None):
         #keywords is a list of un-tokenized keywords
         #target_keywords are hot_encoding of true keywords
         B,T = tokens.shape
@@ -246,8 +247,10 @@ class ExpertTransformer(nn.Module):
 
         visual_features = self.visual_encoder(images)
 
-        keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
-        keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
+        if self.dataset == "deepeyenet":
+            keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
+            keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
+        
 
         
         pos = torch.arange(0,T,dtype=torch.long,device=device)
@@ -255,13 +258,21 @@ class ExpertTransformer(nn.Module):
         pos_emb = self.wpe(pos)
         x = self.dropout(tok_emb+pos_emb)
 
-        for i in range(self.num_layers):
-            if i==0:
-                encoder_features = self.fuser[i](visual_features,keyword_emb)
-            else:
-                encoder_features = self.fuser[i](encoder_features,keyword_emb)
-            x = self.contextual_decoder[i](encoder_features,x)
-        
+        if self.dataset == "deepeyenet":
+            for i in range(self.num_layers):
+                if i==0:
+                    encoder_features = self.fuser[i](visual_features,keyword_emb)
+                else:
+                    encoder_features = self.fuser[i](encoder_features,encoder_features)
+                
+        else:
+            for i in range(self.num_layers):
+                if i == 0:
+                    encoder_features = self.fuser[i](visual_features,visual_features)
+                else:
+                    encoder_features = self.fuser[i](encoder_features,encoder_features)
+            
+        x = self.contextual_decoder[i](encoder_features,x)
         
         logits = self.lm_head(x)
         # print("logits:",logits.shape)
@@ -271,13 +282,12 @@ class ExpertTransformer(nn.Module):
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             loss_ce = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
         else:
-            loss = None
             loss_ce = None
         return logits, loss_ce
     
 
     @torch.no_grad()
-    def generate_beam(self, images, gt_keywords):
+    def generate_beam(self, images, gt_keywords=None):
         device = self.device
         batch_size = images.size(0)
         beam_width = self.beam_width
@@ -337,7 +347,7 @@ class ExpertTransformer(nn.Module):
 
 
     @torch.no_grad()
-    def generate_greedy(self, images, gt_keywords):
+    def generate_greedy(self, images, gt_keywords=None):
         device = self.device
         batch_size = images.size(0)
 

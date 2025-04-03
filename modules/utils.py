@@ -6,6 +6,7 @@ def parser_arg():
     parser.add_argument('--epochs',type=int, required=True)
     parser.add_argument('--batch_size',type=int, required=True)
     parser.add_argument('--max_length',type=int, required=True)
+    parser.add_argument('--dataset',type=str, required=True)
     parser.add_argument('--max_gen',type=int, required=True)
     parser.add_argument('--decoder',type=str, required=True)
     parser.add_argument('--hidden_size',type=int, required=True)

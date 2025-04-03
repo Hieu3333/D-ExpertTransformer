@@ -1,6 +1,7 @@
 python train.py \
   --exp_name "resnet-diff-0" \
   --epochs 50 \
+  --dataset "iu_xray" \
   --ve_name "resnet" \
   --lr 3e-4 \
   --weight_decay 1e-4 \

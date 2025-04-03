@@ -14,6 +14,7 @@
 15. maybe use a pretrained decoder for better caption
 16. feed-forward layer 512-256?
 17. Check GCA carefully
+18. Check the metrics, use pycocoevalcap from CAMANet????
 Ways to get better:
 -Clean report
 -Use beam search
@@ -25,3 +26,6 @@ To fix:
 -weight decay for 2d matrix only, not layernorm, ...
 -cross_entropy loss
 -add clip_grad_norm
+
+Dataset:
+1. ROCOv2 - 
