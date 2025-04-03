@@ -13,7 +13,6 @@ def parser_arg():
     parser.add_argument('--vocab_size',type=int, required=True)
     parser.add_argument('--ve_name',type=str, required=True)
     parser.add_argument('--channel_reduction',type=int, required=True)
-    parser.add_argument('--threshold',type=float, required=True)
     parser.add_argument('--num_layers',type=int, required=True)
     parser.add_argument('--step_size',type=int, required=True)
     parser.add_argument('--lr',type=float, required=True)
