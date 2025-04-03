@@ -3,7 +3,7 @@ python train_iu.py \
   --epochs 50 \
   --dataset "iu_xray" \
   --ve_name "resnet" \
-  --lr 3e-4 \
+  --lr 1e-3 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --save_path "results" \
