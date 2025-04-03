@@ -4,10 +4,10 @@ python train_iu.py \
   --dataset "iu_xray" \
   --ve_name "resnet" \
   --lr 3e-4 \
-  --weight_decay 1e-4 \
+  --weight_decay 3e-4 \
   --channel_reduction 4 \
   --save_path "results" \
-  --batch_size 64 \
+  --batch_size 32 \
   --accum_steps 1 \
   --bias \
   --early_stopping 10 \
