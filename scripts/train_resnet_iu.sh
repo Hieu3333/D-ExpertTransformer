@@ -1,4 +1,4 @@
-python iu_xray/train.py \
+python train_iu.py \
   --exp_name "resnet-diff-iu-0" \
   --epochs 50 \
   --dataset "iu_xray" \
