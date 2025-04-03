@@ -14,7 +14,7 @@ class IUXray(Dataset):
 
         # Set paths
         project_root = args.project_root
-        ann_file = f'cleaned_iu_xray_{split}.json'
+        ann_file = f'cleaned_iu_xray.json'
         self.ann_path = os.path.join(project_root, args.ann_path, ann_file)
         self.image_path = os.path.join(project_root, 'data/iu_xray/images')
 
