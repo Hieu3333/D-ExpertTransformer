@@ -3,12 +3,15 @@ import json
 from collections import Counter
 
 class Tokenizer:
-    def __init__(self, args):
+    def __init__(self, args=None):
         self.counter = Counter()
-        self.special_tokens = ['<PAD>', '<UNK>', '<SEP>', '<BOS>', '<EOS>']
+        self.special_tokens = ['<PAD>', '<UNK>', '<BOS>', '<EOS>']
         self.word2idx = {token: idx for idx, token in enumerate(self.special_tokens)}
         self.idx2word = {idx: token for token, idx in self.word2idx.items()}
-        self.max_length = args.max_length
+        if args is not None:
+            self.max_length = args.max_length
+        else:
+            self.max_length = 50
 
     def clean_text(self, report):
         """Clean the report text."""
@@ -86,7 +89,7 @@ class Tokenizer:
         tokens = [self.idx2word.get(idx, '<UNK>') for idx in token_ids]
         return ' '.join([token for token in tokens if token not in ['<BOS>', '<EOS>', '<PAD>']])
 
-# Load data
+
 # path = "iu_xray/iu_xray.json"
 # with open(path, 'r') as f:
 #     data = json.load(f)
