@@ -29,7 +29,7 @@ class IUXray(Dataset):
         for entry in self.annotations[split]:
             img_path = entry['image_path']
             cleaned_report = entry['cleaned_report']
-            image_id = entry['image_id']
+            image_id = entry['id']
             self.data.append((image_id,img_path, cleaned_report))
 
         # Define special token IDs
