@@ -396,12 +396,12 @@ class ExpertTransformer(nn.Module):
         # Visual encoder parameters (no weight decay applied)
 
 
-        # Optimizer parameter groups
-        optim_group = [
-            {'params': ve_params, 'lr': args.lr_ve},  # Custom learning rate for visual encoder
-            {'params': ed_params, 'lr': args.lr_ed}   # Custom learning rate for other parts of the model
-        ]
-        optimizer = torch.optim.AdamW(optim_group,eps=1e-8,weight_decay=args.weight_decay,amsgrad=True)
+        optimizer =torch.optim.AdamW(
+            [{'params': self.visual_encoder.parameters(), 'lr': args.lr_ve},
+             {'params': ed_params, 'lr': args.lr_ed}],
+            weight_decay=args.weight_decay,
+            amsgrad=args.amsgrad
+        )
         return optimizer
 
 
