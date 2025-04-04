@@ -98,7 +98,9 @@ model.to(device)
 num_epochs = args.epochs
 log_interval = args.log_interval
 save_path = os.path.join(args.save_path,args.exp_name)
+log_path = os.path.join('logs',args.exp_name)
 os.makedirs(save_path, exist_ok=True)
+os.makedirs(log_path, exist_ok=True)
 total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
 print(f'Total params: {total_params/1e6:.2f}M')
 
@@ -182,7 +184,7 @@ for epoch in range(current_epoch-1,num_epochs):
                 val_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})        
 
 
-        val_path = os.path.join(save_path,f"val_result_epoch_{epoch+1}.json")
+        val_path = os.path.join(log_path,f"val_result_epoch_{epoch+1}.json")
         with open(val_path, "w") as f:
             json.dump(val_results, f, indent=4)
         # Compute evaluation metrics
@@ -219,7 +221,7 @@ for epoch in range(current_epoch-1,num_epochs):
                 res_test[image_id] = [generated_captions[i]]
                 test_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})
         
-        test_path = os.path.join(save_path,f"test_result_epoch_{epoch+1}.json")
+        test_path = os.path.join(log_path,f"test_result_epoch_{epoch+1}.json")
         with open(test_path, "w") as f:
             json.dump(test_results, f, indent=4)
 

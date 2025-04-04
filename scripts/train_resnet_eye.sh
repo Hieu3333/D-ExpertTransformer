@@ -1,16 +1,16 @@
 python train_deepeyenet.py \
-  --exp_name "resnet-deepeyenet-diff-gca" \
+  --exp_name "resnet-deepeyenet-diff-gca-rmsnorm-3layers" \
   --epochs 30 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \
   --freeze_ve \
   --use_gca \
-  --lr_ed 1e-4 \
+  --lr_ed 5e-4 \
   --lr_ve 1e-5 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
-  --num_layers 2 \
+  --num_layers 3 \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \

@@ -150,9 +150,9 @@ class TransfusionEncoder(nn.Module):
 
         if depth == 0:
             self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
-        self.ln1 = nn.LayerNorm(args.hidden_size)
+        self.ln1 = RMSNorm(args.hidden_size)
         self.mlp = MLP(args)
-        self.ln2 = nn.LayerNorm(args.hidden_size)
+        self.ln2 = RMSNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
         if self.depth == 0:
@@ -204,9 +204,9 @@ class LanguageDecoderLayer(nn.Module):
         else:
             self.decoder_attn = MultiHeadedAttention(args,mask=True)
             self.encoder_decoder = MultiHeadedAttention(args,mask=False)
-        self.ln1 = nn.LayerNorm(args.hidden_size)
-        self.ln2 = nn.LayerNorm(args.hidden_size)
-        self.ln3 = nn.LayerNorm(args.hidden_size)
+        self.ln1 = RMSNorm(args.hidden_size)
+        self.ln2 = RMSNorm(args.hidden_size)
+        self.ln3 = RMSNorm(args.hidden_size)
         
         self.mlp = MLP(args)
 
@@ -263,7 +263,7 @@ class ExpertTransformer(nn.Module):
                 nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
             nn.init.normal_(module.weight, mean=0, std=1)
-        elif isinstance(module, nn.LayerNorm):
+        elif isinstance(module, RMSNorm):
             module.bias.data.zero_()
             module.weight.data.fill_(1.0)
 

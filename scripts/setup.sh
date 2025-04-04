@@ -30,5 +30,5 @@ cd /workspace/D-ExpertTransformer/pycocoevalcap/meteor/data/
 wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-en.gz
 
 
-scp -P 23228 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff/val_result_epoch_30.json "/mnt/c/D-ExpertTransformer/"
-scp -P 23228 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff/test_result_epoch_30.json "/mnt/c/D-ExpertTransformer/"
+scp -P 23228 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff-gca/val_result_epoch_30.json "/mnt/c/D-ExpertTransformer/"
+scp -P 23228 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff-gca/test_result_epoch_30.json "/mnt/c/D-ExpertTransformer/"
