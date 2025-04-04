@@ -289,8 +289,7 @@ class ExpertTransformer(nn.Module):
                 if i == 0:
                     encoder_features = self.fuser[i](visual_features,visual_features)
                 else:
-                    encoder_features = self.fuser[i](encoder_features,encoder_features)
-            
+                    encoder_features = self.fuser[i](encoder_features,encoder_features)        
         for i in range(self.num_layers):
             x = self.contextual_decoder[i](encoder_features,x)
         
