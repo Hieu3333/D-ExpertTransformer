@@ -322,26 +322,44 @@ class ExpertTransformer(nn.Module):
         """
         Compute the contrastive loss between visual and textual features using cosine similarity.
         Args:
-            visual_features (Tensor): Visual feature embeddings of shape (B, D)
-            text_features (Tensor): Textual feature embeddings of shape (B, D)
-            temperature (float): Temperature parameter to scale the similarity
+            visual_features (Tensor): (B, N, D_v)
+            text_features (Tensor): (B, T, hidden_size)
+            temperature (float): Temperature parameter
         Returns:
-            loss (Tensor): The contrastive loss value
+            Tensor: Contrastive loss
         """
-        # Normalize the feature vectors to unit vectors
-        visual_features = F.normalize(visual_features, p=2, dim=-1)
-        text_features = F.normalize(text_features, p=2, dim=-1)
+        B = visual_features.size(0)
 
-        # Compute cosine similarity between visual and textual features
-        similarity_matrix = torch.matmul(visual_features, text_features.T) / temperature  # (B, B)
+        # --- Mean Pooling ---
+        visual_pooled = visual_features.mean(dim=1)  # (B, D_v)
+        text_pooled = text_features.mean(dim=1)      # (B, hidden_size)
 
-        # Labels are the diagonal elements (positive pairs)
-        labels = torch.arange(visual_features.size(0), device=visual_features.device)
+        # --- Projection Heads ---
+        # Define local projection layers
+        visual_proj = nn.Linear(visual_pooled.size(-1), self.args.contrastive_proj_dim).to(visual_pooled.device)
+        text_proj = nn.Linear(text_pooled.size(-1), self.args.contrastive_proj_dim).to(text_pooled.device)
 
-        # Compute contrastive loss using cross entropy loss
-        loss = F.cross_entropy(similarity_matrix, labels)
+        # Apply projection
+        visual_embeds = visual_proj(visual_pooled)   # (B, D)
+        text_embeds = text_proj(text_pooled)         # (B, D)
 
-        return loss
+        # --- Normalize ---
+        visual_embeds = F.normalize(visual_embeds, p=2, dim=-1)
+        text_embeds = F.normalize(text_embeds, p=2, dim=-1)
+
+        # --- Similarity Matrix ---
+        sim_matrix = torch.matmul(visual_embeds, text_embeds.T) / temperature  # (B, B)
+
+        # --- Ground truth ---
+        labels = torch.arange(B, device=visual_features.device)
+
+        # --- Contrastive Loss ---
+        loss_i2t = F.cross_entropy(sim_matrix, labels)
+        loss_t2i = F.cross_entropy(sim_matrix.T, labels)
+        contrastive_loss = (loss_i2t + loss_t2i) / 2
+
+        return contrastive_loss
+
     
 
     @torch.no_grad()
