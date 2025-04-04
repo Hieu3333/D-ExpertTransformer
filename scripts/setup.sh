@@ -16,9 +16,9 @@ mkdir data
 
 
 scp -P 23228 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
-scp -P 23532 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23532 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23532 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
+scp -P 23228 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
+scp -P 23228 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
+scp -P 23228 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
 
 scp -P 23228 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
 
@@ -30,5 +30,5 @@ cd /workspace/D-ExpertTransformer/pycocoevalcap/meteor/data/
 wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-en.gz
 
 
-scp -P 23643 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-diff-0/val_result_epoch_50.json "/mnt/c/D-ExpertTransformer/"
+scp -P 23228 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-no_diff-iu-0/val_result_epoch_50.json "/mnt/c/D-ExpertTransformer/"
 scp -P 23643 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-diff-0/test_result_epoch_50.json "/mnt/c/D-ExpertTransformer/"

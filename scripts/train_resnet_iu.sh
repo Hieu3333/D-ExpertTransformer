@@ -25,7 +25,7 @@ python train_iu.py \
   --topk 3 \
   --temperature 1 \
   --lambda_init 0.8 \
-  --dropout 0.0 \
+  --dropout 0.3 \
   --beam_width 3 \
   --encoder_size 2048 \
   --num_heads 8 \
