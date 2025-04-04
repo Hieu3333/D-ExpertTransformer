@@ -15,6 +15,7 @@
 16. feed-forward layer 512-256?
 17. Check GCA carefully
 18. Check the metrics, use pycocoevalcap from CAMANet????
+19. DROPOUT MAKES THE MODEL REPEAT BOS, PAD
 Ways to get better:
 -Clean report
 -Use beam search

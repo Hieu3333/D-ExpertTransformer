@@ -1,34 +1,38 @@
-python train.py \
-  --exp_name "effnet-diff-0" \
-  --epochs 50 \
-  --ve_name "efficientnet" \
-  --lr 3e-4 \
+python train_deepeyenet.py \
+  --exp_name "resnet-deepeyenet-diff" \
+  --epochs 30 \
+  --dataset "deepeyenet" \
+  --ve_name "resnet" \
+  --use_diff \
+  --freeze_ve \
+  --lr_ed 1e-4 \
+  --lr_ve 1e-5 \
   --weight_decay 1e-4 \
+  --channel_reduction 4 \
+  --num_layers 2 \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
-  --channel_reduction 4 \
   --bias \
   --early_stopping 10 \
   --max_length 50 \
   --step_size 10 \
   --max_gen 100 \
-  --hidden_size 1024 \
-  --vocab_size 2681 \
-  --threshold 0.5 \
-  --num_layers 2 \
+  --hidden_size 512 \
+  --fc_size 1024 \
+  --vocab_size 1642 \
   --delta1 1 \
   --delta2 0.01 \
   --topk 3 \
   --temperature 1 \
   --lambda_init 0.8 \
-  --dropout 0.2 \
+  --dropout 0.0 \
   --beam_width 3 \
-  --encoder_size 1280 \
+  --encoder_size 2048 \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
-  --image_path "/data/eyenet0420" \
-  --ann_path "data" \
+  --image_path "/data" \
+  --ann_path "iu_xray" \
   --project_root "/workspace/D-ExpertTransformer" \
 
