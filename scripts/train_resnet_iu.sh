@@ -1,6 +1,6 @@
 python train_iu.py \
   --exp_name "resnet-no_diff-iu-0" \
-  --epochs 50 \
+  --epochs 30 \
   --dataset "iu_xray" \
   --ve_name "resnet" \
   --freeze_ve \
