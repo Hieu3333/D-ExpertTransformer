@@ -1,10 +1,14 @@
-python test.py \
-  --epochs 100 \
-  --lr_ed 1e-4 \
-  --lr_ve 1e-4 \
-  --weight_decay 1e-3 \
+python test_tok.py \
+  --exp_name "resnet-diff-iu-0" \
+  --epochs 30 \
+  --dataset "iu_xray" \
+  --ve_name "resnet" \
+  --lr_ed 2e-3 \
+  --lr_ve 1e-3 \
+  --weight_decay 1e-4 \
+  --channel_reduction 4 \
   --save_path "results" \
-  --batch_size 1 \
+  --batch_size 64 \
   --accum_steps 1 \
   --bias \
   --early_stopping 10 \
@@ -12,9 +16,9 @@ python test.py \
   --step_size 10 \
   --max_gen 100 \
   --hidden_size 512 \
-  --vocab_size 2681 \
-  --threshold 0.5 \
-  --num_layers 2 \
+  --fc_size 2048 \
+  --vocab_size 1642 \
+  --num_layers 1 \
   --delta1 1 \
   --delta2 0.01 \
   --topk 3 \
@@ -23,11 +27,10 @@ python test.py \
   --dropout 0.2 \
   --beam_width 3 \
   --encoder_size 2048 \
-  --decoder_size 512 \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
-  --keyword_vocab_size 602 \
-  --image_path "/data/eyenet0420" \
-  --ann_path "data" \
+  --image_path "/data" \
+  --ann_path "iu_xray" \
   --project_root "/mnt/c/D-ExpertTransformer" \
+

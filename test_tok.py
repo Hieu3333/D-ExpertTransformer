@@ -1,16 +1,20 @@
-from modules.tokenizer import Tokenizer
-from modules.utils import load_all_keywords
+from iu_xray.tokenizer import Tokenizer
+from modules.utils import parser_arg
+from iu_xray.dataloader import IUXrayDataLoader
+from tqdm import tqdm
+
 # Load your trained tokenizer
-tokenizer = Tokenizer()
-tokenizer.load_vocab('vocab.json')
+args = parser_arg()
+tokenizer = Tokenizer(args)
+tokenizer.load_vocab('iu_xray/vocab.json')
+
+train = IUXrayDataLoader(args,tokenizer,split="train",shuffle=False)
 
 # Test cases
-examples = ["26 year old female amn macular neuroretinopathy elephant"]
 
-for example in examples:
-    encoding = tokenizer.encode(example)
-    print(f"Input: {example}")
-    print("Tokens:", encoding)
-    print(f"Token IDs: {len(encoding)}")
-    print(f"Decode: {tokenizer.decode(encoding)}")
-    print()
+for batch_idx, batch in enumerate(tqdm(train, desc=f"Epoch")):
+    image_ids, images, desc_tokens, target_tokens, gt_clinical_desc = batch
+    print("id", image_ids)
+    print('images:', images.shape)
+    print("desc:", desc_tokens)
+    print("target:",target_tokens)
