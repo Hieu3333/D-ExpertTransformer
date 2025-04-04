@@ -273,6 +273,7 @@ class ExpertTransformer(nn.Module):
 
         if self.dataset == "deepeyenet":
             keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
+            print('keyword_embed:',keyword_emb.shape)
             keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
         
 
