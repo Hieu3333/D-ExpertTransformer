@@ -1,10 +1,10 @@
 python train_iu.py \
   --exp_name "resnet-diff-iu-0" \
-  --epochs 50 \
+  --epochs 100 \
   --dataset "iu_xray" \
   --ve_name "resnet" \
-  --lr_ed 1e-4 \
-  --lr_ve 1e-5 \
+  --lr_ed 3e-4 \
+  --lr_ve 1e-4 \
   --weight_decay 1e-5 \
   --channel_reduction 4 \
   --save_path "results" \
@@ -15,7 +15,7 @@ python train_iu.py \
   --max_length 50 \
   --step_size 10 \
   --max_gen 100 \
-  --hidden_size 1024 \
+  --hidden_size 512 \
   --fc_size 512 \
   --vocab_size 1642 \
   --num_layers 1 \
