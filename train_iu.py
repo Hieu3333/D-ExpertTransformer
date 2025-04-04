@@ -98,7 +98,7 @@ model.to(device)
 num_epochs = args.epochs
 log_interval = args.log_interval
 save_path = os.path.join(args.save_path,args.exp_name)
-log_path = os.path.join('logs',args.exp_name)
+log_path = os.path.join('iu_xray/logs',args.exp_name)
 os.makedirs(save_path, exist_ok=True)
 os.makedirs(log_path, exist_ok=True)
 total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
