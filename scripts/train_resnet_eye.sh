@@ -24,7 +24,7 @@ python train_deepeyenet.py \
   --contrastive_proj_dim 256 \
   --vocab_size 2682 \
   --delta1 1 \
-  --delta2 0.01 \
+  --delta2 0.3 \
   --topk 3 \
   --temperature 1 \
   --lambda_init 0.8 \
