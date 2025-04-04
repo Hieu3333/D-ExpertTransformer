@@ -170,17 +170,22 @@ class TransfusionEncoder(nn.Module):
 class VisualEncoder(nn.Module):
     def __init__(self,args):
         super(VisualEncoder,self).__init__()
+        self.use_gca = args.use_gca
         if args.ve_name == 'resnet':
             self.ve = ResNet50()
         else:
             self.ve = EfficientNet()
-
-        # self.gca = GuidedContextAttention(args)
+        if args.use_gca:
+            self.gca = GuidedContextAttention(args)
 
     def forward(self,images):
         vf = self.ve(images)
-        B,C,_,_ = vf.size()
-        vf = vf.view(B,C,-1)
+        if self.use_gca:
+            vf = self.gca(vf)
+        else:
+            B,C,_,_ = vf.size()
+            vf = vf.view(B,C,-1)
+            
         return vf.transpose(-2,-1)
         # vf = self.gca(vf)
 
