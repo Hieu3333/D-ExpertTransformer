@@ -141,7 +141,10 @@ class MLP(nn.Module):
 class TransfusionEncoder(nn.Module):
     def __init__(self,args,depth):
         super(TransfusionEncoder,self).__init__()
-        self.attn = DiffMultiHeadedAttention(args,depth,mask=False)
+        if args.use_diff:
+            self.attn = DiffMultiHeadedAttention(args,depth,mask=False)
+        else:
+            self.attn = MultiHeadedAttention(args,mask=False)
         self.depth = depth
         self.dataset = args.dataset
 
@@ -186,11 +189,16 @@ class VisualEncoder(nn.Module):
 class LanguageDecoderLayer(nn.Module):
     def __init__(self,args,depth):
         super(LanguageDecoderLayer,self).__init__()
-        self.decoder_attn = DiffMultiHeadedAttention(args,depth,mask=True)
+        if args.use_diff:
+            self.decoder_attn = DiffMultiHeadedAttention(args,depth,mask=True)
+            self.encoder_decoder = DiffMultiHeadedAttention(args,depth,mask=False)
+        else:
+            self.decoder_attn = MultiHeadedAttention(args,mask=True)
+            self.encoder_decoder = MultiHeadedAttention(args,mask=False)
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.ln2 = nn.LayerNorm(args.hidden_size)
         self.ln3 = nn.LayerNorm(args.hidden_size)
-        self.encoder_decoder = DiffMultiHeadedAttention(args,depth,mask=False)
+        
         self.mlp = MLP(args)
 
     def forward(self,encoder_feature,x): 
@@ -222,7 +230,10 @@ class ExpertTransformer(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
         
         self.visual_encoder = VisualEncoder(args)
-        self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
+        if args.use_diff:
+            self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
+        else:
+            self.language_encoder = MultiHeadedAttention(args,mask=False)
         self.fuser = nn.ModuleList([TransfusionEncoder(args,depth=depth) for depth in range(args.num_layers)])
         self.contextual_decoder = nn.ModuleList([LanguageDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)

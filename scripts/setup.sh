@@ -15,12 +15,15 @@ pip install timm
 mkdir data
 
 
-scp -P 23532 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
+scp -P 23228 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
 scp -P 23532 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
 scp -P 23532 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
 scp -P 23532 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
 
+scp -P 23228 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
+
 unzip DeepEyeNet.zip -d data
+unzip iu_xray.zip -d data
 
 mkdir -p /workspace/D-ExpertTransformer/pycocoevalcap/meteor/data/
 cd /workspace/D-ExpertTransformer/pycocoevalcap/meteor/data/
