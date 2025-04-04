@@ -177,6 +177,10 @@ class VisualEncoder(nn.Module):
             self.ve = EfficientNet()
         if args.use_gca:
             self.gca = GuidedContextAttention(args)
+        
+        if args.freeze_ve:
+            for param in self.ve.parameters():
+                param.requires_grad = False
 
     def forward(self,images):
         vf = self.ve(images)
@@ -247,9 +251,6 @@ class ExpertTransformer(nn.Module):
         self.beam_width = args.beam_width
         self.dataset = args.dataset
 
-        if args.freeze_ve:
-            for param in self.visual_encoder.parameters():
-                param.requires_grad = False
 
         #Weight tying
         self.We.weight = self.lm_head.weight
