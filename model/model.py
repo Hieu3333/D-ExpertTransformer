@@ -241,6 +241,11 @@ class ExpertTransformer(nn.Module):
         self.device = args.device
         self.beam_width = args.beam_width
         self.dataset = args.dataset
+
+        if args.freeze_ve:
+            for param in self.visual_encoder.parameters():
+                param.requires_grad = False
+
         #Weight tying
         self.We.weight = self.lm_head.weight
         self.apply(self.init_weights)

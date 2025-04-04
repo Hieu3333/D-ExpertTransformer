@@ -27,6 +27,7 @@ def parser_arg():
     parser.add_argument('--num_heads',type=int, required=True)
     parser.add_argument('--diff_num_heads',type=int, required=True)
     parser.add_argument('--bias', action='store_true')
+    parser.add_argument('--freeze_ve', action='store_true')
     parser.add_argument('--num_workers',type=int, default=8)
     parser.add_argument('--weight_decay',type=float, required=True)
     parser.add_argument('--log_interval',type=int, default=500)
