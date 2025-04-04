@@ -32,5 +32,5 @@ python test_tok.py \
   --num_workers 16 \
   --image_path "/data" \
   --ann_path "iu_xray" \
-  --project_root "/mnt/c/D-ExpertTransformer" \
+  --project_root "/workspace/D-ExpertTransformer" \
 
