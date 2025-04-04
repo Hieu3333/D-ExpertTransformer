@@ -1,10 +1,15 @@
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from modules.dataset import DeepEyeNet
 import torch
+from modules.dataset import DeepEyeNet
 
 class DENDataLoader(DataLoader):
     def __init__(self, args, tokenizer, keywords_vocab_set, split, shuffle):
+        # Ensure the required arguments are provided
+        assert hasattr(args, 'batch_size'), "args.batch_size is required"
+        assert hasattr(args, 'num_workers'), "args.num_workers is required"
+        assert hasattr(args, 've_name'), "args.ve_name is required"
+        
         self.args = args
         self.batch_size = args.batch_size
         self.shuffle = shuffle
@@ -13,60 +18,39 @@ class DENDataLoader(DataLoader):
         self.split = split
         self.drop_last = True if split == 'train' else False
 
-        # Define Image Transformations
+        # Define Image Transformations based on backbone model (ve_name)
         if args.ve_name == "resnet":
-            if split == 'train':
-                self.transform = transforms.Compose([
-                    transforms.Resize(256),
-                    transforms.RandomCrop(224),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.485, 0.456, 0.406),
-                                         (0.229, 0.224, 0.225))
-                ])
-            else:
-                self.transform = transforms.Compose([
-                    transforms.Resize((224, 224)),
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.485, 0.456, 0.406),
-                                         (0.229, 0.224, 0.225))
-                ])
+            self.transform = transforms.Compose([
+                transforms.Resize(256),
+                transforms.RandomCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+            ]) if split == 'train' else transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+            ])
 
         elif args.ve_name == "efficientnet":
+            # Dynamically setting the size based on input size from the args (if specified)
             self.transform = transforms.Compose([
-                transforms.Resize((356, 356)),  # Resize to match input size
+                transforms.Resize((args.input_size, args.input_size)),  # Resizing to match input size
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             ])
 
+        else:
+            raise ValueError(f"Unsupported backbone: {args.ve_name}")
+
         # Initialize Dataset
-        if args.decoder == "custom":
-            self.dataset = DeepEyeNet(
+        self.dataset = DeepEyeNet(
             args=args,
             tokenizer=tokenizer,
             keywords_list=keywords_vocab_set,  # set of keywords, non-duplicated
             split=split,
             transform=self.transform
         )
-        if args.decoder == "gpt2":
-            self.dataset = DeepEyeNet_GPT(
-            args=args,
-            tokenizer=tokenizer,
-            keywords_list=keywords_vocab_set,  # set of keywords, non-duplicated
-            split=split,
-            transform=self.transform
-        )
-
-        # Custom collate function to handle raw strings
-        def custom_collate(batch):
-            image_ids, images, desc_tokens, target_tokens, keyword_tokens, clinical_descs = zip(*batch)
-
-            images = torch.stack(images)  # Stack images into a batch
-            desc_tokens = torch.nn.utils.rnn.pad_sequence(desc_tokens, batch_first=True, padding_value=0)
-            target_tokens = torch.nn.utils.rnn.pad_sequence(target_tokens, batch_first=True, padding_value=0)
-            keyword_tokens = torch.nn.utils.rnn.pad_sequence(keyword_tokens, batch_first=True, padding_value=0)
-
-            return image_ids, images, desc_tokens, target_tokens, keyword_tokens, clinical_descs  # clinical_descs remains a list of strings
 
         # Initialize DataLoader with the custom collate function
         super().__init__(
@@ -75,5 +59,21 @@ class DENDataLoader(DataLoader):
             shuffle=self.shuffle,
             num_workers=self.num_workers,
             drop_last=self.drop_last,
-            collate_fn=custom_collate  # Pass custom collate function
+            collate_fn=self.custom_collate  # Pass custom collate function
         )
+
+    @staticmethod
+    def custom_collate(batch):
+        """Custom collate function to handle batches of images and tokens."""
+        image_ids, images, desc_tokens, target_tokens, keyword_tokens, clinical_descs = zip(*batch)
+
+        # Stack images into a batch
+        images = torch.stack(images)
+
+        # Pad sequences of tokens to the same length
+        desc_tokens = torch.nn.utils.rnn.pad_sequence(desc_tokens, batch_first=True, padding_value=0)
+        target_tokens = torch.nn.utils.rnn.pad_sequence(target_tokens, batch_first=True, padding_value=0)
+        keyword_tokens = torch.nn.utils.rnn.pad_sequence(keyword_tokens, batch_first=True, padding_value=0)
+
+        # Return a tuple of batches
+        return image_ids, images, desc_tokens, target_tokens, keyword_tokens, clinical_descs  # clinical_descs remains a list of strings
