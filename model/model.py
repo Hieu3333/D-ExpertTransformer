@@ -291,7 +291,8 @@ class ExpertTransformer(nn.Module):
                 else:
                     encoder_features = self.fuser[i](encoder_features,encoder_features)
             
-        x = self.contextual_decoder[i](encoder_features,x)
+        for i in range(self.num_layers):
+            x = self.contextual_decoder[i](encoder_features,x)
         
         logits = self.lm_head(x)
         # print("logits:",logits.shape)
