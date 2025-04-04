@@ -8,7 +8,7 @@ python train_iu.py \
   --weight_decay 5e-5 \
   --channel_reduction 4 \
   --save_path "results" \
-  --batch_size 32 \
+  --batch_size 64 \
   --accum_steps 1 \
   --bias \
   --early_stopping 10 \
