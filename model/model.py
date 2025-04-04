@@ -264,7 +264,6 @@ class ExpertTransformer(nn.Module):
         elif isinstance(module, nn.Embedding):
             nn.init.normal_(module.weight, mean=0, std=1)
         elif isinstance(module, RMSNorm):
-            module.bias.data.zero_()
             module.weight.data.fill_(1.0)
 
 
