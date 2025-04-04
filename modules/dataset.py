@@ -5,7 +5,7 @@ from PIL import Image
 import torch
 import copy
 from PIL import Image
-from transformers import GPT2Tokenizer
+
 
 
 class DeepEyeNet(Dataset):
