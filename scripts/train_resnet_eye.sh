@@ -32,7 +32,7 @@ python train_deepeyenet.py \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
-  --image_path "/data" \
-  --ann_path "iu_xray" \
+  --image_path "data/eyenet0420" \
+  --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
 
