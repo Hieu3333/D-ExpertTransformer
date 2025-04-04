@@ -8,7 +8,7 @@ python test_tok.py \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --save_path "results" \
-  --batch_size 64 \
+  --batch_size 1 \
   --accum_steps 1 \
   --bias \
   --early_stopping 10 \
