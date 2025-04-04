@@ -3,6 +3,7 @@ python train_iu.py \
   --epochs 30 \
   --dataset "iu_xray" \
   --ve_name "resnet" \
+  --use_diff \
   --freeze_ve \
   --lr_ed 1e-3 \
   --lr_ve 1e-5 \
