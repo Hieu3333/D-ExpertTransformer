@@ -16,7 +16,7 @@ python train_iu.py \
   --step_size 10 \
   --max_gen 100 \
   --hidden_size 512 \
-  --fc_size 512 \
+  --fc_size 2048 \
   --vocab_size 1642 \
   --num_layers 1 \
   --delta1 1 \
