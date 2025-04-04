@@ -1,11 +1,11 @@
 python train_iu.py \
   --exp_name "resnet-diff-iu-0" \
-  --epochs 100 \
+  --epochs 30 \
   --dataset "iu_xray" \
   --ve_name "resnet" \
   --lr_ed 2e-3 \
   --lr_ve 1e-3 \
-  --weight_decay 5e-5 \
+  --weight_decay 1e-4 \
   --channel_reduction 4 \
   --save_path "results" \
   --batch_size 64 \
