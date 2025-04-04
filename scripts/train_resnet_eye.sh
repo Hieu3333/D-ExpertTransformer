@@ -20,7 +20,7 @@ python train_deepeyenet.py \
   --step_size 10 \
   --max_gen 100 \
   --hidden_size 512 \
-  --fc_size 1024 \
+  --fc_size 2048 \
   --vocab_size 2682 \
   --delta1 1 \
   --delta2 0.01 \
