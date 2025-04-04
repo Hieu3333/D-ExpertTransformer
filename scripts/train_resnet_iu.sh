@@ -5,7 +5,7 @@ python train_iu.py \
   --ve_name "resnet" \
   --use_diff \
   --freeze_ve \
-  --lr_ed 1e-3 \
+  --lr_ed 1e-4 \
   --lr_ve 1e-5 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
@@ -26,7 +26,7 @@ python train_iu.py \
   --topk 3 \
   --temperature 1 \
   --lambda_init 0.8 \
-  --dropout 0.3 \
+  --dropout 0.0 \
   --beam_width 3 \
   --encoder_size 2048 \
   --num_heads 8 \
