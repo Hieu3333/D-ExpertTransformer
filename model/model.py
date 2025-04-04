@@ -150,9 +150,9 @@ class TransfusionEncoder(nn.Module):
 
         if depth == 0:
             self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
-        self.ln1 = RMSNorm(args.hidden_size)
+        self.ln1 = nn.LayerNorm(args.hidden_size)
         self.mlp = MLP(args)
-        self.ln2 = RMSNorm(args.hidden_size)
+        self.ln2 = nn.LayerNorm(args.hidden_size)
     
     def forward(self,visual_features,x):
         if self.depth == 0:
@@ -204,9 +204,9 @@ class LanguageDecoderLayer(nn.Module):
         else:
             self.decoder_attn = MultiHeadedAttention(args,mask=True)
             self.encoder_decoder = MultiHeadedAttention(args,mask=False)
-        self.ln1 = RMSNorm(args.hidden_size)
-        self.ln2 = RMSNorm(args.hidden_size)
-        self.ln3 = RMSNorm(args.hidden_size)
+        self.ln1 = nn.LayerNorm(args.hidden_size)
+        self.ln2 = nn.LayerNorm(args.hidden_size)
+        self.ln3 = nn.LayerNorm(args.hidden_size)
         
         self.mlp = MLP(args)
 
@@ -309,10 +309,39 @@ class ExpertTransformer(nn.Module):
         # print("target_keywords:",target_keywords.shape)
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
+            # Cross-Modal Contrastive Loss
+            contrastive_loss = self.compute_contrastive_loss(visual_features, x)
             loss_ce = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
+            loss = self.delta1*loss_ce + self.delta2*contrastive_loss
         else:
-            loss_ce = None
-        return logits, loss_ce
+            loss = None
+            
+        return logits, loss
+
+    def compute_contrastive_loss(self, visual_features, text_features, temperature=0.07):
+        """
+        Compute the contrastive loss between visual and textual features using cosine similarity.
+        Args:
+            visual_features (Tensor): Visual feature embeddings of shape (B, D)
+            text_features (Tensor): Textual feature embeddings of shape (B, D)
+            temperature (float): Temperature parameter to scale the similarity
+        Returns:
+            loss (Tensor): The contrastive loss value
+        """
+        # Normalize the feature vectors to unit vectors
+        visual_features = F.normalize(visual_features, p=2, dim=-1)
+        text_features = F.normalize(text_features, p=2, dim=-1)
+
+        # Compute cosine similarity between visual and textual features
+        similarity_matrix = torch.matmul(visual_features, text_features.T) / temperature  # (B, B)
+
+        # Labels are the diagonal elements (positive pairs)
+        labels = torch.arange(visual_features.size(0), device=visual_features.device)
+
+        # Compute contrastive loss using cross entropy loss
+        loss = F.cross_entropy(similarity_matrix, labels)
+
+        return loss
     
 
     @torch.no_grad()
