@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from modules.dataset import DeepEyeNet, DeepEyeNet_GPT
+from modules.dataset import DeepEyeNet
 import torch
 
 class DENDataLoader(DataLoader):
