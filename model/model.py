@@ -245,6 +245,8 @@ class ExpertTransformer(nn.Module):
             self.language_encoder = MultiHeadedAttention(args,mask=False)
         self.fuser = nn.ModuleList([TransfusionEncoder(args,depth=depth) for depth in range(args.num_layers)])
         self.contextual_decoder = nn.ModuleList([LanguageDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
+        self.visual_contrastive_proj = nn.Linear(args.encoder_size, args.contrastive_proj_dim)
+        self.text_contrastive_proj = nn.Linear(args.hidden_size,args.contrastive_proj_dim)
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
         self.keywords = keywords
         self.device = args.device
@@ -334,14 +336,9 @@ class ExpertTransformer(nn.Module):
         visual_pooled = visual_features.mean(dim=1)  # (B, D_v)
         text_pooled = text_features.mean(dim=1)      # (B, hidden_size)
 
-        # --- Projection Heads ---
-        # Define local projection layers
-        visual_proj = nn.Linear(visual_pooled.size(-1), self.args.contrastive_proj_dim).to(visual_pooled.device)
-        text_proj = nn.Linear(text_pooled.size(-1), self.args.contrastive_proj_dim).to(text_pooled.device)
-
         # Apply projection
-        visual_embeds = visual_proj(visual_pooled)   # (B, D)
-        text_embeds = text_proj(text_pooled)         # (B, D)
+        visual_embeds = self.visual_contrastive_proj(visual_pooled)   # (B, D)
+        text_embeds = self.text_contrastive_proj(text_pooled)         # (B, D)
 
         # --- Normalize ---
         visual_embeds = F.normalize(visual_embeds, p=2, dim=-1)
