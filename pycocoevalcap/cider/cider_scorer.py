@@ -2,11 +2,6 @@
 # Tsung-Yi Lin <tl483@cornell.edu>
 # Ramakrishna Vedantam <vrama91@vt.edu>
 
-
-# Last modified : Wed 22 May 2019 08:10:00 PM EDT
-# By Sabarish Sivanath
-# To support Python 3
-
 import copy
 from collections import defaultdict
 import numpy as np

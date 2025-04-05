@@ -216,6 +216,10 @@ class LanguageDecoderLayer(nn.Module):
         x = self.ln3(x +self.mlp(x))
         return x
     
+# class Decoder(nn.Module):
+#     def __init__(self,args):
+#         self.layers = 
+    
 
 
 
