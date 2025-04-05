@@ -32,7 +32,7 @@ def set_seed(seed=42):
 
 # torch.set_float32_matmul_precision('high')
 # Set the seed before training
-set_seed(18)
+set_seed(2003)
 # Configure logger
 logger = logging.getLogger("TrainingLogger")
 logger.setLevel(logging.INFO)  # Change to DEBUG for more details
@@ -60,7 +60,7 @@ keywords = load_all_keywords()
 
 # Load custom tokenizer
 tokenizer = Tokenizer(args)
-tokenizer.load_vocab("vocab.json")
+tokenizer.load_vocab("data/vocab.json")
 
 # Initialize dataset and dataloader
 train_dataloader = DENDataLoader(args, tokenizer, keywords, split='train',shuffle=True)
