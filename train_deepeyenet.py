@@ -46,9 +46,7 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 # (Optional) File handler to save logs to file
-file_handler = logging.FileHandler('training.log')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+
 
 
 # Parse arguments (ensure parser_arg() is defined appropriately)
@@ -102,6 +100,11 @@ save_path = os.path.join(args.save_path,args.exp_name)
 log_path = os.path.join('logs',args.exp_name)
 os.makedirs(save_path, exist_ok=True)
 os.makedirs(log_path,exist_ok=True)
+
+file_handler = logging.FileHandler(os.path.join(log_path,'training.log'))
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
 print(f'Total params: {total_params/1e6:.2f}M')
 
