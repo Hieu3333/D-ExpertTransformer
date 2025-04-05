@@ -14,7 +14,6 @@ python train_deepeyenet.py \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
-  --bias \
   --early_stopping 10 \
   --max_length 50 \
   --step_size 10 \
@@ -22,7 +21,7 @@ python train_deepeyenet.py \
   --hidden_size 512 \
   --fc_size 2048 \
   --contrastive_proj_dim 256 \
-  --vocab_size 2912 \
+  --vocab_size 3292 \
   --delta1 1 \
   --delta2 0.3 \
   --topk 3 \
