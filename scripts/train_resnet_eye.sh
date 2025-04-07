@@ -18,8 +18,8 @@ python train_deepeyenet.py \
   --max_length 50 \
   --step_size 10 \
   --max_gen 100 \
-  --hidden_size 1024 \
-  --fc_size 4096 \
+  --hidden_size 512 \
+  --fc_size 2048 \
   --contrastive_proj_dim 256 \
   --vocab_size 3058 \
   --delta1 1 \
