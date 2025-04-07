@@ -151,8 +151,8 @@ for epoch in range(current_epoch-1,num_epochs):
     
     if not args.constant_lr:
         scheduler.step()  
-        
-    if (epoch+1) < args.epochs-5:
+
+    if (epoch+1) < args.epochs:
         continue
 
     torch.save({
