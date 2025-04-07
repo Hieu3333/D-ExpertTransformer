@@ -1,5 +1,5 @@
 python train_deepeyenet.py \
-  --exp_name "resnet-deepeyenet-diff-gca-rmsnorm-3layers" \
+  --exp_name "resnet-deepeyenet-diff-gca" \
   --epochs 30 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
@@ -10,7 +10,7 @@ python train_deepeyenet.py \
   --lr_ve 1e-5 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
-  --num_layers 3 \
+  --num_layers 2 \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
@@ -18,10 +18,10 @@ python train_deepeyenet.py \
   --max_length 50 \
   --step_size 10 \
   --max_gen 100 \
-  --hidden_size 512 \
-  --fc_size 2048 \
+  --hidden_size 1024 \
+  --fc_size 4096 \
   --contrastive_proj_dim 256 \
-  --vocab_size 3292 \
+  --vocab_size 3058 \
   --delta1 1 \
   --delta2 0.3 \
   --topk 3 \
