@@ -256,6 +256,7 @@ class ExpertTransformer(nn.Module):
         self.device = args.device
         self.beam_width = args.beam_width
         self.dataset = args.dataset
+        self.use_contrastive = args.use_contrastive
 
 
         #Weight tying
@@ -316,9 +317,12 @@ class ExpertTransformer(nn.Module):
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             # Cross-Modal Contrastive Loss
-            contrastive_loss = self.compute_contrastive_loss(visual_features, x)
-            loss_ce = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
-            loss = self.delta1*loss_ce + self.delta2*contrastive_loss
+            if self.use_contrastive:
+                contrastive_loss = self.compute_contrastive_loss(visual_features, x)
+                loss_ce = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
+                loss = self.delta1*loss_ce + self.delta2*contrastive_loss
+            else:
+                loss = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
         else:
             loss = None
             

@@ -16,6 +16,7 @@ def parser_arg():
     parser.add_argument('--use_diff',action='store_true')
     parser.add_argument('--randaug',action='store_true')
     parser.add_argument('--use_gca',action='store_true')
+    parser.add_argument('--use_contrastive',action='store_true')
     parser.add_argument('--channel_reduction',type=int, required=True)
     parser.add_argument('--num_layers',type=int, required=True)
     parser.add_argument('--step_size',type=int, required=True)
