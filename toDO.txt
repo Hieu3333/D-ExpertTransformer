@@ -31,3 +31,8 @@ To fix:
 
 Dataset:
 1. ROCOv2 
+
+
+Learning rate:
+Total params: 62.40M
+2025-04-07 22:37:58,006 - INFO - Namespace(exp_name='resnet-deepeyenet-diff-gca-1024/2048', epochs=50, batch_size=64, max_length=50, dataset='deepeyenet', max_gen=100, hidden_size=1024, contrastive_proj_dim=256, fc_size=2048, vocab_size=2688, ve_name='resnet', use_diff=True, randaug=False, use_gca=True, constant_lr=True, use_contrastive=False, channel_reduction=4, num_layers=2, step_size=10, lr_ve=1e-05, lr_ed=1e-05, delta1=1.0, delta2=0.3, beam_width=3, dropout=0.0, topk=3, temperature=1.0, encoder_size=2048, num_heads=8, diff_num_heads=4, bias=False, freeze_ve=True, num_workers=16, weight_decay=0.0001, log_interval=500, save_path='results', image_path='data/eyenet0420', ann_path='data', device='cuda', accum_steps=1, early_stopping=10, project_root='/workspace/D-ExpertTransformer', lambda_init=0.8, from_pretrained=None)
