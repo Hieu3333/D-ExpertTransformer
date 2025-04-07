@@ -6,7 +6,7 @@ python train_deepeyenet.py \
   --use_diff \
   --freeze_ve \
   --use_gca \
-  --lr_ed 5e-4 \
+  --lr_ed 1e-5 \
   --lr_ve 1e-5 \
   --constant_lr \
   --weight_decay 1e-4 \
