@@ -16,6 +16,7 @@
 17. Check GCA carefully
 18. Check the metrics, use pycocoevalcap from CAMANet????
 19. DROPOUT MAKES THE MODEL REPEAT BOS, PAD
+20. Bigger model size, smaller learning rate
 Ways to get better:
 -Clean report
 -Use beam search
