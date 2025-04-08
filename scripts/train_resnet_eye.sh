@@ -1,6 +1,6 @@
 python train_deepeyenet.py \
   --exp_name "resnet-deepeyenet-diff-gca-1024/2048" \
-  --epochs 50 \
+  --epochs 100 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \
@@ -19,7 +19,7 @@ python train_deepeyenet.py \
   --step_size 10 \
   --max_gen 100 \
   --hidden_size 1024 \
-  --fc_size 2048 \
+  --fc_size 4096 \
   --contrastive_proj_dim 256 \
   --vocab_size 2688 \
   --delta1 1 \
