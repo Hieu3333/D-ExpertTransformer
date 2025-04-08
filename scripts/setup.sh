@@ -23,7 +23,7 @@ scp -P 23166 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@192.165.134.27:/w
 scp -P 23166 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/cache/data.mdb" root@192.165.134.27:/workspace/D-ExpertTransformer/pycocoevalcap/spice/cache
 scp -P 23166 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/lib/stanford-corenlp-3.6.0-models.jar" root@192.165.134.27:/workspace/D-ExpertTransformer/pycocoevalcap/spice/lib
 
-scp -P 23228 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
+scp -P 23166 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
 
 unzip DeepEyeNet.zip -d data
 unzip iu_xray.zip -d data
@@ -33,5 +33,7 @@ cd /workspace/D-ExpertTransformer/pycocoevalcap/meteor/data/
 wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-en.gz
 
 
-scp -P 23228 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff-gca/val_result_epoch_30.json "/mnt/c/D-ExpertTransformer/"
-scp -P 23228 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff-gca/test_result_epoch_30.json "/mnt/c/D-ExpertTransformer/"
+
+scp -P 23166 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff-gca-1024-4096/checkpoint_epoch_100.pth "/mnt/c/D-ExpertTransformer/results"
+
+scp -P 23166 -r root@192.165.134.27:/workspace/D-ExpertTransformer/logs/ "/mnt/c/D-ExpertTransformer/logs/"

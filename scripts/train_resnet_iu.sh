@@ -9,7 +9,7 @@ python train_iu.py \
   --lr_ve 1e-5 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
-  --num_layers 3 \
+  --num_layers 2 \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
@@ -18,8 +18,8 @@ python train_iu.py \
   --max_length 50 \
   --step_size 10 \
   --max_gen 100 \
-  --hidden_size 512 \
-  --fc_size 1024 \
+  --hidden_size 1024 \
+  --fc_size 4096 \
   --vocab_size 1642 \
   --delta1 1 \
   --delta2 0.01 \
