@@ -29,6 +29,7 @@ python train_iu.py \
   --dropout 0.0 \
   --beam_width 3 \
   --encoder_size 2048 \
+  --contrastive_proj_dim 256 \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
