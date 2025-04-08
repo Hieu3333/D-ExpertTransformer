@@ -1,5 +1,5 @@
 python train_deepeyenet.py \
-  --exp_name "resnet-deepeyenet-diff-gca-1024/2048" \
+  --exp_name "resnet-deepeyenet-diff-gca-1024/4096" \
   --epochs 100 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
