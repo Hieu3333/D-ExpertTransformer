@@ -167,8 +167,8 @@ for epoch in range(current_epoch-1,num_epochs):
 
     #Evaluation
     model.eval()
-    gts_val = {}
-    res_val = {}
+    gts_val = []
+    res_val = []
     val_loss = 0.0
     with torch.no_grad():  
         for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
@@ -191,8 +191,8 @@ for epoch in range(current_epoch-1,num_epochs):
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
-                gts_val[image_id] = [groundtruth_caption]
-                res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
+                gts_val.extend(groundtruth_caption)
+                res_val.extend(generated_captions[i]) # Corresponding generated caption
                 val_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})        
             val_loss += loss.item()
 
@@ -200,7 +200,8 @@ for epoch in range(current_epoch-1,num_epochs):
         with open(val_path, "w") as f:
             json.dump(val_results, f, indent=4)
         # Compute evaluation metrics
-        eval_scores = compute_scores(gts_val, res_val)
+        eval_scores = compute_scores({i: [gt] for i, gt in enumerate(gts_val)},
+                             {i: [re] for i, re in enumerate(res_val)})
         avg_val_loss = val_loss / len(val_dataloader)
         logger.info(f"Validation loss: {avg_val_loss:.2f}")
         logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
