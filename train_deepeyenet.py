@@ -191,8 +191,8 @@ for epoch in range(current_epoch-1,num_epochs):
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
-                gts_val.extend(groundtruth_caption)
-                res_val.extend(generated_captions[i]) # Corresponding generated caption
+                gts_val.append(groundtruth_caption)
+                res_val.append(generated_captions[i]) # Corresponding generated caption
                 val_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})        
             val_loss += loss.item()
 
