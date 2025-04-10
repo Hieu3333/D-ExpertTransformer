@@ -206,6 +206,12 @@ for epoch in range(current_epoch-1,num_epochs):
         # Compute evaluation metrics
         eval_scores = compute_scores({i: [gt] for i, gt in enumerate(gts_val)},
                                      {i: [re] for i, re in enumerate(res_val)})
+        dummy_preds = {i: ["a random caption"] for i in range(len(gts_val))}
+        dummy_gts = {i: [gt] for i, gt in enumerate(gts_val)}
+
+        metrics = compute_scores(dummy_gts, dummy_preds)
+        print('dummy:',metrics)
+
         # for k, v in eval_scores.items():
         #     print(f"{k}: {v} (type: {type(v)})")
 

@@ -17,6 +17,7 @@
 18. Check the metrics, use pycocoevalcap from CAMANet????
 19. DROPOUT MAKES THE MODEL REPEAT BOS, PAD
 20. Bigger model size, smaller learning rate
+21. Use another version of numpy 
 Ways to get better:
 -Clean report
 -Use beam search

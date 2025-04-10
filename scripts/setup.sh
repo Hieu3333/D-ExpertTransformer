@@ -12,6 +12,7 @@ sudo apt-get install default-jdk
 cd D-ExpertTransformer
 sudo apt update && sudo apt install unzip -y
 pip install timm
+pip install numpy==1.21.2
 mkdir data
 
 
