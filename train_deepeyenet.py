@@ -211,8 +211,8 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"METEOR: {eval_scores['METEOR']}")
         logger.info(f"CIDER: {eval_scores['Cider']}")
         logger.info(f"ROUGE_L: {eval_scores['ROUGE_L']}")
-        print("GTS Val Example:", list(gts_val.items())[-5:-1])
-        print("Res Val Example:", list(res_val.items())[-5:-1])
+        # print("GTS Val Example:", list(gts_val.items())[-5:-1])
+        # print("Res Val Example:", list(res_val.items())[-5:-1])
         logger.info(f"{eval_scores}")
         
 
