@@ -200,7 +200,10 @@ for epoch in range(current_epoch-1,num_epochs):
             json.dump(val_results, f, indent=4)
         # Compute evaluation metrics
         eval_scores = compute_scores({i: [gt] for i, gt in enumerate(gts_val)},
-                                           {i: [re] for i, re in enumerate(res_val)})
+                                     {i: [re] for i, re in enumerate(res_val)})
+        for k, v in eval_scores.items():
+            print(f"{k}: {v} (type: {type(v)})")
+
         avg_val_loss = val_loss / len(val_dataloader)
         logger.info(f"Validation loss: {avg_val_loss:.2f}")
         logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
