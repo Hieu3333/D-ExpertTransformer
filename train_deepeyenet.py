@@ -171,7 +171,9 @@ for epoch in range(current_epoch-1,num_epochs):
     res_val = {}
     val_loss = 0.0
     with torch.no_grad():  
-        for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}"))[:3]:
+        for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
+            if batch_idx>3:
+                break
             image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
             
             images = images.to(device)
