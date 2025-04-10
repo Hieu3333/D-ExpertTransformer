@@ -24,7 +24,7 @@ def compute_scores(gts, res):
     # Compute score for each metric
     for scorer, method in scorers:
         try:
-            score, scores = scorer.compute_score(gts, res)
+            score, scores = scorer.compute_score(gts, res, verbose=0)
         except TypeError:
             score, scores = scorer.compute_score(gts, res)
         if type(method) == list:
