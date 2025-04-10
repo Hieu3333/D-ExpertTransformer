@@ -38,6 +38,8 @@ class Cider:
         for id in imgIds:
             hypo = res[id]
             ref = gts[id]
+            print('hypo:',hypo)
+            print('ref:',ref)
 
             # Sanity check.
             assert(type(hypo) is list)
