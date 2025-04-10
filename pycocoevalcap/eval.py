@@ -4,23 +4,15 @@ from .bleu.bleu import Bleu
 from .meteor.meteor import Meteor
 from .rouge.rouge import Rouge
 from .cider.cider import Cider
-from .spice.spice import Spice
-import json
-import ipdb
 
 class COCOEvalCap:
-    def __init__(self, path):
+    def __init__(self, coco, cocoRes):
         self.evalImgs = []
         self.eval = {}
         self.imgToEval = {}
-
-        data = json.load(open(path))
-        imgids = [item['image_name'] for item in data]
-        self.ground_truth, self.prediction = {}, {}
-        for item in data:
-            self.ground_truth[item['image_name']] = [{'caption': i} for i in item['captions']]
-            self.prediction[item['image_name']] = [{'caption': item['prediction']}]
-        self.params = {'image_id': imgids}
+        self.coco = coco
+        self.cocoRes = cocoRes
+        self.params = {'image_id': cocoRes.getImgIds()}
 
     def evaluate(self):
         imgIds = self.params['image_id']
@@ -28,8 +20,8 @@ class COCOEvalCap:
         gts = {}
         res = {}
         for imgId in imgIds:
-            gts[imgId] = self.ground_truth[imgId]
-            res[imgId] = self.prediction[imgId]
+            gts[imgId] = self.coco.imgToAnns[imgId]
+            res[imgId] = self.cocoRes.imgToAnns[imgId]
 
         # =================================================
         # Set up scorers
@@ -47,24 +39,24 @@ class COCOEvalCap:
             (Bleu(4), ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"]),
             (Meteor(),"METEOR"),
             (Rouge(), "ROUGE_L"),
-            (Cider(), "CIDEr"),
-            (Spice(), "SPICE")
+            (Cider(), "CIDEr")
         ]
 
         # =================================================
         # Compute scores
         # =================================================
+        eval = {}
         for scorer, method in scorers:
-            print ('computing %s score...'%(scorer.method()))
+            print('computing %s score...'%(scorer.method()))
             score, scores = scorer.compute_score(gts, res)
             if type(method) == list:
                 for sc, scs, m in zip(score, scores, method):
                     self.setEval(sc, m)
-                    self.setImgToEvalImgs(scs, gts.keys(), m)
+                    self.setImgToEvalImgs(scs, imgIds, m)
                     print("%s: %0.3f"%(m, sc))
             else:
                 self.setEval(score, method)
-                self.setImgToEvalImgs(scores, gts.keys(), method)
+                self.setImgToEvalImgs(scores, imgIds, method)
                 print("%s: %0.3f"%(method, score))
         self.setEvalImgs()
 

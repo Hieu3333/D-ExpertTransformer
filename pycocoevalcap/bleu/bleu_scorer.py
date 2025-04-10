@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # bleu_scorer.py
 # David Chiang <chiang@isi.edu>
 
@@ -11,13 +9,17 @@
 # Hao Fang <hfang@uw.edu>
 # Tsung-Yi Lin <tl483@cornell.edu>
 
+# Last modified : Wed 22 May 2019 08:10:00 PM EDT
+# By Sabarish Sivanath
+# To support Python 3
+
 '''Provides:
 cook_refs(refs, n=4): Transform a list of reference sentences as strings into a form usable by cook_test().
 cook_test(test, refs, n=4): Transform a test sentence as a string (together with the cooked reference sentences) into a form usable by score_cooked().
 '''
 
 import copy
-import sys, math, re, ipdb
+import sys, math, re
 from collections import defaultdict
 
 def precook(s, n=4, out=False):
@@ -57,12 +59,12 @@ def cook_refs(refs, eff=None, n=4): ## lhuang: oracle will call with "average"
 
     return (reflen, maxcounts)
 
-# def cook_test(test, (reflen, refmaxcounts), eff=None, n=4):
-def cook_test(test, item, eff=None, n=4):
+def cook_test(test, refs , eff=None, n=4):
     '''Takes a test sentence and returns an object that
     encapsulates everything that BLEU needs to know about it.'''
-
-    reflen, refmaxcounts = item
+    
+    reflen = refs[0]
+    refmaxcounts = refs[1]
 
     testlen, counts = precook(test, n, True)
 
