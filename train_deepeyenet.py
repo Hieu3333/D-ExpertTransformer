@@ -188,12 +188,11 @@ for epoch in range(current_epoch-1,num_epochs):
             with torch.cuda.amp.autocast():
                 _, loss = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
                 generated_captions = model.generate_beam(images,gt_keyword_tokens)
-            # Decode ground truth captions
-            for i, image_id in enumerate(image_ids):
-                groundtruth_captions = gt_clinical_desc
-                gts_val.extend(groundtruth_captions)
+                gts_val.extend(gt_clinical_desc)
                 res_val.extend(generated_captions) # Corresponding generated caption
-                val_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})        
+            # Decode ground truth captions
+            for i, image_id in enumerate(image_ids):           
+                val_results.append({"image_id": image_id, "ground_truth": gt_clinical_desc[i], "generated_caption": generated_captions[i]})        
             val_loss += loss.item()
 
         val_path = os.path.join(log_path,f"val_result_epoch_{epoch+1}.json")
