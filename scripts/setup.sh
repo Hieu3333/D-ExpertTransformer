@@ -15,15 +15,15 @@ pip install timm
 mkdir data
 
 
-scp -P 23166 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
-scp -P 23166 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23166 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23166 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23166 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23166 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/cache/data.mdb" root@192.165.134.27:/workspace/D-ExpertTransformer/pycocoevalcap/spice/cache
-scp -P 23166 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/lib/stanford-corenlp-3.6.0-models.jar" root@192.165.134.27:/workspace/D-ExpertTransformer/pycocoevalcap/spice/lib
+scp -P 23081 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
+scp -P 23081 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
+scp -P 23081 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
+scp -P 23081 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
+scp -P 23081 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
+scp -P 23081 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/cache/data.mdb" root@192.165.134.27:/workspace/D-ExpertTransformer/pycocoevalcap/spice/cache
+scp -P 23081 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/lib/stanford-corenlp-3.6.0-models.jar" root@192.165.134.27:/workspace/D-ExpertTransformer/pycocoevalcap/spice/lib
 
-scp -P 23166 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
+scp -P 23081 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
 
 unzip DeepEyeNet.zip -d data
 unzip iu_xray.zip -d data
