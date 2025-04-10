@@ -124,42 +124,42 @@ for epoch in range(current_epoch-1,num_epochs):
     model.train()
     running_loss = 0.0
 
-    for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
-        image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
-        images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
-        # print("desc_tokens:",desc_tokens)
-        # print("target_tokens:",target_tokens)
-        # print('gt:',gt_clinical_desc)
-        outputs, loss = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
-        loss = loss / args.accum_steps  # Normalize for gradient accumulation
+    # for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
+    #     image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
+    #     images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
+    #     # print("desc_tokens:",desc_tokens)
+    #     # print("target_tokens:",target_tokens)
+    #     # print('gt:',gt_clinical_desc)
+    #     outputs, loss = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+    #     loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
-        loss.backward()
-        norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        # Gradient accumulation step
-        if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-            optimizer.step()
-            optimizer.zero_grad()  # Zero gradients after step
+    #     loss.backward()
+    #     norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    #     # Gradient accumulation step
+    #     if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
+    #         optimizer.step()
+    #         optimizer.zero_grad()  # Zero gradients after step
 
-        running_loss += loss.item()
+    #     running_loss += loss.item()
         
-        # Logging
-        if (batch_idx+1== len(train_dataloader)) :
-            avg_loss = running_loss / len(train_dataloader)
-            logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
-            running_loss = 0.0  # Reset running loss
+    #     # Logging
+    #     if (batch_idx+1== len(train_dataloader)) :
+    #         avg_loss = running_loss / len(train_dataloader)
+    #         logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
+    #         running_loss = 0.0  # Reset running loss
     
     
-    if not args.constant_lr:
-        scheduler.step()  
+    # if not args.constant_lr:
+    #     scheduler.step()  
 
-    if (epoch+1) < args.epochs-5:
-        continue
+    # if (epoch+1) < args.epochs:
+    #     continue
 
-    torch.save({
-            'epoch': epoch + 1,  # Save current epoch
-            'model': model.state_dict(),  # Save model weights
-            'optim': optimizer.state_dict(),  # Save optimizer state
-        }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+    # torch.save({
+    #         'epoch': epoch + 1,  # Save current epoch
+    #         'model': model.state_dict(),  # Save model weights
+    #         'optim': optimizer.state_dict(),  # Save optimizer state
+    #     }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
 
 
     val_results = []
