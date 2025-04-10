@@ -419,7 +419,7 @@ class ExpertTransformer(nn.Module):
             best_seq = beam_sequences[0][i].tolist()  # Take the highest-scoring sequence for each batch
             if eos_id in best_seq:
                 best_seq = best_seq[:best_seq.index(eos_id) + 1]
-            text = self.tokenizer.decode(best_seq)
+            text = self.tokenizer.decode(best_seq.cpu().numpy())
             final_sequences.append(text)
 
         return final_sequences
