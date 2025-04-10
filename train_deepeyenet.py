@@ -198,6 +198,11 @@ for epoch in range(current_epoch-1,num_epochs):
         val_path = os.path.join(log_path,f"val_result_epoch_{epoch+1}.json")
         with open(val_path, "w") as f:
             json.dump(val_results, f, indent=4)
+
+        print(type(res_val[0]), type(gts_val[0]))
+        print(res_val[0])
+        print(gts_val[0])
+
         # Compute evaluation metrics
         eval_scores = compute_scores({i: [gt] for i, gt in enumerate(gts_val)},
                                      {i: [re] for i, re in enumerate(res_val)})
