@@ -1,13 +1,12 @@
 python train_deepeyenet.py \
   --exp_name "resnet-deepeyenet-diff-gca-1024-4096" \
-  --epochs 10 \
+  --epochs 30 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \
-  --freeze_ve \
   --use_gca \
   --lr_ed 1e-4 \
-  --lr_ve 1e-5 \
+  --lr_ve 1e-6 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --num_layers 2 \
