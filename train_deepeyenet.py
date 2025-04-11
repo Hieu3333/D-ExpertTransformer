@@ -199,9 +199,10 @@ for epoch in range(current_epoch-1,num_epochs):
         with open(val_path, "w") as f:
             json.dump(val_results, f, indent=4)
 
-        print(type(res_val[0]), type(gts_val[0]))
-        print(res_val[0])
-        print(gts_val[0])
+        check_gts = {i: [gt] for i, gt in enumerate(gts_val)}
+        check_res = {i: [re] for i, re in enumerate(res_val)}
+        print("GTS:",check_gts)
+        print("Res:",check_res)
 
         # Compute evaluation metrics
         eval_scores = compute_scores({i: [gt] for i, gt in enumerate(gts_val)},
