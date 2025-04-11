@@ -35,6 +35,6 @@ wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-e
 
 
 
-scp -P 23166 root@143.55.45.86:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff-gca-1024-4096/checkpoint_epoch_100.pth "/mnt/c/D-ExpertTransformer/results"
+scp -P 54373 root@143.55.45.86:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff-gca-1024-4096/checkpoint_epoch_100.pth "/mnt/c/D-ExpertTransformer/results"
 
-scp -P 23166 -r root@143.55.45.86:/workspace/D-ExpertTransformer/logs/ "/mnt/c/D-ExpertTransformer/logs/"
+scp -P 54373 -r root@143.55.45.86:/workspace/D-ExpertTransformer/logs/ "/mnt/c/D-ExpertTransformer/logs/"
