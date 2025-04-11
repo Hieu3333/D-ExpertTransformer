@@ -1,6 +1,6 @@
 python train_deepeyenet.py \
   --exp_name "resnet-deepeyenet-diff-gca-1024-4096" \
-  --epochs 50 \
+  --epochs 10 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \

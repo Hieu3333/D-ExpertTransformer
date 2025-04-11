@@ -16,15 +16,15 @@ pip install numpy==1.21.2
 mkdir data
 
 
-scp -P 23069 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
-scp -P 23069 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23069 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23069 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23069 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23069 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/cache/data.mdb" root@192.165.134.27:/workspace/D-ExpertTransformer/pycocoevalcap/spice/cache
-scp -P 23069 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/lib/stanford-corenlp-3.6.0-models.jar" root@192.165.134.27:/workspace/D-ExpertTransformer/pycocoevalcap/spice/lib
+scp -P 54373 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@143.55.45.86:/workspace/D-ExpertTransformer
+scp -P 54373 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
+scp -P 54373 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
+scp -P 54373 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
+scp -P 54373 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
+scp -P 54373 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/cache/data.mdb" root@143.55.45.86:/workspace/D-ExpertTransformer/pycocoevalcap/spice/cache
+scp -P 54373 "/mnt/c/Users/hieu3/Downloads/evaluation/pycocoevalcap/spice/lib/stanford-corenlp-3.6.0-models.jar" root@143.55.45.86:/workspace/D-ExpertTransformer/pycocoevalcap/spice/lib
 
-scp -P 23069 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
+scp -P 54373 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@143.55.45.86:/workspace/D-ExpertTransformer
 
 unzip DeepEyeNet.zip -d data
 unzip iu_xray.zip -d data
@@ -35,6 +35,6 @@ wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-e
 
 
 
-scp -P 23166 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff-gca-1024-4096/checkpoint_epoch_100.pth "/mnt/c/D-ExpertTransformer/results"
+scp -P 23166 root@143.55.45.86:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-diff-gca-1024-4096/checkpoint_epoch_100.pth "/mnt/c/D-ExpertTransformer/results"
 
-scp -P 23166 -r root@192.165.134.27:/workspace/D-ExpertTransformer/logs/ "/mnt/c/D-ExpertTransformer/logs/"
+scp -P 23166 -r root@143.55.45.86:/workspace/D-ExpertTransformer/logs/ "/mnt/c/D-ExpertTransformer/logs/"
