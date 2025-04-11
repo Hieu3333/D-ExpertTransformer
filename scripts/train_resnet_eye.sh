@@ -5,8 +5,8 @@ python train_deepeyenet.py \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
-  --lr_ed 1e-4 \
-  --lr_ve 5e-5 \
+  --lr_ed 2e-3 \
+  --lr_ve 1e-3 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --num_layers 2 \
