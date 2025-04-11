@@ -205,8 +205,8 @@ for epoch in range(current_epoch-1,num_epochs):
         print("Res:",check_res)
 
         # Compute evaluation metrics
-        eval_scores = compute_scores({i: [gt] for i, gt in enumerate(gts_val[:10])},
-                                     {i: [re] for i, re in enumerate(res_val[:10])})
+        eval_scores = compute_scores({i: [gt] for i, gt in enumerate(gts_val)},
+                                     {i: [re] for i, re in enumerate(res_val)})
 
         # for k, v in eval_scores.items():
         #     print(f"{k}: {v} (type: {type(v)})")
