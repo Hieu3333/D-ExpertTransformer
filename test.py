@@ -7,3 +7,4 @@ res = {0: ['the lungs are clear . there is no pleural effusion pneumothorax . no
 
 scores = compute_scores(gts, res)
 print("CIDEr Score:", scores['Cider'])
+print("Bleu4 Score:", scores['BLEU_4'])
