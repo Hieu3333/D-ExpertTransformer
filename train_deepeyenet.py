@@ -72,7 +72,7 @@ model = ExpertTransformer(args, tokenizer, keywords)
 optimizer =model.configure_optimizer(args)
 
 
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-7)
 
 
 if args.from_pretrained is not None:
