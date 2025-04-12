@@ -1,35 +1,34 @@
 python train_iu.py \
-  --exp_name "resnet-no_diff-iu-0" \
+  --exp_name "resnet-diff-iu-0" \
   --epochs 30 \
   --dataset "iu_xray" \
   --ve_name "resnet" \
   --use_diff \
-  --freeze_ve \
-  --lr_ed 1e-4 \
-  --lr_ve 1e-5 \
+  --use_gca \
+  --lr_ed 5e-4 \
+  --lr_ve 2e-4 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --num_layers 2 \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
-  --bias \
   --early_stopping 10 \
   --max_length 50 \
   --step_size 10 \
   --max_gen 100 \
-  --hidden_size 1024 \
-  --fc_size 4096 \
-  --vocab_size 1642 \
+  --hidden_size 512 \
+  --fc_size 2048 \
+  --contrastive_proj_dim 256 \
+  --vocab_size 2688 \
   --delta1 1 \
-  --delta2 0.01 \
+  --delta2 0.3 \
   --topk 3 \
   --temperature 1 \
   --lambda_init 0.8 \
   --dropout 0.0 \
   --beam_width 3 \
   --encoder_size 2048 \
-  --contrastive_proj_dim 256 \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
