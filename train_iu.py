@@ -145,8 +145,8 @@ for epoch in range(current_epoch-1,num_epochs):
         scheduler.step()  
 
 
-    # if (epoch+1) < args.epochs:
-    #     continue
+    if (epoch+1) < 30:
+        continue
 
     # torch.save({
     #         'epoch': epoch + 1,  # Save current epoch
