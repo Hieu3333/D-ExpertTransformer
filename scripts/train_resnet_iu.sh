@@ -5,6 +5,7 @@ python train_iu.py \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
+  --constant_lr \
   --lr_ed 5e-4 \
   --lr_ve 2e-4 \
   --weight_decay 1e-4 \
