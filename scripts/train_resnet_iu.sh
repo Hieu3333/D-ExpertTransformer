@@ -1,6 +1,6 @@
 python train_iu.py \
   --exp_name "resnet-diff-iu-0" \
-  --epochs 30 \
+  --epochs 50 \
   --dataset "iu_xray" \
   --ve_name "resnet" \
   --use_diff \
@@ -18,8 +18,8 @@ python train_iu.py \
   --max_length 50 \
   --step_size 10 \
   --max_gen 100 \
-  --hidden_size 1024 \
-  --fc_size 4096 \
+  --hidden_size 512 \
+  --fc_size 512 \
   --contrastive_proj_dim 256 \
   --vocab_size 1642 \
   --delta1 1 \
