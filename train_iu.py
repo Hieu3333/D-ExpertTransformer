@@ -110,7 +110,8 @@ logger.info(args)
 
 best_test_score = 0.0
 for epoch in range(current_epoch-1,num_epochs):
-
+    if (epoch+1)>37:
+        break
 
     logger.info(f"Epoch {epoch+1}:")
 
