@@ -137,7 +137,8 @@ for epoch in range(current_epoch-1,num_epochs):
     if not args.constant_lr and (epoch+1)>args.warmup_epochs:
         scheduler.step()  
 
-
+    if (epoch+1)<37:
+        continue
     
 
     val_results = []
