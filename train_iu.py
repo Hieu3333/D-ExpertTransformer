@@ -145,14 +145,14 @@ for epoch in range(current_epoch-1,num_epochs):
         scheduler.step()  
 
 
-    if (epoch+1) < args.epochs:
-        continue
+    # if (epoch+1) < args.epochs:
+    #     continue
 
-    torch.save({
-            'epoch': epoch + 1,  # Save current epoch
-            'model': model.state_dict(),  # Save model weights
-            'optim': optimizer.state_dict(),  # Save optimizer state
-        }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+    # torch.save({
+    #         'epoch': epoch + 1,  # Save current epoch
+    #         'model': model.state_dict(),  # Save model weights
+    #         'optim': optimizer.state_dict(),  # Save optimizer state
+    #     }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
 
 
     val_results = []
