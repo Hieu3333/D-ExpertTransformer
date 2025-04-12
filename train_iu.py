@@ -238,12 +238,12 @@ for epoch in range(current_epoch-1,num_epochs):
         print("GTS Test Example:", list(gts_test.items())[-5:-1])
         print("Res Test Example:", list(res_test.items())[-5:-1])
 
-        # if test_scores['BLEU_1'] > best_test_score:
-        #     torch.save({
-        #         'epoch': epoch + 1,  # Save current epoch
-        #         'model': model.state_dict(),  # Save model weights
-        #         'optim': optimizer.state_dict(),  # Save optimizer state
-        #     }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+        if test_scores['BLEU_1'] > best_test_score:
+            torch.save({
+                'epoch': epoch + 1,  # Save current epoch
+                'model': model.state_dict(),  # Save model weights
+                'optim': optimizer.state_dict(),  # Save optimizer state
+            }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
 
         
   
