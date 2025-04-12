@@ -87,7 +87,8 @@ class Tokenizer:
         Removes <BOS> and <EOS> tokens.
         """
         tokens = [self.idx2word.get(idx, '<UNK>') for idx in token_ids]
-        return ' '.join([token for token in tokens if token not in ['<BOS>', '<EOS>', '<PAD>']])
+        # return ' '.join([token for token in tokens if token not in ['<BOS>', '<EOS>', '<PAD>']])
+        return ' '.join([token for token in tokens])
 
 
 # path = "iu_xray/iu_xray.json"
