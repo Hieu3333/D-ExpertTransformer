@@ -106,6 +106,9 @@ logger.info(args)
 
 best_test_score = 0.0
 for epoch in range(current_epoch-1,num_epochs):
+    if (epoch+1)>37:
+        break
+
     logger.info(f"Epoch {epoch+1}:")
 
     model.train()
@@ -137,8 +140,7 @@ for epoch in range(current_epoch-1,num_epochs):
     if not args.constant_lr and (epoch+1)>args.warmup_epochs:
         scheduler.step()  
 
-    if (epoch+1)<37:
-        continue
+    
     
 
     val_results = []
@@ -225,7 +227,7 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"CIDER: {test_scores['Cider']}")
         logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
 
-        if test_scores['BLEU_1']>best_test_score:
+        if (epoch+1)==37:
             best_test_score = test_scores['BLEU_1']
             torch.save({
                 'epoch': epoch + 1,  # Save current epoch
