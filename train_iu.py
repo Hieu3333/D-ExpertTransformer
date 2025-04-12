@@ -225,6 +225,7 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
 
         if test_scores['BLEU_1']>best_test_score:
+            best_test_score = test_scores['BLEU_1']
             torch.save({
                 'epoch': epoch + 1,  # Save current epoch
                 'model': model.state_dict(),  # Save model weights
