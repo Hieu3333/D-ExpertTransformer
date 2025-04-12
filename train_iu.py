@@ -108,8 +108,7 @@ print(f'Total params: {total_params/1e6:.2f}M')
 
 logger.info(args)
 
-
-
+best_test_score = 0.0
 for epoch in range(current_epoch-1,num_epochs):
 
 
@@ -148,12 +147,7 @@ for epoch in range(current_epoch-1,num_epochs):
     if (epoch+1) < 30:
         continue
 
-    # torch.save({
-    #         'epoch': epoch + 1,  # Save current epoch
-    #         'model': model.state_dict(),  # Save model weights
-    #         'optim': optimizer.state_dict(),  # Save optimizer state
-    #     }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
-
+    
 
     val_results = []
     test_results = []
@@ -202,7 +196,8 @@ for epoch in range(current_epoch-1,num_epochs):
         print("GTS Val Example:", list(gts_val.items())[-5:-1])
         print("Res Val Example:", list(res_val.items())[-5:-1])
         logger.info(f"{eval_scores}")
-        
+
+    
 
     model.eval()
     gts_test= {}
@@ -242,6 +237,15 @@ for epoch in range(current_epoch-1,num_epochs):
 
         print("GTS Test Example:", list(gts_test.items())[-5:-1])
         print("Res Test Example:", list(res_test.items())[-5:-1])
+
+        if test_scores['BLEU_1'] > best_test_score:
+            torch.save({
+                'epoch': epoch + 1,  # Save current epoch
+                'model': model.state_dict(),  # Save model weights
+                'optim': optimizer.state_dict(),  # Save optimizer state
+            }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+
+        
   
     logger.info("--------------------------------------------------------------------------------")
 
