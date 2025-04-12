@@ -32,7 +32,7 @@ def set_seed(seed=42):
 
 # torch.set_float32_matmul_precision('high')
 # Set the seed before training
-set_seed(2003)
+set_seed(18092003)
 # Configure logger
 logger = logging.getLogger("TrainingLogger")
 logger.setLevel(logging.INFO)  # Change to DEBUG for more details
