@@ -32,7 +32,7 @@ def set_seed(seed=42):
 
 # torch.set_float32_matmul_precision('high')
 # Set the seed before training
-set_seed(18)
+set_seed(2003)
 # Configure logger
 logger = logging.getLogger("TrainingLogger")
 logger.setLevel(logging.INFO)  # Change to DEBUG for more details
@@ -73,7 +73,7 @@ model = ExpertTransformer(args, tokenizer)
 optimizer =model.configure_optimizer(args)
 
 
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs-args.warmup_epochs, eta_min=1e-6)
 
 
 if args.from_pretrained is not None:
@@ -140,12 +140,12 @@ for epoch in range(current_epoch-1,num_epochs):
             avg_loss = running_loss / len(train_dataloader)
             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
             running_loss = 0.0  # Reset running loss
-    if not args.constant_lr:
+    if not args.constant_lr and (epoch+1)>args.warmup_epochs:
         scheduler.step()  
 
 
-    if (epoch+1) < args.epochs:
-        continue
+    # if (epoch+1) < args.epochs:
+    #     continue
 
     
 

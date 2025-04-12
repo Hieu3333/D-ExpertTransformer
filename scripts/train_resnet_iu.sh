@@ -8,6 +8,7 @@ python train_iu.py \
   --constant_lr \
   --lr_ed 5e-4 \
   --lr_ve 2e-4 \
+  --warmup_epochs 15 \
   --weight_decay 1e-5 \
   --channel_reduction 4 \
   --num_layers 2 \
