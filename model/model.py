@@ -160,7 +160,10 @@ class TransfusionEncoder(nn.Module):
         else:
             vf = visual_features
 
-        vf = self.ln1(vf + self.attn(vf,x,x))     
+        if self.depth == 0 and self.dataset == 'deepeyenet':
+            vf = self.ln1(vf + self.attn(vf,x,x))
+        else:
+            vf = self.ln1(vf + self.attn(vf,vf,vf))
         vf = self.ln2(vf +self.mlp(vf))
         return vf
     
