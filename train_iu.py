@@ -120,6 +120,9 @@ for epoch in range(current_epoch-1,num_epochs):
     for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
         image_ids, images, desc_tokens, target_tokens, gt_clinical_desc = batch
         images, desc_tokens, target_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device)
+        print("desc:",desc_tokens)
+        print()
+        print("targets:",target_tokens)
         # print("desc_tokens:",desc_tokens)
         # print("target_tokens:",target_tokens)
         # print('gt:',gt_clinical_desc)
