@@ -141,7 +141,8 @@ for epoch in range(current_epoch-1,num_epochs):
             avg_loss = running_loss / len(train_dataloader)
             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
             running_loss = 0.0  # Reset running loss
-    scheduler.step()  
+    if not args.constant_lr:
+        scheduler.step()  
 
 
     if (epoch+1) < args.epochs:
