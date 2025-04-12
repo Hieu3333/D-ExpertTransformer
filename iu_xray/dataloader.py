@@ -18,13 +18,13 @@ class IUXrayDataLoader(DataLoader):
             if split == 'train':
                 self.transform = transforms.Compose([
                     transforms.Resize(256),
-                    transforms.RandomResizedCrop(224, scale=(0.8, 1.2)),  # Random scaling
-                    transforms.RandomRotation(degrees=(-15, 15)),  # Random rotation
+                    transforms.CenterCrop(224),  # Replaces RandomResizedCrop with deterministic crop
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     transforms.Normalize((0.485, 0.456, 0.406),
                                         (0.229, 0.224, 0.225))
                 ])
+
             else:
                 self.transform = transforms.Compose([
                     transforms.Resize((224, 224)),
