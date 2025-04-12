@@ -15,16 +15,12 @@ import json
 
 
 def set_seed(seed=42):
-    random.seed(seed)  
-    np.random.seed(seed)  
-    torch.manual_seed(seed)  
-    torch.cuda.manual_seed(seed)  
-    torch.cuda.manual_seed_all(seed)  
-
-    # Ensure deterministic behavior
-    torch.backends.cudnn.deterministic = True  
-    torch.backends.cudnn.benchmark = False  
-
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)
+    random.seed(seed)
 
     # # Extra safety: Ensure deterministic behavior for NumPy and PyTorch operations
     # torch.use_deterministic_algorithms(True)  # Enforces full determinism in PyTorch >=1.8
