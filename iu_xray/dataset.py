@@ -44,7 +44,7 @@ class IUXray(Dataset):
 
         # --- Load Both Images ---
         images = []
-        for img_name in img_names:  # now it's a list of two paths
+        for img_name in img_names:  
             full_img_path = os.path.join(self.image_path, img_name)
             image = Image.open(full_img_path).convert('RGB')
             if self.transform:

@@ -226,13 +226,13 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"CIDER: {test_scores['Cider']}")
         logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
 
-        if best_test_score < test_scores['BLEU_1']:
-            best_test_score = test_scores['BLEU_1']
-            torch.save({
-                'epoch': epoch + 1,  # Save current epoch
-                'model': model.state_dict(),  # Save model weights
-                'optim': optimizer.state_dict(),  # Save optimizer state
-            }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+        # if best_test_score < test_scores['BLEU_1']:
+        #     best_test_score = test_scores['BLEU_1']
+        #     torch.save({
+        #         'epoch': epoch + 1,  # Save current epoch
+        #         'model': model.state_dict(),  # Save model weights
+        #         'optim': optimizer.state_dict(),  # Save optimizer state
+        #     }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
 
         
 
