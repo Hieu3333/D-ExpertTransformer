@@ -36,5 +36,7 @@ python train_iu.py \
   --image_path "/data" \
   --ann_path "iu_xray" \
   --project_root "/workspace/D-ExpertTransformer" \
+  --from_pretrained "results/resnet-diff-iu-0/checkpoint_epoch_37.pth" \
+  --eval \
 
 

@@ -18,6 +18,7 @@
 19. DROPOUT MAKES THE MODEL REPEAT BOS, PAD
 20. Bigger model size, smaller learning rate
 21. Use another version of numpy 
+22. Skip evaluation breaks the deterministic training process
 Ways to get better:
 -Clean report
 -Use beam search
