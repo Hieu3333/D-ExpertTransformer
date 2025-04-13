@@ -226,7 +226,7 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"CIDER: {test_scores['Cider']}")
         logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
 
-        if (epoch+1)==37:
+        if best_test_score < test_scores['BLEU_1']:
             best_test_score = test_scores['BLEU_1']
             torch.save({
                 'epoch': epoch + 1,  # Save current epoch
