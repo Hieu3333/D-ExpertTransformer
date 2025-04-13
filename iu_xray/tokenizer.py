@@ -91,28 +91,28 @@ class Tokenizer:
 
 
 
-path = "iu_xray/annotations.json"
-with open(path, 'r') as f:
-    data = json.load(f)
+# path = "iu_xray/annotations.json"
+# with open(path, 'r') as f:
+#     data = json.load(f)
 
-tokenizer = Tokenizer()
+# tokenizer = Tokenizer()
 
-# Collect all reports and clean them
-cleaned_data, all_reports = tokenizer.collect_reports(data)
+# # Collect all reports and clean them
+# cleaned_data, all_reports = tokenizer.collect_reports(data)
 
-# Build vocabulary from the reports
-tokenizer.build_vocab(all_reports)
+# # Build vocabulary from the reports
+# tokenizer.build_vocab(all_reports)
 
-# Save the vocabulary to a file
-tokenizer.save_vocab('iu_xray/vocab.json')
+# # Save the vocabulary to a file
+# tokenizer.save_vocab('iu_xray/vocab.json')
 
-# Save cleaned data to a new JSON file
-cleaned_file_path = 'iu_xray/cleaned_iu_xray.json'
-with open(cleaned_file_path, 'w') as f:
-    json.dump(cleaned_data, f, indent=2)
+# # Save cleaned data to a new JSON file
+# cleaned_file_path = 'iu_xray/cleaned_iu_xray.json'
+# with open(cleaned_file_path, 'w') as f:
+#     json.dump(cleaned_data, f, indent=2)
 
-print(f"Cleaned data saved to {cleaned_file_path}")
-print("Vocabulary saved to iu_xray/vocab.json")
+# print(f"Cleaned data saved to {cleaned_file_path}")
+# print("Vocabulary saved to iu_xray/vocab.json")
 
-text = "the heart size and pulmonary vascularity appear within normal limits"
-print(tokenizer.decode(tokenizer.encode(text)))
+# text = "the heart size and pulmonary vascularity appear within normal limits"
+# print(tokenizer.decode(tokenizer.encode(text)))

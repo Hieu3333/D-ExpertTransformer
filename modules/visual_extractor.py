@@ -26,10 +26,8 @@ class ResNet50(nn.Module):
 
             # Flatten spatial dimensions for patch-level features
             B, C, H, W = feat1.shape
-            feat1 = feat1.view(B, C, -1).permute(0, 2, 1)  # (B, 49, 2048)
-            feat2 = feat2.view(B, C, -1).permute(0, 2, 1)
-
-            patch_feats = torch.cat([feat1, feat2], dim=1)  # (B, 98, 2048)
+      
+            patch_feats = torch.cat([feat1, feat2], dim=2)  # (B, 2048, 14,7)
 
             return patch_feats
         
