@@ -5,8 +5,8 @@ python train_iu.py \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
-  --lr_ed 2e-4 \
-  --lr_ve 1e-4 \
+  --lr_ed 5e-4 \
+  --lr_ve 2e-4 \
   --warmup_epochs 10 \
   --weight_decay 1e-5 \
   --channel_reduction 4 \
@@ -15,7 +15,7 @@ python train_iu.py \
   --batch_size 64 \
   --accum_steps 1 \
   --early_stopping 10 \
-  --max_length 50 \
+  --max_length 60 \
   --step_size 10 \
   --max_gen 100 \
   --hidden_size 512 \
