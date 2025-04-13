@@ -40,22 +40,28 @@ class IUXray(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        image_id, img_name, cleaned_report = self.data[idx]
+        image_id, img_names, cleaned_report = self.data[idx]
 
-        # Load Image
-        full_img_path = os.path.join(self.image_path, img_name)
-        image = Image.open(full_img_path).convert('RGB')
-        if self.transform:
-            image = self.transform(image)
+        # --- Load Both Images ---
+        images = []
+        for img_name in img_names:  # now it's a list of two paths
+            full_img_path = os.path.join(self.image_path, img_name)
+            image = Image.open(full_img_path).convert('RGB')
+            if self.transform:
+                image = self.transform(image)
+            images.append(image)
 
-        # --- Tokenize cleaned report --- (using tokenizer)
+        # Stack to tensor: (2, C, H, W)
+        images = torch.stack(images, dim=0)
+
+        # --- Tokenize cleaned report ---
         report_tokens = self.tokenizer.encode(cleaned_report)
-
-        # --- Create target tokens (shift left) --- 
         report_tokens = torch.tensor(report_tokens, dtype=torch.long)
-        target_tokens = copy.deepcopy(report_tokens)
-        target_tokens[:-1] = report_tokens[1:]  # Shift left
-        target_tokens[-1] = self.pad_token_id  # Set last token as <PAD>
 
-        # Return image, report tokens, and target tokens
-        return image_id, image, report_tokens, target_tokens, cleaned_report
+        # --- Create target tokens (shifted) ---
+        target_tokens = copy.deepcopy(report_tokens)
+        target_tokens[:-1] = report_tokens[1:]
+        target_tokens[-1] = self.pad_token_id
+
+        return image_id, images, report_tokens, target_tokens, cleaned_report
+
