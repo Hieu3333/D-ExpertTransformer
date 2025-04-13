@@ -172,9 +172,9 @@ class VisualEncoder(nn.Module):
         super(VisualEncoder,self).__init__()
         self.use_gca = args.use_gca
         if args.ve_name == 'resnet':
-            self.ve = ResNet50()
+            self.ve = ResNet50(args)
         else:
-            self.ve = EfficientNet()
+            self.ve = EfficientNet(args)
         if args.use_gca:
             self.gca = GuidedContextAttention(args)
         

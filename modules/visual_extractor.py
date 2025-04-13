@@ -42,8 +42,9 @@ class ResNet50(nn.Module):
 
 
 class EfficientNet(nn.Module):
-    def __init__(self):
+    def __init__(self,args):
         super(EfficientNet, self).__init__()
+        self.dataset = args.dataset
         
         # Load EfficientNetV2-B0 without classifier
         self.model = timm.create_model("tf_efficientnetv2_b0", pretrained=True)
