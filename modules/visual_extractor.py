@@ -21,8 +21,8 @@ class ResNet50(nn.Module):
             img2 = x[:, 1]
 
             # Extract features for both images
-            feat1 = F.relu(self.features(img1), inplace=True)  # (B, 2048, 7, 7)
-            feat2 = F.relu(self.features(img2), inplace=True)
+            feat1 = F.relu(self.features(img1))  # (B, 2048, 7, 7)
+            feat2 = F.relu(self.features(img2))
 
             # Flatten spatial dimensions for patch-level features
             B, C, H, W = feat1.shape
