@@ -1,5 +1,5 @@
 python train_iu.py \
-  --exp_name "resnet-diff-iu-0" \
+  --exp_name "resnet-diff-iu-combine" \
   --epochs 50 \
   --dataset "iu_xray" \
   --ve_name "resnet" \

@@ -23,7 +23,7 @@ def set_seed(seed=42):
     random.seed(seed)
 
     # # Extra safety: Ensure deterministic behavior for NumPy and PyTorch operations
-    # torch.use_deterministic_algorithms(True)  # Enforces full determinism in PyTorch >=1.8
+    torch.use_deterministic_algorithms(True)  # Enforces full determinism in PyTorch >=1.8
     # os.environ["PYTHONHASHSEED"] = str(seed)  # Ensures reproducibility for Python hash-based operations
 
 # torch.set_float32_matmul_precision('high')
