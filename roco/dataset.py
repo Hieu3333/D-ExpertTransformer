@@ -30,7 +30,14 @@ class ROCO(Dataset):
         caption = sample['caption']     # String
         image_id = sample.get('image_id', None)  # Optional
 
-        tokens = self.tokenizer.encode(caption)
+        normalized_caption = self.normalizer.normalize_str(caption)
+        normalized_caption = normalized_caption.strip().replace('\n',' ')
+        # Safely remove broken Unicode escape sequences (skip decode to avoid crash)
+        normalized_caption = re.sub(r'\\u[0-9a-fA-F]{0,4}', '', normalized_caption)
+        normalized_caption = re.sub(r'[^a-zA-Z0-9\s]', '', normalized_caption)  # keep only alphanum, space, and ()
+        normalized_caption = re.sub(r'\s+', ' ', normalized_caption).strip() 
+
+        tokens = self.tokenizer.encode(normalized_caption)
         tokens = torch.tensor(tokens,dtype=torch.long)
         target_tokens = copy.deepcopy(tokens)
         target_tokens[:-1] = tokens[1:]
@@ -42,11 +49,6 @@ class ROCO(Dataset):
         if self.transform:
             image = image.convert("RGB")
             image = self.transform(image)
-        normalized_caption = self.normalizer.normalize_str(caption)
-        normalized_caption = normalized_caption.strip().replace('\n',' ')
-        # Safely remove broken Unicode escape sequences (skip decode to avoid crash)
-        normalized_caption = re.sub(r'\\u[0-9a-fA-F]{0,4}', '', normalized_caption)
-        normalized_caption = re.sub(r'[^a-zA-Z0-9\s]', '', normalized_caption)  # keep only alphanum, space, and ()
-        normalized_caption = re.sub(r'\s+', ' ', normalized_caption).strip() 
+        
      
         return image_id,image, tokens,target_tokens,normalized_caption
