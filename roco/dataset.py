@@ -1,7 +1,7 @@
 import torch
 from datasets import load_dataset
 from torch.utils.data import Dataset
-from copy import deepcopy
+import copy
 
 class ROCO(Dataset):
     def __init__(self, args, data,tokenizer, transform=None, split='train'):
@@ -22,14 +22,11 @@ class ROCO(Dataset):
 
         tokens = self.tokenizer.encode(caption)
         tokens = torch.tensor(tokens,dtype=torch.long)
-        target_tokens = tokens.clone()
+        target_tokens = copy.deepcopy(tokens)
+        target_tokens[:-1] = tokens[1:]
+        target_tokens[-1] = self.tokenizer.pad_id
 
-        # Pad target_tokens to the same length as tokens
-        target_tokens = torch.cat([target_tokens, torch.tensor([self.tokenizer.pad_id])])
-
-        # Ensure target_tokens has the same length as tokens
-        target_tokens = torch.cat([target_tokens, torch.tensor([self.tokenizer.pad_id] * (tokens.size(0) - target_tokens.size(0)))])
-
+   
 
         # Apply transforms if provided
         if self.transform:
