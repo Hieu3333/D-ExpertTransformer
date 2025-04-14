@@ -112,40 +112,49 @@ for epoch in range(current_epoch-1,num_epochs):
 
     model.train()
     running_loss = 0.0
-    if not args.eval:
-        for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
-            image_ids, images, desc_tokens, target_tokens,captions = batch
-            images, desc_tokens, target_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device)
-            # print("desc_tokens:",desc_tokens)
-            # print("target_tokens:",target_tokens)
-            # print('gt:',gt_clinical_desc)
-            with torch.cuda.amp.autocast():
-                outputs, loss = model(images=images,tokens=desc_tokens, targets=target_tokens)
-                loss = loss / args.accum_steps  # Normalize for gradient accumulation
-            scaler.scale(loss).backward()
+    # if not args.eval:
+    #     for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
+    #         image_ids, images, desc_tokens, target_tokens,captions = batch
+    #         images, desc_tokens, target_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device)
+    #         # print("desc_tokens:",desc_tokens)
+    #         # print("target_tokens:",target_tokens)
+    #         # print('gt:',gt_clinical_desc)
+    #         with torch.cuda.amp.autocast():
+    #             outputs, loss = model(images=images,tokens=desc_tokens, targets=target_tokens)
+    #             loss = loss / args.accum_steps  # Normalize for gradient accumulation
+    #         scaler.scale(loss).backward()
             
-            # Gradient accumulation step
-            if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-                scaler.unscale_(optimizer)
-                norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-                scaler.step(optimizer)
-                scaler.update()
-                optimizer.zero_grad()  # Zero gradients after step
+    #         # Gradient accumulation step
+    #         if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
+    #             scaler.unscale_(optimizer)
+    #             norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    #             scaler.step(optimizer)
+    #             scaler.update()
+    #             optimizer.zero_grad()  # Zero gradients after step
 
-            running_loss += loss.item()
+    #         running_loss += loss.item()
             
-            # Logging
-            if (batch_idx+1== len(train_dataloader)) :
-                avg_loss = running_loss / len(train_dataloader)
-                logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
-                running_loss = 0.0  # Reset running loss
+    #         # Logging
+    #         if (batch_idx+1== len(train_dataloader)) :
+    #             avg_loss = running_loss / len(train_dataloader)
+    #             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
+    #             running_loss = 0.0  # Reset running loss
 
 
-    if not args.constant_lr and (epoch+1)>args.warmup_epochs:
-        scheduler.step()  
+    # if not args.constant_lr and (epoch+1)>args.warmup_epochs:
+    #     scheduler.step()  
     
-    if (epoch+1) <args.epochs:
-        continue
+    # if (epoch+1) <args.epochs:
+    #     continue
+
+    # best_test_score = test_scores['BLEU_1']
+    # torch.save({
+    #     'epoch': epoch + 1,  # Save current epoch
+    #     'model': model.state_dict(),  # Save model weights
+    #     'optim': optimizer.state_dict(),  # Save optimizer state
+    # }, os.path.join(save_path, f"iu_xray.pth"))
+
+        
   
     val_results = []
     test_results = []
@@ -157,6 +166,8 @@ for epoch in range(current_epoch-1,num_epochs):
     val_loss = 0.0
     with torch.no_grad():  
         for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
+            if batch_idx>3:
+                break
             image_ids, images, desc_tokens, target_tokens,captions = batch
             
             images = images.to(device)
@@ -230,14 +241,6 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"METEOR: {test_scores['METEOR']}")
         logger.info(f"CIDER: {test_scores['Cider']}")
         logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
-
-        if best_test_score < test_scores['BLEU_1']:
-            best_test_score = test_scores['BLEU_1']
-            torch.save({
-                'epoch': epoch + 1,  # Save current epoch
-                'model': model.state_dict(),  # Save model weights
-                'optim': optimizer.state_dict(),  # Save optimizer state
-            }, os.path.join(save_path, f"iu_xray.pth"))
 
         
 
