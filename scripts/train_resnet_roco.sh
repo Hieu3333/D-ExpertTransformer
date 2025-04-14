@@ -6,7 +6,7 @@ python train_roco.py \
   --use_diff \
   --use_gca \
   --constant_lr \
-  --lr_ed 2e-4 \
+  --lr_ed 3e-4 \
   --lr_ve 1e-4 \
   --warmup_epochs 0 \
   --weight_decay 1e-6 \
