@@ -43,5 +43,6 @@ class ROCO(Dataset):
             image = image.convert("RGB")
             image = self.transform(image)
         normalized_caption = self.normalizer.normalize_str(caption)
+        normalized_caption = normalized_caption.strip().replace('\n',' ')
      
         return image_id,image, tokens,target_tokens,normalized_caption
