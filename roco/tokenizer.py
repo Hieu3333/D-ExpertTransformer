@@ -6,9 +6,9 @@ class Tokenizer:
 
        
         self.max_length = args.max_length
-        self.pad_id = self.tokenizer.pad_token
-        self.bos_id = self.tokenizer.bos_token
-        self.eos_id = self.tokenizer.eos_token
+        self.pad_id = self.tokenizer.token_to_id("<PAD>")
+        self.bos_id = self.tokenizer.token_to_id("<BOS>")
+        self.eos_id = self.tokenizer.token_to_id("<EOS>")
 
     def encode(self, text):
         # Add BOS and EOS tokens manually
