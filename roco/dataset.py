@@ -44,7 +44,7 @@ class ROCO(Dataset):
             image = self.transform(image)
         normalized_caption = self.normalizer.normalize_str(caption)
         normalized_caption = normalized_caption.strip().replace('\n',' ')
-        normalized_caption = normalized_caption.encode("ascii", "ignore").decode()
+        normalized_caption = normalized_caption.encode().decode('unicode_escape')
         normalized_caption = re.sub(r'[^a-zA-Z0-9\s()]', '', normalized_caption)  # keep only alphanum, space, and ()
         normalized_caption = re.sub(r'\s+', ' ', normalized_caption).strip() 
      
