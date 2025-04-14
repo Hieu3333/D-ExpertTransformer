@@ -1,8 +1,8 @@
-from transformers import GPT2TokenizerFast
+from transformers import Tokenizer as HFTokenizer
 
 class Tokenizer:
     def __init__(self, args):
-        self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+        self.tokenizer = HFTokenizer.from_pretrained('roco/tokenizer.json')
 
         # Add special tokens if not already present
         special_tokens_dict = {}

@@ -24,8 +24,11 @@ class ROCO(Dataset):
         tokens = torch.tensor(tokens,dtype=torch.long)
         target_tokens = tokens.clone()
 
-        target_tokens = tokens[1:]
-        target_tokens[-1] = self.tokenizer.pad_id
+        # Pad target_tokens to the same length as tokens
+        target_tokens = torch.cat([target_tokens, torch.tensor([self.tokenizer.pad_token_id])])
+
+        # Ensure target_tokens has the same length as tokens
+        target_tokens = torch.cat([target_tokens, torch.tensor([self.tokenizer.pad_token_id] * (tokens.size(0) - target_tokens.size(0)))])
 
 
         # Apply transforms if provided
