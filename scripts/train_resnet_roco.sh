@@ -1,4 +1,4 @@
-python train_iu.py \
+python train_roco.py \
   --exp_name "resnet-diff-roco" \
   --epochs 30 \
   --dataset "roco" \
