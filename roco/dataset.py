@@ -30,6 +30,7 @@ class ROCO(Dataset):
 
         # Apply transforms if provided
         if self.transform:
+            image = image.convert("RGB")
             image = self.transform(image)
      
         return image_id,image, tokens,target_tokens,caption
