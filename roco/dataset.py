@@ -42,6 +42,6 @@ class ROCO(Dataset):
         if self.transform:
             image = image.convert("RGB")
             image = self.transform(image)
-        caption = self.normalizer.normalize_str(caption)
+        normalized_caption = self.normalizer.normalize_str(caption)
      
-        return image_id,image, tokens,target_tokens,caption
+        return image_id,image, tokens,target_tokens,normalized_caption
