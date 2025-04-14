@@ -25,7 +25,7 @@ trainer = trainers.BpeTrainer(
 )
 
 # Train from captions file
-tokenizer.train(["captions.txt"], trainer)
+tokenizer.train(["roco/normalized_captions.txt"], trainer)
 
 # Set post-processing with BOS and EOS tokens
 tokenizer.post_processor = TemplateProcessing(
