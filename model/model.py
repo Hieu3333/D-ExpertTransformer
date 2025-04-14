@@ -312,7 +312,7 @@ class ExpertTransformer(nn.Module):
         
         logits = self.lm_head(x)
         if self.dataset == 'roco':
-            pad_token = self.tokenizer.pad_token_id
+            pad_token = self.tokenizer.pad_id
         else:
             pad_token = self.tokenizer.word2idx["<PAD>"]
         if targets is not None:
@@ -374,8 +374,8 @@ class ExpertTransformer(nn.Module):
         batch_size = images.size(0)
         beam_width = self.beam_width
         if self.dataset == 'roco':
-            bos_id = self.tokenizer.bos_token_id
-            bos_id = self.tokenizer.eos_token_id
+            bos_id = self.tokenizer.bos_id
+            bos_id = self.tokenizer.eos_id
         else:
             bos_id = self.tokenizer.word2idx["<BOS>"]
             eos_id = self.tokenizer.word2idx["<EOS>"]
