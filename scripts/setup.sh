@@ -13,6 +13,9 @@ cd D-ExpertTransformer
 sudo apt update && sudo apt install unzip -y
 pip install timm
 pip install numpy==1.21.2
+sudo apt update
+sudo apt install git-lfs
+git lfs install
 mkdir data
 
 
@@ -35,4 +38,4 @@ wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-e
 
 scp -P 54264 root@143.55.45.86:/workspace/D-ExpertTransformer/results/resnet-diff-iu-combine/iu_xray.pth "/mnt/c/D-ExpertTransformer/results/iu_xray"
 
-scp -P 54264 -r root@143.55.45.86:/workspace/D-ExpertTransformer/logs/ "/mnt/c/D-ExpertTransformer/logs/"
+scp -P 54264 -r root@143.55.45.86:/workspace/D-ExpertTransformer/iu_xray/logs/resnet-diff-iu-combine/ "/mnt/c/D-ExpertTransformer/iu_xray/logs"
