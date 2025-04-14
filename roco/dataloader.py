@@ -5,7 +5,7 @@ from torchvision import transforms
 from copy import deepcopy
 from roco.dataset import ROCO
 
-class ROCODataLoader:
+class ROCODataLoader(DataLoader):
     def __init__(self, data, tokenizer, args, split='train', shuffle=True):
         self.data = data
         self.tokenizer = tokenizer
