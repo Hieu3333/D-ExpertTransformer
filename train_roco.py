@@ -59,7 +59,7 @@ tokenizer = Tokenizer(args)
 
 # Initialize dataset and dataloader
 train_dataloader = ROCODataLoader(data=data,tokenizer=tokenizer, args=args, split='train',shuffle=True)
-val_dataloader = ROCODataLoader(data=data,tokenizer=tokenizer, args=args, split='val',shuffle=False)
+val_dataloader = ROCODataLoader(data=data,tokenizer=tokenizer, args=args, split='validation',shuffle=False)
 test_dataloader = ROCODataLoader(data=data,tokenizer=tokenizer, args=args, split='test',shuffle=False)
 
 # Initialize model
