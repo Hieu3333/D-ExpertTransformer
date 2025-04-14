@@ -102,21 +102,25 @@ class DiffMultiHeadedAttention(nn.Module):
         lambda2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1).float())
         lambda_full = lambda1 - lambda2 + self.lambda_init
 
-        q = q.reshape(B,T,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,2*nh,T,diff_head_size/2)
-        k = k.reshape(B,N,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,2*nh,N,diff_head_size/2)
+        q = q.reshape(B,T,self.diff_num_heads,2,self.diff_head_size//2).transpose(1,2) #(B,nh,T,2,diff_head_size/2)
+        k = k.reshape(B,N,self.diff_num_heads,2,self.diff_head_size//2).transpose(1,2) #(B,nh,N,2,diff_head_size/2)
         v = v.reshape(B,N,self.diff_num_heads,self.diff_head_size).transpose(1,2) #(B,nh,N,diff_head_size)
         
-        assert q.shape[-1] == k.shape[-1]
-        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
-        # print('att:',att.shape)
-        if self.mask:
-            att = att.masked_fill(
-                    self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, 
-                    torch.finfo(att.dtype).min  # Ensures proper handling in mixed precision
-                )
-        att = F.softmax(att,dim=-1)
-        att = att.reshape(B,self.diff_num_heads,2,T,-1)
-        att = att[:,:,0] - lambda_full * att[:,:,1]
+        q1, q2 = q[:,:,:,0], q[:,:,:,1]
+        k1, k2 = k[:,:,:,0], k[:,:,:,1]
+        att1 = F.scaled_dot_product_attention(q1,k1,v,attn_mask=None,dropout_p=self.dropout,is_causal=self.mask)
+        att2 = F.scaled_dot_product_attention(q2,k2,v,attn_mask=None,dropout_p=self.dropout,is_causal=self.mask)
+        # assert q.shape[-1] == k.shape[-1]
+        # att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
+        # # print('att:',att.shape)
+        # if self.mask:
+        #     att = att.masked_fill(
+        #             self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, 
+        #             torch.finfo(att.dtype).min  # Ensures proper handling in mixed precision
+        #         )
+        # att = F.softmax(att,dim=-1)
+        # att = att.reshape(B,self.diff_num_heads,2,T,-1)
+        att = att1 - lambda_full * att2
         out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = self.rmsnorm(out) * (1-self.lambda_init)  # (B, nh, T, head_size)
         # out = out * (1-self.lambda_init)

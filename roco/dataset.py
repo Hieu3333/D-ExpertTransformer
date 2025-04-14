@@ -34,7 +34,7 @@ class ROCO(Dataset):
         normalized_caption = normalized_caption.strip().replace('\n',' ')
         # Safely remove broken Unicode escape sequences (skip decode to avoid crash)
         normalized_caption = re.sub(r'\\u[0-9a-fA-F]{0,4}', '', normalized_caption)
-        normalized_caption = re.sub(r'[^a-zA-Z0-9\s]', '', normalized_caption)  # keep only alphanum, space, and ()
+        normalized_caption = re.sub(r'[^a-zA-Z0-9\s]', '', normalized_caption)  # keep only alphanum, space
         normalized_caption = re.sub(r'\s+', ' ', normalized_caption).strip() 
 
         tokens = self.tokenizer.encode(normalized_caption)
