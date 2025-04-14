@@ -4,20 +4,23 @@ class Tokenizer:
     def __init__(self, args):
         self.tokenizer = HFTokenizer.from_file('roco/tokenizer.json')
 
-       
-        self.max_length = args.max_length
+        # Get special token IDs from the tokenizer
         self.pad_id = self.tokenizer.token_to_id("<PAD>")
         self.bos_id = self.tokenizer.token_to_id("<BOS>")
         self.eos_id = self.tokenizer.token_to_id("<EOS>")
 
-    def encode(self, text):
-        # Add BOS and EOS tokens manually
-        encoding = self.tokenizer.encode(
-            self.bos_id + text + self.eos_id,
-            add_special_tokens=False
-        )
-        ids = encoding
+        # Set max length
+        self.max_length = args.max_length
 
+    def encode(self, text):
+        # Encode the text to get its token IDs
+        encoding = self.tokenizer.encode(text)
+        ids = encoding.ids
+
+        # Add BOS and EOS tokens manually
+        ids = [self.bos_id] + ids + [self.eos_id]
+
+        # Truncate or pad the sequence
         if len(ids) > self.max_length:
             ids = ids[:self.max_length]
         elif len(ids) < self.max_length:
