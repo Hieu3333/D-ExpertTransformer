@@ -311,18 +311,19 @@ class ExpertTransformer(nn.Module):
             x = self.contextual_decoder[i](encoder_features,x)
         
         logits = self.lm_head(x)
-        # print("logits:",logits.shape)
-        # print("target:",targets.shape)
-        # print("target_keywords:",target_keywords.shape)
+        if self.dataset == 'roco':
+            pad_token = self.tokenizer.pad_token_id
+        else:
+            pad_token = self.tokenizer.word2idx["<PAD>"]
         if targets is not None:
             # loss_ce = F.cross_entropy(logits.view(-1,logits.shape[-1]),targets.view(-1),ignore_index=-1)
             # Cross-Modal Contrastive Loss
             if self.use_contrastive:
                 contrastive_loss = self.compute_contrastive_loss(visual_features, x)
-                loss_ce = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
+                loss_ce = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=pad_token)
                 loss = self.delta1*loss_ce + self.delta2*contrastive_loss
             else:
-                loss = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=self.tokenizer.word2idx["<PAD>"])
+                loss = F.cross_entropy(logits.view(-1,logits.size(-1)), targets.view(-1), ignore_index=pad_token)
         else:
             loss = None
             
@@ -372,9 +373,12 @@ class ExpertTransformer(nn.Module):
         device = self.device
         batch_size = images.size(0)
         beam_width = self.beam_width
-
-        bos_id = self.tokenizer.word2idx["<BOS>"]
-        eos_id = self.tokenizer.word2idx["<EOS>"]
+        if self.dataset == 'roco':
+            bos_id = self.tokenizer.bos_token_id
+            bos_id = self.tokenizer.eos_token_id
+        else:
+            bos_id = self.tokenizer.word2idx["<BOS>"]
+            eos_id = self.tokenizer.word2idx["<EOS>"]
 
         # Initialize sequences and log probabilities
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
