@@ -15,7 +15,7 @@ python train_roco.py \
   --batch_size 64 \
   --accum_steps 1 \
   --early_stopping 10 \
-  --max_length 60 \
+  --max_length 100 \
   --step_size 10 \
   --max_gen 100 \
   --hidden_size 512 \

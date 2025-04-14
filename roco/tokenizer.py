@@ -1,7 +1,7 @@
 from tokenizers import Tokenizer as HFTokenizer
 
 class Tokenizer:
-    def __init__(self, args):
+    def __init__(self, args=None):
         self.tokenizer = HFTokenizer.from_file('roco/tokenizer.json')
 
         # Get special token IDs from the tokenizer
@@ -10,7 +10,7 @@ class Tokenizer:
         self.eos_id = self.tokenizer.token_to_id("<EOS>")
 
         # Set max length
-        self.max_length = args.max_length
+        self.max_length = args.max_length if args is not None else 50
 
     def encode(self, text):
         # Encode the text to get its token IDs
@@ -30,3 +30,8 @@ class Tokenizer:
 
     def decode(self, token_ids):
         return self.tokenizer.decode(token_ids, skip_special_tokens=True)
+
+
+tokenizer = Tokenizer()
+text = "A 3-year-old child with visual difficulties. Axial FLAIR image show a supra-sellar lesion"
+print(tokenizer.decode(tokenizer.encode(text)))

@@ -375,7 +375,7 @@ class ExpertTransformer(nn.Module):
         beam_width = self.beam_width
         if self.dataset == 'roco':
             bos_id = self.tokenizer.bos_id
-            bos_id = self.tokenizer.eos_id
+            eos_id = self.tokenizer.eos_id
         else:
             bos_id = self.tokenizer.word2idx["<BOS>"]
             eos_id = self.tokenizer.word2idx["<EOS>"]

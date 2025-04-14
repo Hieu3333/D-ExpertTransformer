@@ -32,5 +32,6 @@ class ROCO(Dataset):
         if self.transform:
             image = image.convert("RGB")
             image = self.transform(image)
+        caption = self.tokenizer.decode(self.tokenizer.encode(caption))
      
         return image_id,image, tokens,target_tokens,caption
