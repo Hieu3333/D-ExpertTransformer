@@ -13,7 +13,7 @@ class Tokenizer:
     def encode(self, text):
         # Add BOS and EOS tokens manually
         encoding = self.tokenizer.encode(
-            self.tokenizer.bos_token + text + self.tokenizer.eos_token,
+            self.bos_id + text + self.eos_id,
             add_special_tokens=False
         )
         ids = encoding
