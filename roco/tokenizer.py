@@ -2,7 +2,7 @@ from tokenizers import Tokenizer as HFTokenizer
 
 class Tokenizer:
     def __init__(self, args):
-        self.tokenizer = HFTokenizer.load('roco/tokenizer.json')
+        self.tokenizer = HFTokenizer.from_file('roco/tokenizer.json')
 
        
         self.max_length = args.max_length
