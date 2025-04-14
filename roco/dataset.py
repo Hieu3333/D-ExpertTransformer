@@ -25,7 +25,7 @@ class ROCO(Dataset):
         target_tokens = deepcopy(tokens)
 
         target_tokens = tokens[1:]
-        target_tokens[-1] = self.tokenizer.encode('<PAD>')
+        target_tokens[-1] = self.tokenizer.encode('<PAD>')[0]
 
 
         # Apply transforms if provided
