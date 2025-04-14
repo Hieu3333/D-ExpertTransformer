@@ -5,7 +5,7 @@ from tokenizers import Tokenizer as HFTokenizer
 tokenizer = HFTokenizer.from_file("roco/tokenizer.json")
 
 # Read captions
-with open("roco/captions.txt", "r", encoding="utf-8") as f:
+with open("roco/normalized_captions.txt", "r", encoding="utf-8") as f:
     captions = [line.strip() for line in f if line.strip()]
 
 # Compute token lengths

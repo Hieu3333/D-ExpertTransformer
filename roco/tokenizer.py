@@ -26,7 +26,7 @@ class Tokenizer:
         return ids
 
     def decode(self, token_ids):
-        return self.tokenizer.decode(token_ids, skip_special_tokens=False)
+        return self.tokenizer.decode(token_ids, skip_special_tokens=True)
 
 
 # tokenizer = Tokenizer()
