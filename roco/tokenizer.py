@@ -32,6 +32,6 @@ class Tokenizer:
         return self.tokenizer.decode(token_ids, skip_special_tokens=True)
 
 
-tokenizer = Tokenizer()
-text = "A 3-year-old child with visual difficulties. Axial FLAIR image show a supra-sellar lesion"
-print(tokenizer.decode(tokenizer.encode(text)))
+# tokenizer = Tokenizer()
+# text = "A 3-year-old child with visual difficulties. Axial FLAIR image show a supra-sellar lesion"
+# print(tokenizer.decode(tokenizer.encode(text)))
