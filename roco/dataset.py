@@ -25,10 +25,10 @@ class ROCO(Dataset):
         target_tokens = tokens.clone()
 
         # Pad target_tokens to the same length as tokens
-        target_tokens = torch.cat([target_tokens, torch.tensor([self.tokenizer.pad_token_id])])
+        target_tokens = torch.cat([target_tokens, torch.tensor([self.tokenizer.pad_id])])
 
         # Ensure target_tokens has the same length as tokens
-        target_tokens = torch.cat([target_tokens, torch.tensor([self.tokenizer.pad_token_id] * (tokens.size(0) - target_tokens.size(0)))])
+        target_tokens = torch.cat([target_tokens, torch.tensor([self.tokenizer.pad_id] * (tokens.size(0) - target_tokens.size(0)))])
 
 
         # Apply transforms if provided
