@@ -3,6 +3,11 @@ from datasets import load_dataset
 from torch.utils.data import Dataset
 import copy
 
+from tokenizers.normalizers import NFD, Lowercase, StripAccents, Sequence
+
+
+
+
 class ROCO(Dataset):
     def __init__(self, args, data,tokenizer, transform=None, split='train'):
         self.args = args
@@ -10,6 +15,11 @@ class ROCO(Dataset):
         self.split = split
         self.data = data[split]  # Hugging Face DatasetDict split (e.g., 'train', 'test', etc.)
         self.tokenizer = tokenizer
+        self.normalizer = Sequence([
+                            NFD(),
+                            Lowercase(),
+                            StripAccents()
+                        ])
 
     def __len__(self):
         return len(self.data)
@@ -32,6 +42,6 @@ class ROCO(Dataset):
         if self.transform:
             image = image.convert("RGB")
             image = self.transform(image)
-        caption = self.tokenizer.decode(self.tokenizer.encode(caption))
+        caption = self.normalizer.normalize_str(caption)
      
         return image_id,image, tokens,target_tokens,caption
