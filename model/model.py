@@ -71,6 +71,7 @@ class DiffMultiHeadedAttention(nn.Module):
         self.diff_num_heads = args.diff_num_heads
         self.diff_head_size = self.hidden_size // self.diff_num_heads
         self.dropout = nn.Dropout(args.dropout)
+        self.dropout_rate = args.dropout
         self.mask = mask
 
         assert self.hidden_size % self.diff_num_heads == 0
@@ -108,8 +109,8 @@ class DiffMultiHeadedAttention(nn.Module):
         
         q1, q2 = q[:,:,:,0], q[:,:,:,1]
         k1, k2 = k[:,:,:,0], k[:,:,:,1]
-        att1 = F.scaled_dot_product_attention(q1,k1,v,attn_mask=None,dropout_p=self.dropout,is_causal=self.mask)
-        att2 = F.scaled_dot_product_attention(q2,k2,v,attn_mask=None,dropout_p=self.dropout,is_causal=self.mask)
+        att1 = F.scaled_dot_product_attention(q1,k1,v,attn_mask=None,dropout_p=self.dropout_rate,is_causal=self.mask)
+        att2 = F.scaled_dot_product_attention(q2,k2,v,attn_mask=None,dropout_p=self.dropout_rate,is_causal=self.mask)
         # assert q.shape[-1] == k.shape[-1]
         # att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
         # # print('att:',att.shape)
