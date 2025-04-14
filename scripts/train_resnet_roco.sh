@@ -1,14 +1,14 @@
 python train_roco.py \
   --exp_name "resnet-diff-roco" \
-  --epochs 10 \
+  --epochs 20 \
   --dataset "roco" \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
-  --lr_ed 2e-4 \
+  --lr_ed 3e-4 \
   --lr_ve 1e-4 \
   --warmup_epochs 0 \
-  --weight_decay 1e-5 \
+  --weight_decay 1e-6 \
   --channel_reduction 4 \
   --num_layers 3 \
   --save_path "results" \
