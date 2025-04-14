@@ -3,7 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from torchvision import transforms
 from copy import deepcopy
-from dataset import ROCO
+from roco.dataset import ROCO
 
 class ROCODataLoader:
     def __init__(self, data, tokenizer, args, split='train', shuffle=True):
