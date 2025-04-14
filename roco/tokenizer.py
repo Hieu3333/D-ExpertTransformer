@@ -17,9 +17,6 @@ class Tokenizer:
         encoding = self.tokenizer.encode(text)
         ids = encoding.ids
 
-        # Add BOS and EOS tokens manually
-        ids = [self.bos_id] + ids + [self.eos_id]
-
         # Truncate or pad the sequence
         if len(ids) > self.max_length:
             ids = ids[:self.max_length]
@@ -29,7 +26,7 @@ class Tokenizer:
         return ids
 
     def decode(self, token_ids):
-        return self.tokenizer.decode(token_ids, skip_special_tokens=True)
+        return self.tokenizer.decode(token_ids, skip_special_tokens=False)
 
 
 # tokenizer = Tokenizer()

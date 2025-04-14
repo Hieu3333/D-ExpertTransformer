@@ -1,4 +1,4 @@
-import json
-with open('data/cleaned_DeepEyeNet_test.json','r') as f:
-    ann = json.load(f)
-print(len(ann))
+from roco.tokenizer import Tokenizer
+t = Tokenizer()
+text = "patient"
+print(t.decode(t.encode(text)))
