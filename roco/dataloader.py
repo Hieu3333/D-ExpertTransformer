@@ -13,6 +13,7 @@ class ROCODataLoader(DataLoader):
         self.batch_size = args.batch_size
         self.split = split
         self.shuffle = shuffle
+        self.num_workers = args.num_workers
         self.drop_last = True if split == 'train' else False
 
         # Image transformations based on encoder type
@@ -45,6 +46,15 @@ class ROCODataLoader(DataLoader):
             tokenizer=self.tokenizer,
             split=self.split,
             transform=self.transform
+        )
+
+        super().__init__(
+            dataset=self.dataset,
+            batch_size=self.batch_size,
+            shuffle=self.shuffle,
+            num_workers=self.num_workers,
+            drop_last=self.drop_last,
+            collate_fn=self.custom_collate  # Pass custom collate function
         )
 
     @staticmethod
