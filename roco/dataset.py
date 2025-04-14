@@ -22,10 +22,10 @@ class ROCO(Dataset):
 
         tokens = self.tokenizer.encode(caption)
         tokens = torch.tensor(tokens,dtype=torch.long)
-        target_tokens = deepcopy(tokens)
+        target_tokens = tokens.clone()
 
         target_tokens = tokens[1:]
-        target_tokens[-1] = self.tokenizer.encode('<PAD>')[0]
+        target_tokens[-1] = self.tokenizer.pad_id
 
 
         # Apply transforms if provided
