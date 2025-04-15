@@ -146,8 +146,7 @@ for epoch in range(current_epoch-1,num_epochs):
     
     if (epoch+1) <args.epochs:
         continue
-    
-    best_test_score = test_scores['BLEU_1']
+   
     torch.save({
         'epoch': epoch + 1,  # Save current epoch
         'model': model.state_dict(),  # Save model weights
