@@ -261,6 +261,10 @@ class ExpertTransformer(nn.Module):
         self.beam_width = args.beam_width
         self.dataset = args.dataset
         self.use_contrastive = args.use_contrastive
+        self.num_tokens = 5
+
+        if args.dataset != "deepeyenet":
+            self.learnable_tokens = nn.Parameters(torch.randn(args.batch_size,self.num_tokens,args.hidden_size)) #Use 3 learnable tokens
 
 
         #Weight tying
@@ -290,7 +294,8 @@ class ExpertTransformer(nn.Module):
         if self.dataset == "deepeyenet":
             keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
             keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
-        
+        else:
+            keyword_emb = self.language_encoder(self.learnable_tokens,self.learnable_tokens,self.learnable_tokens)
 
         
         pos = torch.arange(0,T,dtype=torch.long,device=device)
@@ -298,19 +303,19 @@ class ExpertTransformer(nn.Module):
         pos_emb = self.wpe(pos)
         x = self.dropout(tok_emb+pos_emb)
 
-        if self.dataset == "deepeyenet":
-            for i in range(self.num_layers):
-                if i==0:
-                    encoder_features = self.fuser[i](visual_features,keyword_emb)
-                else:
-                    encoder_features = self.fuser[i](encoder_features,encoder_features)
+        # if self.dataset == "deepeyenet":
+        for i in range(self.num_layers):
+            if i==0:
+                encoder_features = self.fuser[i](visual_features,keyword_emb)
+            else:
+                encoder_features = self.fuser[i](encoder_features,encoder_features)
                 
-        else:
-            for i in range(self.num_layers):
-                if i == 0:
-                    encoder_features = self.fuser[i](visual_features,visual_features)
-                else:
-                    encoder_features = self.fuser[i](encoder_features,encoder_features)        
+        # else:
+        #     for i in range(self.num_layers):
+        #         if i == 0:
+        #             encoder_features = self.fuser[i](visual_features,visual_features)
+        #         else:
+        #             encoder_features = self.fuser[i](encoder_features,encoder_features)        
         for i in range(self.num_layers):
             x = self.contextual_decoder[i](encoder_features,x)
         
