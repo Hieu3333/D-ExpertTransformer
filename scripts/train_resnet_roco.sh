@@ -3,7 +3,7 @@ python train_roco.py \
   --epochs 30 \
   --dataset "roco" \
   --ve_name "resnet" \
-  --use_diff \
+  --use_gca \
   --constant_lr \
   --lr_ed 2e-4 \
   --lr_ve 1e-4 \
