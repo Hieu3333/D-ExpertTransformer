@@ -151,7 +151,7 @@ for epoch in range(current_epoch-1,num_epochs):
         'epoch': epoch + 1,  # Save current epoch
         'model': model.state_dict(),  # Save model weights
         'optim': optimizer.state_dict(),  # Save optimizer state
-    }, os.path.join(save_path, f"iu_xray.pth"))
+    }, os.path.join(save_path, f"roco.pth"))
     print(f'Model checkpoint saved to {save_path}')
         
   

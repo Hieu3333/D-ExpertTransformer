@@ -1,6 +1,6 @@
 python train_roco.py \
   --exp_name "resnet-diff-roco" \
-  --epochs 20 \
+  --epochs 30 \
   --dataset "roco" \
   --ve_name "resnet" \
   --use_diff \
@@ -37,6 +37,7 @@ python train_roco.py \
   --image_path "" \
   --ann_path "" \
   --project_root "/workspace/D-ExpertTransformer" \
+  --from_pretrained "results/resnet-diff-roco/iu_xray.pth" \
 
 
 

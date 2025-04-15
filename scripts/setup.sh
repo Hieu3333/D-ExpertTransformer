@@ -36,6 +36,6 @@ wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-e
 
 
 
-scp -P 24332 root@185.150.27.254:/workspace/D-ExpertTransformer/results/resnet-diff-iu-combine/iu_xray.pth "/mnt/c/D-ExpertTransformer/results/iu_xray"
+scp -P 24694 root@185.150.27.254:/workspace/D-ExpertTransformer/results/resnet-diff-iu-combine/iu_xray.pth "/mnt/c/D-ExpertTransformer/results/iu_xray"
 
-scp -P 24332 -r root@185.150.27.254:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"
+scp -P 24694 -r root@185.150.27.254:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"
