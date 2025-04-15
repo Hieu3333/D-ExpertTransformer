@@ -13,6 +13,8 @@ cd D-ExpertTransformer
 sudo apt update && sudo apt install unzip -y
 pip install timm
 pip install numpy==1.21.2
+pip install transformers
+pip install tokenizers
 sudo apt update
 sudo apt install git-lfs
 git lfs install

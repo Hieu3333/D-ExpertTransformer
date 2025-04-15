@@ -37,7 +37,7 @@ python train_roco.py \
   --image_path "" \
   --ann_path "" \
   --project_root "/workspace/D-ExpertTransformer" \
-  --from_pretrained "results/resnet-diff-roco/iu_xray.pth" \
+  # --from_pretrained "results/resnet-diff-roco/iu_xray.pth" \
 
 
 
