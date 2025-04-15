@@ -144,8 +144,7 @@ for epoch in range(current_epoch-1,num_epochs):
     if not args.constant_lr and (epoch+1)>args.warmup_epochs:
         scheduler.step()  
 
-    if (epoch+1)%10==0:
-        torch.save({
+    torch.save({
         'epoch': epoch + 1,  # Save current epoch
         'model': model.state_dict(),  # Save model weights
         'optim': optimizer.state_dict(),  # Save optimizer state
