@@ -1,5 +1,5 @@
 python train_deepeyenet.py \
-  --exp_name "densenet-diff" \
+  --exp_name "densenet-deepeyenet-diff" \
   --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "densenet" \
