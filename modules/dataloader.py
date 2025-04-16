@@ -35,7 +35,7 @@ class DENDataLoader(DataLoader):
         elif args.ve_name == "efficientnet":
             # Dynamically setting the size based on input size from the args (if specified)
             self.transform = transforms.Compose([
-                transforms.Resize((args.input_size, args.input_size)),  # Resizing to match input size
+                transforms.Resize((356, 356)),  # Resizing to match input size
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             ])
