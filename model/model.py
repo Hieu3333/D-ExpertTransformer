@@ -264,7 +264,7 @@ class ExpertTransformer(nn.Module):
         self.num_tokens = 5
 
         if args.dataset != "deepeyenet":
-            self.learnable_tokens = nn.Parameter(torch.randn(args.batch_size,self.num_tokens,args.hidden_size)) #Use 3 learnable tokens
+            self.learnable_tokens = nn.Parameter(torch.randn(args.batch_size,self.num_tokens,args.hidden_size)) #Use learnable tokens
 
 
         #Weight tying
