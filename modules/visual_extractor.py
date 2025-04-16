@@ -61,4 +61,33 @@ class EfficientNet(nn.Module):
     def forward(self, x):
         return self.model(x)  # Returns feature map of shape (B, 1280, 12, 12)
 
-    
+class DenseNet(nn.Module):
+    def __init__(self, args):
+        super(DenseNet, self).__init__()
+        self.dataset = args.dataset
+        
+        # Load DenseNet121
+        densenet = models.densenet121(pretrained=True)
+        
+        # Extract features up to the final convolutional layer
+        self.features = densenet.features  # (B, 1024, 7, 7)
+        
+        # Optional: freeze parameters
+        # for param in self.features.parameters():
+        #     param.requires_grad = False
+
+    def forward(self, x):
+        if self.dataset == 'iu_xray':
+            img1 = x[:, 0]  # (B, C, H, W)
+            img2 = x[:, 1]
+
+            feat1 = F.relu(self.features(img1))  # (B, 1024, 7, 7)
+            feat2 = F.relu(self.features(img2))
+
+            B, C, H, W = feat1.shape
+            patch_feats = torch.cat([feat1, feat2], dim=2)  # (B, 1024, 14, 7)
+
+            return patch_feats
+        else:
+            x = F.relu(self.features(x))  # (B, 1024, 7, 7)
+            return x

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 import math
-from modules.visual_extractor import ResNet50,EfficientNet
+from modules.visual_extractor import ResNet50,EfficientNet, DenseNet
 import sys
 from collections import Counter
 from modules.RMSNorm import RMSNorm
@@ -177,8 +177,11 @@ class VisualEncoder(nn.Module):
         self.use_gca = args.use_gca
         if args.ve_name == 'resnet':
             self.ve = ResNet50(args)
-        else:
+        elif args.ve_name == 'efficientnet':
             self.ve = EfficientNet(args)
+        else:
+            self.ve = DenseNet(args)
+    
         if args.use_gca:
             self.gca = GuidedContextAttention(args)
         
