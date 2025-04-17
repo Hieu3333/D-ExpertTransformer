@@ -1,11 +1,12 @@
 python train_deepeyenet.py \
-  --exp_name "resnet-deepeyenet-no_keywords" \
+  --exp_name "resnet-deepeyenet-lt" \
   --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
   --use_beam \
+  --use_learnable_tokens \
   --lr_ed 2e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-4 \
