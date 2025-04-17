@@ -265,6 +265,7 @@ class ExpertTransformer(nn.Module):
         self.dataset = args.dataset
         self.use_contrastive = args.use_contrastive
         self.num_tokens = 5
+        self.use_lt = args.use_learnable_tokens
 
         if args.dataset != "deepeyenet":
             self.learnable_tokens = nn.Parameter(torch.randn(args.batch_size,self.num_tokens,args.hidden_size)) #Use learnable tokens

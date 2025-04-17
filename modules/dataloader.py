@@ -16,7 +16,7 @@ class DENDataLoader(DataLoader):
         self.num_workers = args.num_workers
         self.tokenizer = tokenizer
         self.split = split
-        self.drop_last = True if split == 'train' else False
+        self.drop_last = True if split == 'train' or args.use_learnable_tokens else False
 
         # Define Image Transformations based on backbone model (ve_name)
         if args.ve_name == "resnet":
