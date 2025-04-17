@@ -1,17 +1,17 @@
 python train_deepeyenet.py \
-  --exp_name "resnet-deepeyenet-diff-gca-1024-4096" \
+  --exp_name "resnet-deepeyenet-no_keywords" \
   --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
+  --use_beam \
   --lr_ed 2e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --warmup_epochs 0 \
   --num_layers 3 \
-  --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
   --early_stopping 10 \
@@ -33,6 +33,7 @@ python train_deepeyenet.py \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
+  --save_path "results" \
   --image_path "data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \

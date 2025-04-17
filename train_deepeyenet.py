@@ -159,7 +159,7 @@ for epoch in range(current_epoch-1,num_epochs):
             'epoch': epoch + 1,  # Save current epoch
             'model': model.state_dict(),  # Save model weights
             'optim': optimizer.state_dict(),  # Save optimizer state
-        }, os.path.join(save_path, f"checkpoint_epoch_{epoch+1}.pth"))
+        }, os.path.join(save_path, f"{args.ve_name}_deepeyenet.pth"))
 
 
     val_results = []
@@ -167,9 +167,8 @@ for epoch in range(current_epoch-1,num_epochs):
 
     #Evaluation
     model.eval()
-    gts_val = []
-    res_val = []
-    val_loss = 0.0
+    gts_val = {}
+    res_val = {}
     with torch.no_grad():  
         for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
             # if batch_idx>=3:
@@ -180,40 +179,27 @@ for epoch in range(current_epoch-1,num_epochs):
             target_tokens = target_tokens.to(device)
             gt_keyword_tokens = gt_keyword_tokens.to(device)
             desc_tokens = desc_tokens.to(device)
-            # print("Image:",images.shape)
-            # print("target_tokens:",target_tokens.shape)
-            
-            # Generate captions for the whole batch
-            # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
+         
             with torch.cuda.amp.autocast():
-                _, loss = model(images=images, tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
-                generated_captions = model.generate_beam(images,gt_keyword_tokens)
-                gts_val.extend(gt_clinical_desc)
-                res_val.extend(generated_captions) # Corresponding generated caption
+                if args.use_beam:
+                    generated_captions = model.generate_beam(images,gt_keyword_tokens)
+                else:
+                    generated_captions = model.generate_greedy(images,gt_keyword_tokens)
+                for i,image_id in enumerate(image_ids):
+                    groundtruth_caption = gt_clinical_desc[i]
+                    gts_val[image_id] = [groundtruth_caption]
+                    res_val[image_id] = [generated_captions[i]]
             # Decode ground truth captions
             for i, image_id in enumerate(image_ids):           
                 val_results.append({"image_id": image_id, "ground_truth": gt_clinical_desc[i], "generated_caption": generated_captions[i]})        
-            val_loss += loss.item()
 
         val_path = os.path.join(log_path,f"val_result_epoch_{epoch+1}.json")
         with open(val_path, "w") as f:
             json.dump(val_results, f, indent=4)
 
-        # check_gts = {i: [gt] for i, gt in enumerate(gts_val)}
-        # check_res = {i: [re] for i, re in enumerate(res_val)}
-        # print(check_gts)
-        # print()
-        # print(check_res)
-
         # Compute evaluation metrics
-        eval_scores = compute_scores({i: [gt] for i, gt in enumerate(gts_val)},
-                                     {i: [re] for i, re in enumerate(res_val)})
+        eval_scores = compute_scores(gts_val,res_val)
 
-        # for k, v in eval_scores.items():
-        #     print(f"{k}: {v} (type: {type(v)})")
-
-        avg_val_loss = val_loss / len(val_dataloader)
-        logger.info(f"Validation loss: {avg_val_loss:.2f}")
         logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
         logger.info(f"BLEU_1: {eval_scores['BLEU_1']}")
         logger.info(f"BLEU_2: {eval_scores['BLEU_2']}")
@@ -238,7 +224,10 @@ for epoch in range(current_epoch-1,num_epochs):
             gt_keyword_tokens = gt_keyword_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
             with torch.cuda.amp.autocast():
-                generated_captions = model.generate_beam(images,gt_keyword_tokens) 
+                if args.use_beam:
+                    generated_captions = model.generate_beam(images,gt_keyword_tokens)
+                else:
+                    generated_captions = model.generate_greedy(images,gt_keyword_tokens)
 
             for i,image_id in enumerate(image_ids):
                 groundtruth_caption = gt_clinical_desc[i]
