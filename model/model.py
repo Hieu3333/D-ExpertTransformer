@@ -151,7 +151,8 @@ class TransfusionEncoder(nn.Module):
             self.attn = MultiHeadedAttention(args,mask=False)
         self.depth = depth
         self.dataset = args.dataset
-
+        self.use_keywords = args.use_keywords
+        self.use_lt = args.use_lt
 
         if depth == 0:
             self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
@@ -164,7 +165,10 @@ class TransfusionEncoder(nn.Module):
             vf = self.vf_proj(x)
         else:
             vf = x
-        vf = self.ln1(vf + self.attn(vf,y,z))
+        if self.use_keywords or self.use_lt:
+            vf = self.ln1(vf + self.attn(vf,y,z))
+        else:
+            vf = self.ln1(vf + self.attn(vf,vf,vf))
         vf = self.ln2(vf +self.mlp(vf))
         return vf
     
