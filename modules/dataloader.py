@@ -4,7 +4,7 @@ import torch
 from modules.dataset import DeepEyeNet
 
 class DENDataLoader(DataLoader):
-    def __init__(self, args, tokenizer, keywords_vocab_set, split, shuffle):
+    def __init__(self, args, tokenizer, split, shuffle):
         # Ensure the required arguments are provided
         assert hasattr(args, 'batch_size'), "args.batch_size is required"
         assert hasattr(args, 'num_workers'), "args.num_workers is required"
@@ -58,7 +58,6 @@ class DENDataLoader(DataLoader):
         self.dataset = DeepEyeNet(
             args=args,
             tokenizer=tokenizer,
-            keywords_list=keywords_vocab_set,  # set of keywords, non-duplicated
             split=split,
             transform=self.transform
         )
@@ -88,3 +87,6 @@ class DENDataLoader(DataLoader):
 
         # Return a tuple of batches
         return image_ids, images, desc_tokens, target_tokens, keyword_tokens, clinical_descs  # clinical_descs remains a list of strings
+
+    def set_mask_prob(self,prob):
+        self.dataset.set_masking_probability(prob)

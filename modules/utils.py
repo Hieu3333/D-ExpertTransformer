@@ -55,27 +55,12 @@ def parser_arg():
     return args
     
 
-def load_all_keywords():
-    train_path = "data/cleaned_DeepEyeNet_train.json"
-    val_path = "data/cleaned_DeepEyeNet_val.json"
-    test_path = "data/cleaned_DeepEyeNet_test.json"
-    all_keywords = set()
-    json_paths = [train_path,val_path,test_path]
-    for path in json_paths:
-        print(f"Loading {path}...")
-        with open(path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-
-        for item in data:
-            for _, value in item.items():
-                if value.get('keywords'):
-                    keywords = value['keywords']
-                    # Split by comma and strip whitespace
-                    keyword_list = [kw.strip() for kw in keywords.split(',')]
-                    all_keywords.update(keyword_list)
+def get_mask_prob(args,current_epoch):
     
-    # all_keywords = [kw for kw in all_keywords if "<UNK>" not in kw]
-    print(f"Total {len(all_keywords)} keywords collected!")
-    all_keywords = sorted(list(all_keywords))
-    # print(all_keywords)
-    return all_keywords
+    if current_epoch<10:
+        prob = 0.0
+    elif current_epoch<=args.epochs-10:
+        prob = (1/(args.epochs-20))*current_epoch
+    else:
+        prob = 1.0
+    return prob

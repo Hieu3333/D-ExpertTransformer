@@ -5,20 +5,18 @@ from PIL import Image
 import torch
 import copy
 from PIL import Image
+import random
 
 
 
 class DeepEyeNet(Dataset):
-    def __init__(self, args, tokenizer, keywords_list, split, transform=None):
+    def __init__(self, args, tokenizer, split, transform=None):
         self.max_length = args.max_length
         self.split = split  # 'train', 'test', 'val'
         self.tokenizer = tokenizer
         self.transform = transform
+        self.mask_keyword_prob = 0.0
 
-        # --- Vocabulary ---
-        self.keywords_vocab = keywords_list  # set → sorted list
-        self.keyword_to_idx = {kw: idx for idx, kw in enumerate(self.keywords_vocab)}
-        self.num_keywords = len(self.keywords_vocab)
 
         # Set paths
         project_root = args.project_root
@@ -45,6 +43,10 @@ class DeepEyeNet(Dataset):
 
     def __len__(self):
         return len(self.data)
+    
+    def set_masking_probability(self, prob):
+        self.mask_keyword_prob = prob
+
 
     def __getitem__(self, idx):
         img_name, keywords, clinical_desc = self.data[idx]
@@ -83,6 +85,20 @@ class DeepEyeNet(Dataset):
         
         keyword_tokens = self.tokenizer.encode_keywords(raw_keywords)
         keyword_tokens = torch.tensor(keyword_tokens, dtype=torch.long)
+
+
+        if self.split == 'train' and random.random() < self.mask_keyword_prob:
+            if random.random() < 0.5:
+                # Mask all keywords
+                keyword_tokens = torch.tensor(self.tokenizer.encode_keywords("<MASK>"), dtype=torch.long)
+            else:
+                #Keep some, mask some
+                tokens = raw_keywords.split("<SEP>")
+                keep_tokens = [t.strip() for t in tokens if t.strip()]
+                if len(keep_tokens) > 1:
+                    keep_subset = random.sample(keep_tokens, k=len(keep_tokens)//2)
+                    partial_kw_str = " <SEP> ".join(keep_subset)
+                    keyword_tokens = torch.tensor(self.tokenizer.encode_keywords(partial_kw_str), dtype=torch.long)
 
         return image_id, image, desc_tokens, target_tokens, keyword_tokens, clinical_desc
 

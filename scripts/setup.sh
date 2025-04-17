@@ -38,8 +38,8 @@ wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-e
 
 
 
-scp -P 54043 root@143.55.45.86:/workspace/D-ExpertTransformer/results/densenet-deepeyenet-diff/checkpoint_epoch_50.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
-scp -P 54043 -r root@143.55.45.86:/workspace/D-ExpertTransformer/logs/densenet-deepeyenet-diff/ "/mnt/c/D-ExpertTransformer/logs"
+scp -P 54043 root@143.55.45.86:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-lt/checkpoint_epoch_50.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
+scp -P 54043 -r root@143.55.45.86:/workspace/D-ExpertTransformer/logs/resnet-deepeyenet-lt/ "/mnt/c/D-ExpertTransformer/logs"
 
 scp -P 54043 root@143.55.45.86:/workspace/D-ExpertTransformer/results/resnet-diff-roco/roco.pth "/mnt/c/D-ExpertTransformer/results/roco"
 scp -P 54043 -r root@143.55.45.86:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"
