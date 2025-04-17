@@ -152,7 +152,7 @@ class TransfusionEncoder(nn.Module):
         self.depth = depth
         self.dataset = args.dataset
         self.use_keywords = args.use_keywords
-        self.use_lt = args.use_lt
+        self.use_lt = args.use_learnable_tokens
 
         if depth == 0:
             self.vf_proj = nn.Linear(args.encoder_size, args.hidden_size)
