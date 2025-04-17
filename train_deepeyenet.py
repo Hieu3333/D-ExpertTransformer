@@ -106,7 +106,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
-print(f'Total params: {total_params/1e6:.2f}M')
+logger.info(f'Total params: {total_params/1e6:.2f}M')
 
 num_epoch_not_improved = 0
 best_val_loss = 1e6
