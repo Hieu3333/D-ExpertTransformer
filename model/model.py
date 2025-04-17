@@ -270,7 +270,7 @@ class ExpertTransformer(nn.Module):
         self.use_keywords = args.use_keywords
         self.use_lt = args.use_learnable_tokens
 
-        if args.dataset != "deepeyenet":
+        if args.use_learnable_tokens:
             self.learnable_tokens = nn.Parameter(torch.randn(args.batch_size,self.num_tokens,args.hidden_size)) #Use learnable tokens
 
 
