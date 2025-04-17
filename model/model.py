@@ -295,7 +295,7 @@ class ExpertTransformer(nn.Module):
 
         visual_features = self.visual_encoder(images)
 
-        if self.dataset == "deepeyenet":
+        if not self.use_lt:
             keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
             keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
         else:
