@@ -120,8 +120,9 @@ for epoch in range(current_epoch-1,num_epochs):
         break
 
     logger.info(f"Epoch {epoch+1}:")
-    mask_prob = get_mask_prob(args,epoch+1)
-    train_dataloader.set_mask_prob(mask_prob)
+    if args.use_mask:
+        mask_prob = get_mask_prob(args,epoch+1)
+        train_dataloader.set_mask_prob(mask_prob)
     model.train()
     running_loss = 0.0
     if not args.eval:
@@ -179,10 +180,10 @@ for epoch in range(current_epoch-1,num_epochs):
             images = images.to(device)
             target_tokens = target_tokens.to(device)            
             desc_tokens = desc_tokens.to(device)
-            # if not args.use_mask:
-            #     gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
-            #     gt_keyword_tokens = torch.tensor(gt_keyword_tokens)
-            #     gt_keyword_tokens = gt_keyword_tokens.unsqueeze(0).repeat(args.batch_size,1)         
+            if args.use_mask:
+                gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
+                gt_keyword_tokens = torch.tensor(gt_keyword_tokens)
+                gt_keyword_tokens = gt_keyword_tokens.unsqueeze(0).repeat(args.batch_size,1)         
             gt_keyword_tokens = gt_keyword_tokens.to(device)
 
             with torch.cuda.amp.autocast():
@@ -227,10 +228,10 @@ for epoch in range(current_epoch-1,num_epochs):
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
-            # if not args.no_mask:
-            #     gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
-            #     gt_keyword_tokens = torch.tensor(gt_keyword_tokens)
-            #     gt_keyword_tokens = gt_keyword_tokens.unsqueeze(0).repeat(args.batch_size,1)  
+            if args.use_mask:
+                gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
+                gt_keyword_tokens = torch.tensor(gt_keyword_tokens)
+                gt_keyword_tokens = gt_keyword_tokens.unsqueeze(0).repeat(args.batch_size,1)  
             gt_keyword_tokens = gt_keyword_tokens.to(device)    
             with torch.cuda.amp.autocast():
                 if args.use_beam:
