@@ -181,6 +181,7 @@ for epoch in range(current_epoch-1,num_epochs):
             desc_tokens = desc_tokens.to(device)
             if not args.no_mask:
                 gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
+                gt_keyword_tokens = torch.tensor(gt_keyword_tokens)
             gt_keyword_tokens = gt_keyword_tokens.to(device)
 
             with torch.cuda.amp.autocast():
@@ -227,6 +228,7 @@ for epoch in range(current_epoch-1,num_epochs):
             # generated_captions = model.generate(images,beam_width=args.beam_width)
             if not args.no_mask:
                 gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
+                gt_keyword_tokens = torch.tensor(gt_keyword_tokens)
             gt_keyword_tokens = gt_keyword_tokens.to(device)    
             with torch.cuda.amp.autocast():
                 if args.use_beam:
