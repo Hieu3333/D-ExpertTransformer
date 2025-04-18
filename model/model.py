@@ -296,7 +296,6 @@ class ExpertTransformer(nn.Module):
 
         if not self.use_lt:
             keyword_emb = self.We(gt_keyword_tokens) #B,keyword_length,hidden_size
-            print('keyword_emb:', keyword_emb.shape)
             keyword_emb = self.language_encoder(keyword_emb,keyword_emb,keyword_emb)
         else:
             keyword_emb = self.language_encoder(self.learnable_tokens,self.learnable_tokens,self.learnable_tokens)
