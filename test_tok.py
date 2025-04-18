@@ -1,4 +1,7 @@
-from roco.tokenizer import Tokenizer
-t = Tokenizer()
-text = "a normal size uterine cavity with both fallopian tubes demonstrated and there was free spillage of the contrast material both the cervical canal and the uterine cavity are normal in outline"
-print(t.decode(t.encode(text)))
+from modules.utils import get_mask_prob
+import torch
+
+
+for i in range(1,51):
+    y = get_mask_prob(50,i)
+    print(f"{i} - {y}")
