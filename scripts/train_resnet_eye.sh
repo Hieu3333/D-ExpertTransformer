@@ -1,5 +1,5 @@
 python train_deepeyenet.py \
-  --exp_name "resnet-deepeyenet-lt" \
+  --exp_name "resnet-deepeyenet-mask" \
   --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
@@ -37,6 +37,6 @@ python train_deepeyenet.py \
   --image_path "data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
-  --from_pretrained "results/resnet-deepeyenet-lt/resnet_deepeyenet.pth" \
-  --eval \
+  # --from_pretrained "results/resnet-deepeyenet-lt/resnet_deepeyenet.pth" \
+  # --eval \
 
