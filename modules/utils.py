@@ -14,7 +14,7 @@ def parser_arg():
     parser.add_argument('--vocab_size',type=int, required=True)
     parser.add_argument('--ve_name',type=str, required=True)
     parser.add_argument('--use_diff',action='store_true')
-    parser.add_argument('--no_mask',action='store_true')
+    parser.add_argument('--use_mask',action='store_true')
     parser.add_argument('--randaug',action='store_true')
     parser.add_argument('--use_gca',action='store_true')
     parser.add_argument('--use_keywords',action='store_true')
@@ -57,7 +57,7 @@ def parser_arg():
     
 
 def get_mask_prob(args,current_epoch):
-    if args.no_mask:
+    if not args.use_mask:
         return 0.0
     if current_epoch<10:
         prob = 0.0
