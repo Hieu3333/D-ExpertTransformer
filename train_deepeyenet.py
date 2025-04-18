@@ -178,9 +178,12 @@ for epoch in range(current_epoch-1,num_epochs):
             
             images = images.to(device)
             target_tokens = target_tokens.to(device)
-            gt_keyword_tokens = gt_keyword_tokens.to(device)
+            
             desc_tokens = desc_tokens.to(device)
-         
+
+            if not args.no_mask:
+                gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
+            gt_keyword_tokens = gt_keyword_tokens.to(device)
             with torch.cuda.amp.autocast():
                 if args.use_beam:
                     generated_captions = model.generate_beam(images,gt_keyword_tokens)
@@ -222,8 +225,10 @@ for epoch in range(current_epoch-1,num_epochs):
             image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
-            gt_keyword_tokens = gt_keyword_tokens.to(device)
             # generated_captions = model.generate(images,beam_width=args.beam_width)
+            if not args.no_mask:
+                gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
+            gt_keyword_tokens = gt_keyword_tokens.to(device)    
             with torch.cuda.amp.autocast():
                 if args.use_beam:
                     generated_captions = model.generate_beam(images,gt_keyword_tokens)
