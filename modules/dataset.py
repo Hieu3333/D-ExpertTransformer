@@ -52,11 +52,7 @@ class DeepEyeNet(Dataset):
         img_name, keywords, clinical_desc = self.data[idx]
 
         # --- One-hot encoding for keywords ---
-        one_hot = torch.zeros(self.num_keywords, dtype=torch.float32)
         keywords_list = [kw.strip() for kw in keywords.split(',') if kw.strip()]
-        for kw in keywords_list:
-            if kw in self.keyword_to_idx:
-                one_hot[self.keyword_to_idx[kw]] = 1.0
 
         # Load Image
         full_img_path = os.path.join(self.image_path, os.path.basename(img_name))
