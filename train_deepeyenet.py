@@ -61,12 +61,12 @@ tokenizer = Tokenizer(args)
 tokenizer.load_vocab("data/vocab.json")
 
 # Initialize dataset and dataloader
-train_dataloader = DENDataLoader(args, tokenizer, keywords, split='train',shuffle=True)
-val_dataloader = DENDataLoader(args,tokenizer,keywords,split='val',shuffle=False)
-test_dataloader = DENDataLoader(args,tokenizer,keywords,split='test',shuffle=False)
+train_dataloader = DENDataLoader(args, tokenizer, split='train',shuffle=True)
+val_dataloader = DENDataLoader(args,tokenizer,split='val',shuffle=False)
+test_dataloader = DENDataLoader(args,tokenizer,split='test',shuffle=False)
 
 # Initialize model
-model = ExpertTransformer(args, tokenizer, keywords)
+model = ExpertTransformer(args, tokenizer)
 
 
 optimizer =model.configure_optimizer(args)
@@ -182,7 +182,7 @@ for epoch in range(current_epoch-1,num_epochs):
             if not args.no_mask:
                 gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
             gt_keyword_tokens = gt_keyword_tokens.to(device)
-            
+
             with torch.cuda.amp.autocast():
                 if args.use_beam:
                     generated_captions = model.generate_beam(images,gt_keyword_tokens)

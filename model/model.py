@@ -232,7 +232,7 @@ class LanguageDecoderLayer(nn.Module):
 
 
 class ExpertTransformer(nn.Module):
-    def __init__(self,args,tokenizer,keywords=None):
+    def __init__(self,args,tokenizer):
         super(ExpertTransformer,self).__init__()
         self.We = nn.Embedding(args.vocab_size,args.hidden_size)
         self.wpe = nn.Embedding(args.max_gen,args.hidden_size)
@@ -259,7 +259,6 @@ class ExpertTransformer(nn.Module):
         self.visual_contrastive_proj = nn.Linear(args.encoder_size, args.contrastive_proj_dim)
         self.text_contrastive_proj = nn.Linear(args.hidden_size,args.contrastive_proj_dim)
         self.lm_head = nn.Linear(args.hidden_size,args.vocab_size, bias=False)
-        self.keywords = keywords
         self.device = args.device
         self.beam_width = args.beam_width
         self.dataset = args.dataset
