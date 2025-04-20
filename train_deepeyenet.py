@@ -126,7 +126,7 @@ for epoch in range(current_epoch-1,num_epochs):
     model.train()
     running_loss = 0.0
     if not args.eval:
-        for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}; mask_prob={mask_prob}")):
+        for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
             image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
             images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
             # print("desc_tokens:",desc_tokens)
