@@ -120,9 +120,9 @@ for epoch in range(current_epoch-1,num_epochs):
         break
 
     logger.info(f"Epoch {epoch+1}:")
-    if args.use_mask:
-        mask_prob = get_mask_prob(args,epoch+1)
-        train_dataloader.set_mask_prob(mask_prob)
+    # if args.use_mask:
+    #     mask_prob = get_mask_prob(args,epoch+1)
+    #     train_dataloader.set_mask_prob(mask_prob)
     model.train()
     running_loss = 0.0
     if not args.eval:
@@ -179,11 +179,7 @@ for epoch in range(current_epoch-1,num_epochs):
             B = images.size(0)
             images = images.to(device)
             target_tokens = target_tokens.to(device)            
-            desc_tokens = desc_tokens.to(device)
-            if args.use_mask: #All keywords are masked during eval
-                gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
-                gt_keyword_tokens = torch.tensor(gt_keyword_tokens)    
-                gt_keyword_tokens = gt_keyword_tokens.unsqueeze(0).repeat(B,1)         
+            desc_tokens = desc_tokens.to(device)        
             gt_keyword_tokens = gt_keyword_tokens.to(device)
 
             with torch.cuda.amp.autocast():
@@ -227,12 +223,7 @@ for epoch in range(current_epoch-1,num_epochs):
             image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
             images = images.to(args.device)
             target_tokens = target_tokens.to(device)
-            B = images.size(0)
-            # generated_captions = model.generate(images,beam_width=args.beam_width)
-            if args.use_mask:
-                gt_keyword_tokens = tokenizer.encode_keywords("<MASK>")
-                gt_keyword_tokens = torch.tensor(gt_keyword_tokens)
-                gt_keyword_tokens = gt_keyword_tokens.unsqueeze(0).repeat(B,1)  
+      
             gt_keyword_tokens = gt_keyword_tokens.to(device)    
             with torch.cuda.amp.autocast():
                 if args.use_beam:

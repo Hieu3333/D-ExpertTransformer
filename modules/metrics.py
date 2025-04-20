@@ -7,13 +7,7 @@ from pycocoevalcap.rouge.rouge import Rouge
 
 
 def compute_scores(gts, res):
-    """
-    Performs the MS COCO evaluation using the Python 3 implementation (https://github.com/salaniz/pycocoevalcap)
-
-    :param gts: Dictionary with the image ids and their gold captions,
-    :param res: Dictionary with the image ids ant their generated captions
-    :print: Evaluation score (the mean of the scores of all the instances) for each measure
-    """
+    
 
     # Set up scorers
     scorers = [

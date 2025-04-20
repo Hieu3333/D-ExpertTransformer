@@ -21,6 +21,7 @@
 22. Skip evaluation breaks the deterministic training process
 23. Train model with no keyword
 24. Group by captions and evaluate per group to avoid repeated captions
+25. Train with 0.2 dropout to avoid overfitting
 Ways to get better:
 -Clean report
 -Use beam search

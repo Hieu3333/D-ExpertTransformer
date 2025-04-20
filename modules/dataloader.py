@@ -88,5 +88,5 @@ class DENDataLoader(DataLoader):
         # Return a tuple of batches
         return image_ids, images, desc_tokens, target_tokens, keyword_tokens, clinical_descs  # clinical_descs remains a list of strings
 
-    def set_mask_prob(self,prob):
-        self.dataset.set_masking_probability(prob)
+    # def set_mask_prob(self,prob):
+    #     self.dataset.set_masking_probability(prob)

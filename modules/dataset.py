@@ -15,7 +15,7 @@ class DeepEyeNet(Dataset):
         self.split = split  # 'train', 'test', 'val'
         self.tokenizer = tokenizer
         self.transform = transform
-        self.mask_keyword_prob = 0.0
+        # self.mask_keyword_prob = 0.0
 
 
         # Set paths
@@ -44,8 +44,8 @@ class DeepEyeNet(Dataset):
     def __len__(self):
         return len(self.data)
     
-    def set_masking_probability(self, prob):
-        self.mask_keyword_prob = prob
+    # def set_masking_probability(self, prob):
+    #     self.mask_keyword_prob = prob
 
 
     def __getitem__(self, idx):
@@ -83,18 +83,18 @@ class DeepEyeNet(Dataset):
         keyword_tokens = torch.tensor(keyword_tokens, dtype=torch.long)
 
 
-        if self.split == 'train' and random.random() < self.mask_keyword_prob:
-            if random.random() < 0.5:
-                # Mask all keywords
-                keyword_tokens = torch.tensor(self.tokenizer.encode_keywords("<MASK>"), dtype=torch.long)
-            else:
-                #Keep some, mask some
-                tokens = raw_keywords.split("<SEP>")
-                keep_tokens = [t.strip() for t in tokens if t.strip()]
-                if len(keep_tokens) > 1:
-                    keep_subset = random.sample(keep_tokens, k=len(keep_tokens)//2)
-                    partial_kw_str = " <SEP> ".join(keep_subset)
-                    keyword_tokens = torch.tensor(self.tokenizer.encode_keywords(partial_kw_str), dtype=torch.long)
+        # if self.split == 'train' and random.random() < self.mask_keyword_prob:
+        #     if random.random() < 0.5:
+        #         # Mask all keywords
+        #         keyword_tokens = torch.tensor(self.tokenizer.encode_keywords("<MASK>"), dtype=torch.long)
+        #     else:
+        #         #Keep some, mask some
+        #         tokens = raw_keywords.split("<SEP>")
+        #         keep_tokens = [t.strip() for t in tokens if t.strip()]
+        #         if len(keep_tokens) > 1:
+        #             keep_subset = random.sample(keep_tokens, k=len(keep_tokens)//2)
+        #             partial_kw_str = " <SEP> ".join(keep_subset)
+        #             keyword_tokens = torch.tensor(self.tokenizer.encode_keywords(partial_kw_str), dtype=torch.long)
 
         return image_id, image, desc_tokens, target_tokens, keyword_tokens, clinical_desc
 

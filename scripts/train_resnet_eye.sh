@@ -1,11 +1,10 @@
 python train_deepeyenet.py \
-  --exp_name "resnet-deepeyenet-mask" \
+  --exp_name "resnet-deepeyenet" \
   --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
-  --use_mask \
   --use_beam \
   --lr_ed 2e-4 \
   --lr_ve 1e-4 \
@@ -28,7 +27,7 @@ python train_deepeyenet.py \
   --topk 3 \
   --temperature 1 \
   --lambda_init 0.8 \
-  --dropout 0.0 \
+  --dropout 0.2 \
   --beam_width 3 \
   --encoder_size 2048 \
   --num_heads 8 \
