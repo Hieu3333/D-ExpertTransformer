@@ -21,7 +21,7 @@ python train_deepeyenet.py \
   --hidden_size 512 \
   --fc_size 2048 \
   --contrastive_proj_dim 256 \
-  --vocab_size 3290 \
+  --vocab_size 4250 \
   --delta1 1 \
   --delta2 0.3 \
   --topk 3 \
