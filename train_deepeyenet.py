@@ -5,7 +5,7 @@ from modules.dataloader import DENDataLoader
 from modules.metrics import compute_scores
 from tqdm import tqdm
 import os
-from modules.utils import parser_arg, get_mask_prob
+from modules.utils import parser_arg
 import torch.optim as optim
 
 import logging

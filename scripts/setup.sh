@@ -15,6 +15,8 @@ pip install timm
 pip install numpy==1.21.2
 pip install transformers
 pip install tokenizers
+pip install datasets
+pip install pycocoevalcap
 sudo apt update
 sudo apt install git-lfs
 git lfs install
