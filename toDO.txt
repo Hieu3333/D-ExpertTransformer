@@ -20,6 +20,7 @@
 21. Use another version of numpy 
 22. Skip evaluation breaks the deterministic training process
 23. Train model with no keyword
+24. Group by captions and evaluate per group to avoid repeated captions
 Ways to get better:
 -Clean report
 -Use beam search
