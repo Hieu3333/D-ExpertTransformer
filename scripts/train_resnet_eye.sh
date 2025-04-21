@@ -1,11 +1,11 @@
 python train_deepeyenet.py \
   --exp_name "resnet-deepeyenet" \
-  --epochs 100 \
+  --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
-  --lr_ed 2e-4 \
+  --lr_ed 1e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
