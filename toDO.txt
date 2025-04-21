@@ -23,6 +23,7 @@
 24. Group by captions and evaluate per group to avoid repeated captions
 25. Train with 0.2 dropout to avoid overfitting
 26. Reduce number of epochs??????
+27. Use greedy search for lower CIDEr score??
 Ways to get better:
 -Clean report
 -Use beam search

@@ -1,29 +1,28 @@
 import json
-from collections import defaultdict
-from modules.metrics import compute_scores
-with open('logs/resnet-deepeyenet-diff/test_result_epoch_50.json','r') as f:
+
+# Input and output file paths
+input_file = "data/cleaned_DeepEyeNet_val.json"        # Replace with your real filename
+output_file = "data/dedup_cleaned_DeepEyeNet_val.json"
+
+# Load the dataset
+with open(input_file, 'r') as f:
     data = json.load(f)
 
-gt_set = set()
-gt={}
-res={}
+# Store seen captions to avoid duplicates
+seen_captions = set()
+filtered_data = []
 
 for entry in data:
-    id = entry['image_id']
-    ground_truth = entry['ground_truth']
-    generated_caption = entry['generated_caption']
-    if ground_truth not in gt_set:
-        gt_set.add(ground_truth)        
-        gt[id] = [ground_truth]
-        res[id] = [generated_caption]
-    
-print('GT:',gt)
-print('Res:',res)
-scores = compute_scores(gt,res)
-print(f"BLEU_1: {scores['BLEU_1']}")
-print(f"BLEU_2: {scores['BLEU_2']}")
-print(f"BLEU_3: {scores['BLEU_3']}")
-print(f"BLEU_4: {scores['BLEU_4']}")
-print(f"METEOR: {scores['METEOR']}")
-print(f"CIDER: {scores['Cider']}")
-print(f"ROUGE_L: {scores['ROUGE_L']}")
+    # Each entry is a dict with one key (image path)
+    image_path, meta = next(iter(entry.items()))
+    caption = meta.get("original", "").strip().lower()
+
+    if caption not in seen_captions:
+        seen_captions.add(caption)
+        filtered_data.append(entry)
+
+# Write the filtered result to a new JSON file
+with open(output_file, 'w') as f:
+    json.dump(filtered_data, f, indent=2)
+
+print(f"Filtered dataset saved to: {output_file}")

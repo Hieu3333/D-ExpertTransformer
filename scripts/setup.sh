@@ -23,13 +23,14 @@ git lfs install
 mkdir data
 
 
-scp -P 23559 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
-scp -P 23559 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23559 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23559 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
-scp -P 23559 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@192.165.134.27:/workspace/D-ExpertTransformer/data
+scp -P 54330 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@143.55.45.86:/workspace/D-ExpertTransformer
 
-scp -P 54264 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@192.165.134.27:/workspace/D-ExpertTransformer
+scp -P 54330 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
+scp -P 54330 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
+scp -P 54330 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
+scp -P 54330 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
+
+scp -P 54264 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@143.55.45.86:/workspace/D-ExpertTransformer
 
 unzip DeepEyeNet.zip -d data
 unzip iu_xray.zip -d data
@@ -40,8 +41,8 @@ wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-e
 
 
 
-scp -P 23559 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-mask/resnet_deepeyenet.pth.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
-scp -P 23559 -r root@192.165.134.27:/workspace/D-ExpertTransformer/logs/resnet-deepeyenet-mask/ "/mnt/c/D-ExpertTransformer/logs"
+scp -P 54330 root@143.55.45.86:/workspace/D-ExpertTransformer/results/resnet-deepeyenet-mask/resnet_deepeyenet.pth.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
+scp -P 54330 -r root@143.55.45.86:/workspace/D-ExpertTransformer/logs/resnet-deepeyenet-mask/ "/mnt/c/D-ExpertTransformer/logs"
 
-scp -P 23559 root@192.165.134.27:/workspace/D-ExpertTransformer/results/resnet-diff-roco/roco.pth "/mnt/c/D-ExpertTransformer/results/roco"
-scp -P 23559 -r root@192.165.134.27:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"
+scp -P 54330 root@143.55.45.86:/workspace/D-ExpertTransformer/results/resnet-diff-roco/roco.pth "/mnt/c/D-ExpertTransformer/results/roco"
+scp -P 54330 -r root@143.55.45.86:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"
