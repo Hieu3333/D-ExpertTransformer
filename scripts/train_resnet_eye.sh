@@ -5,6 +5,7 @@ python train_deepeyenet.py \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
+  --use_beam \
   --lr_ed 1e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-4 \
@@ -27,7 +28,7 @@ python train_deepeyenet.py \
   --temperature 1 \
   --lambda_init 0.8 \
   --dropout 0.2 \
-  --beam_width 2 \
+  --beam_width 3 \
   --encoder_size 2048 \
   --num_heads 8 \
   --diff_num_heads 4 \
