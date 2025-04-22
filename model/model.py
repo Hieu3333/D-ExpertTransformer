@@ -480,11 +480,11 @@ class ExpertTransformer(nn.Module):
     
 
     def configure_optimizer(self,args):
-        ve_params = list(map(id, self.visual_encoder.ve.parameters()))
+        ve_params = list(map(id, self.visual_encoder.parameters()))
         ed_params = filter(lambda x: id(x) not in ve_params, self.parameters())
 
         optimizer =torch.optim.AdamW(
-            [{'params': self.visual_encoder.ve.parameters(), 'lr': args.lr_ve},
+            [{'params': self.visual_encoder.parameters(), 'lr': args.lr_ve},
              {'params': ed_params, 'lr': args.lr_ed}],
             weight_decay=args.weight_decay,
             amsgrad=True
