@@ -13,7 +13,7 @@ class Tokenizer:
     def clean_text(self, text):
         """Clean text by removing unwanted characters and normalizing spaces."""
         # Keep letters, digits, spaces, apostrophes, slashes, hyphens, dots, and parentheses
-        # text = re.sub(r'[^a-zA-Z0-9\s\'.()]', ' ', text)
+        text = re.sub(r'[^a-zA-Z0-9\s\'.,]', ' ', text)
         
         # Remove hyphens only between digits and words (30-year-old → 30 year old)
         # text = re.sub(r'(?<=\d)-(?=\w)|(?<=\w)-(?=\d)', ' ', text)
@@ -24,6 +24,7 @@ class Tokenizer:
         # Normalize spaces 
         text = re.sub(r'\s+', ' ', text).strip()
         text = re.sub(r'\.',' . ',text)
+        text = re.sub(r',',' , ',text)
         return text.lower()
 
     def collect_texts(self, filepaths):
@@ -72,7 +73,7 @@ class Tokenizer:
 
         # Replace rare words (words appearing only once) with <UNK>
         for word, freq in self.counter.items():
-            if freq > 0:  # Keep words appearing more than once
+            if freq > 1:  # Keep words appearing more than once
                 idx = len(self.word2idx)
                 self.word2idx[word] = idx
                 self.idx2word[idx] = word
