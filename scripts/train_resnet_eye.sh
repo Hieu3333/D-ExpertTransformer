@@ -1,13 +1,13 @@
 python train_deepeyenet.py \
   --exp_name "resnet-deepeyenet" \
-  --epochs 100 \
+  --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \
   --use_gca \
   --use_beam \
   --lr_ed 1e-4 \
-  --lr_ve 1e-4 \
+  --lr_ve 2e-4 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --warmup_epochs 0 \
@@ -37,6 +37,6 @@ python train_deepeyenet.py \
   --image_path "data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
-  --from_pretrained "results/resnet-deepeyenet/resnet_deepeyenet.pth" \
+  # --from_pretrained "results/resnet-deepeyenet/resnet_deepeyenet.pth" \
   # --eval \
 
