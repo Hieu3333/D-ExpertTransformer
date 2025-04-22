@@ -6,8 +6,8 @@ python train_deepeyenet.py \
   --use_diff \
   --use_gca \
   --use_beam \
-  --lr_ed 1e-4 \
-  --lr_ve 2e-4 \
+  --lr_ed 2e-4 \
+  --lr_ve 1e-4 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --warmup_epochs 0 \
