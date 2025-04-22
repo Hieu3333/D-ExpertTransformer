@@ -486,9 +486,11 @@ class ExpertTransformer(nn.Module):
         optimizer =torch.optim.AdamW(
             [{'params': self.visual_encoder.ve.parameters(), 'lr': args.lr_ve},
              {'params': ed_params, 'lr': args.lr_ed}],
+            
             weight_decay=args.weight_decay,
             amsgrad=True
         )
+
         return optimizer
 
 
