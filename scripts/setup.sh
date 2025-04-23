@@ -29,7 +29,7 @@ scp -P 54169 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root
 scp -P 54169 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
 scp -P 54169 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@143.55.45.86:/workspace/D-ExpertTransformer/data
 
-scp -P 54264 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@143.55.45.86:/workspace/D-ExpertTransformer
+scp -P 54169 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@143.55.45.86:/workspace/D-ExpertTransformer
 
 unzip DeepEyeNet.zip -d data
 unzip iu_xray.zip -d data
@@ -40,8 +40,8 @@ wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-e
 
 
 
-scp -P 54169 root@143.55.45.86:/workspace/D-ExpertTransformer/results/effnet-diff/efficientnet_deepeyenet.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
-scp -P 54169 -r root@143.55.45.86:/workspace/D-ExpertTransformer/logs/effnet-diff/ "/mnt/c/D-ExpertTransformer/logs"
+scp -P 54169 root@143.55.45.86:/workspace/D-ExpertTransformer/results/densenet-deepeyenet-diff/densenet_deepeyenet.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
+scp -P 54169 -r root@143.55.45.86:/workspace/D-ExpertTransformer/logs/densenet-deepeyenet-diff/ "/mnt/c/D-ExpertTransformer/logs"
 
 scp -P 54169 root@143.55.45.86:/workspace/D-ExpertTransformer/results/resnet-diff-roco/roco.pth "/mnt/c/D-ExpertTransformer/results/roco"
 scp -P 54169 -r root@143.55.45.86:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"

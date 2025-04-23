@@ -263,7 +263,7 @@ class ExpertTransformer(nn.Module):
         self.beam_width = args.beam_width
         self.dataset = args.dataset
         self.use_contrastive = args.use_contrastive
-        self.num_tokens = 5
+        self.num_tokens = 10
         self.use_lt = args.use_learnable_tokens
 
         if args.use_learnable_tokens:
