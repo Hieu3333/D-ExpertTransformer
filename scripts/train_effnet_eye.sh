@@ -5,6 +5,7 @@ python train_deepeyenet.py \
   --ve_name "efficientnet" \
   --use_diff \
   --use_gca \
+  --use_beam \
   --lr_ed 2e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-4 \
@@ -21,7 +22,7 @@ python train_deepeyenet.py \
   --hidden_size 512 \
   --fc_size 2048 \
   --contrastive_proj_dim 256 \
-  --vocab_size 2688 \
+  --vocab_size 2690 \
   --delta1 1 \
   --delta2 0.3 \
   --topk 3 \
