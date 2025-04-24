@@ -144,7 +144,7 @@ for epoch in range(current_epoch-1,num_epochs):
     
 
     # val_results = []
-    # test_results = []
+    
 
     # #Evaluation
     # model.eval()
@@ -192,7 +192,7 @@ for epoch in range(current_epoch-1,num_epochs):
     #     logger.info(f"{eval_scores}")
 
     
-
+    test_results = []
     model.eval()
     gts_test= {}
     res_test = {}
