@@ -143,53 +143,53 @@ for epoch in range(current_epoch-1,num_epochs):
         continue
     
 
-    val_results = []
-    test_results = []
+    # val_results = []
+    # test_results = []
 
-    #Evaluation
-    model.eval()
-    gts_val = {}
-    res_val = {}
-    val_loss = 0.0
-    with torch.no_grad():  
-        for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
-            image_ids, images, desc_tokens, target_tokens, gt_clinical_desc = batch
+    # #Evaluation
+    # model.eval()
+    # gts_val = {}
+    # res_val = {}
+    # val_loss = 0.0
+    # with torch.no_grad():  
+    #     for batch_idx,batch in enumerate(tqdm(val_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")):
+    #         image_ids, images, desc_tokens, target_tokens, gt_clinical_desc = batch
             
-            images = images.to(device)
-            target_tokens = target_tokens.to(device)
-            desc_tokens = desc_tokens.to(device)
-            # print("Image:",images.shape)
-            # print("target_tokens:",target_tokens.shape)
+    #         images = images.to(device)
+    #         target_tokens = target_tokens.to(device)
+    #         desc_tokens = desc_tokens.to(device)
+    #         # print("Image:",images.shape)
+    #         # print("target_tokens:",target_tokens.shape)
             
-            # Generate captions for the whole batch
-            # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
-            with torch.cuda.amp.autocast():
-                generated_captions = model.generate_beam(images)
-            # Decode ground truth captions
-            for i, image_id in enumerate(image_ids):
-                groundtruth_caption = gt_clinical_desc[i]
-                gts_val[image_id] = [groundtruth_caption]
-                res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
-                val_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})        
+    #         # Generate captions for the whole batch
+    #         # generated_captions = model.generate(images,beam_width=args.beam_width)  # List of strings, length B
+    #         with torch.cuda.amp.autocast():
+    #             generated_captions = model.generate_beam(images)
+    #         # Decode ground truth captions
+    #         for i, image_id in enumerate(image_ids):
+    #             groundtruth_caption = gt_clinical_desc[i]
+    #             gts_val[image_id] = [groundtruth_caption]
+    #             res_val[image_id] = [generated_captions[i]]  # Corresponding generated caption
+    #             val_results.append({"image_id": image_id, "ground_truth": groundtruth_caption, "generated_caption": generated_captions[i]})        
 
 
-        val_path = os.path.join(log_path,f"val_result_epoch_{epoch+1}.json")
-        with open(val_path, "w") as f:
-            json.dump(val_results, f, indent=4)
-        # Compute evaluation metrics
-        eval_scores = compute_scores(gts_val, res_val)
+    #     val_path = os.path.join(log_path,f"val_result_epoch_{epoch+1}.json")
+    #     with open(val_path, "w") as f:
+    #         json.dump(val_results, f, indent=4)
+    #     # Compute evaluation metrics
+    #     eval_scores = compute_scores(gts_val, res_val)
   
-        logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
-        logger.info(f"BLEU_1: {eval_scores['BLEU_1']}")
-        logger.info(f"BLEU_2: {eval_scores['BLEU_2']}")
-        logger.info(f"BLEU_3: {eval_scores['BLEU_3']}")
-        logger.info(f"BLEU_4: {eval_scores['BLEU_4']}")
-        logger.info(f"METEOR: {eval_scores['METEOR']}")
-        logger.info(f"CIDER: {eval_scores['Cider']}")
-        logger.info(f"ROUGE_L: {eval_scores['ROUGE_L']}")
-        print("GTS Val Example:", list(gts_val.items())[-5:-1])
-        print("Res Val Example:", list(res_val.items())[-5:-1])
-        logger.info(f"{eval_scores}")
+    #     logger.info(f"Epoch {epoch + 1} - Evaluation scores:")
+    #     logger.info(f"BLEU_1: {eval_scores['BLEU_1']}")
+    #     logger.info(f"BLEU_2: {eval_scores['BLEU_2']}")
+    #     logger.info(f"BLEU_3: {eval_scores['BLEU_3']}")
+    #     logger.info(f"BLEU_4: {eval_scores['BLEU_4']}")
+    #     logger.info(f"METEOR: {eval_scores['METEOR']}")
+    #     logger.info(f"CIDER: {eval_scores['Cider']}")
+    #     logger.info(f"ROUGE_L: {eval_scores['ROUGE_L']}")
+    #     print("GTS Val Example:", list(gts_val.items())[-5:-1])
+    #     print("Res Val Example:", list(res_val.items())[-5:-1])
+    #     logger.info(f"{eval_scores}")
 
     
 
