@@ -18,6 +18,7 @@ def parser_arg():
     parser.add_argument('--randaug',action='store_true')
     parser.add_argument('--use_gca',action='store_true')
     parser.add_argument('--use_beam',action='store_true')
+    parser.add_argument('--use_keywords',action='store_true')
     parser.add_argument('--use_learnable_tokens',action='store_true')
     parser.add_argument('--constant_lr',action='store_true')
     parser.add_argument('--eval',action='store_true')

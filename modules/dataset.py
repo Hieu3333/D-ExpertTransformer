@@ -15,6 +15,7 @@ class DeepEyeNet(Dataset):
         self.split = split  # 'train', 'test', 'val'
         self.tokenizer = tokenizer
         self.transform = transform
+        self.use_keywords = args.use_keywords
         # self.mask_keyword_prob = 0.0
 
 
@@ -74,7 +75,7 @@ class DeepEyeNet(Dataset):
         
 
         # --- Encode keywords with <SEP> separator ---
-        if keywords_list:
+        if keywords_list and self.use_keywords:
             raw_keywords = f" <SEP> ".join(keywords_list)  # Join keywords with <SEP>
         else:
             raw_keywords = "<SEP>"  # Handle empty keywords case
