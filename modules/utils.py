@@ -1,5 +1,6 @@
 import argparse
 import json
+from torch.vision import transforms
 def parser_arg():
     parser = argparse.ArgumentParser('Training script')
     parser.add_argument('--exp_name',type=str, required=True)
@@ -54,13 +55,19 @@ def parser_arg():
     return args
     
 
-# def get_mask_prob(args,current_epoch):
-#     if not args.use_mask:
-#         return 0.0
-#     if current_epoch<10:
-#         prob = 0.0
-#     elif current_epoch<=args.epochs-10:
-#         prob = (1/(args.epochs-20))*(current_epoch-10)
-#     else:
-#         prob = 1.0
-#     return prob
+def get_inference_transform(args):
+    if args.ve_name == "resnet" or args.ve_name == "densenet":
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        ])
+    elif args.ve_name == "efficientnet":
+        transform = transforms.Compose([
+            transforms.Resize((356, 356)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ])
+    else:
+        raise ValueError(f"Unsupported backbone: {args.ve_name}")
+    return transform

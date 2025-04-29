@@ -1,6 +1,6 @@
 python train_deepeyenet.py \
-  --exp_name "resnet-deepeyenet-lt" \
-  --epochs 50 \
+  --exp_name "resnet-deepeyenet-lt-100" \
+  --epochs 100 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
   --use_diff \
