@@ -1,6 +1,6 @@
 import argparse
 import json
-from torch.vision import transforms
+# from torch.vision import transforms
 def parser_arg():
     parser = argparse.ArgumentParser('Training script')
     parser.add_argument('--exp_name',type=str, required=True)
