@@ -3,7 +3,6 @@ python train_iu.py \
   --epochs 50 \
   --dataset "iu_xray" \
   --ve_name "resnet" \
-  --use_diff \
   --use_gca \
   --use_learnable_tokens \
   --constant_lr \

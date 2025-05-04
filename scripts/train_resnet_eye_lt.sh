@@ -3,7 +3,6 @@ python train_deepeyenet.py \
   --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "resnet" \
-  --use_diff \
   --use_gca \
   --use_beam \
   --use_learnable_tokens \

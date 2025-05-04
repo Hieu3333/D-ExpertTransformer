@@ -15,54 +15,6 @@ def lambda_init_fn(depth):
     return 0.8 - 0.6 * math.exp(-0.3 * depth)
 
     
-class MultiHeadedAttention(nn.Module):
-    def __init__(self,args, mask=True):
-        super(MultiHeadedAttention,self).__init__()
-        self.hidden_size = args.hidden_size
-        self.num_heads = args.num_heads
-        self.head_size = self.hidden_size // self.num_heads
-        self.dropout = nn.Dropout(args.dropout)
-        self.resid_dropout = nn.Dropout(args.dropout)
-        assert self.hidden_size % self.num_heads == 0
-        self.mask = mask
-        
-
-        self.q_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
-        self.k_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
-        self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
-
-        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
-        if self.mask:
-            self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
-
-    def forward(self,query,key,value):
-        B,T,_ = query.shape #T is number of keywords
-        B,N,_ = key.shape
-
-        q = self.q_proj(query) #(B,T,C)
-        k = self.k_proj(key) 
-        v = self.v_proj(value) 
-        
-
-        q = q.view(B,T,self.num_heads,self.head_size).transpose(1,2) #(B,nh,T,head_size)
-        k = k.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
-        v = v.view(B,N,self.num_heads,self.head_size).transpose(1,2) #(B,nh,N,head_size)
-        
-        assert q.shape[-1] == k.shape[-1]
-        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
-        # print('att:',att.shape)
-        if self.mask:
-            att = att.masked_fill(
-                    self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, 
-                    torch.finfo(att.dtype).min  # Ensures proper handling in mixed precision
-                )
-        att = F.softmax(att,dim=-1)
-        att = self.dropout(att)
-        out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
-        out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
-        out = self.out_proj(out)
-        out = self.resid_dropout(out)
-        return out
 
 class DiffMultiHeadedAttention(nn.Module):
     def __init__(self,args,depth,mask=True):
@@ -145,10 +97,8 @@ class MLP(nn.Module):
 class TransfusionEncoder(nn.Module):
     def __init__(self,args,depth):
         super(TransfusionEncoder,self).__init__()
-        if args.use_diff:
-            self.attn = DiffMultiHeadedAttention(args,depth,mask=False)
-        else:
-            self.attn = MultiHeadedAttention(args,mask=False)
+        self.attn = DiffMultiHeadedAttention(args,depth,mask=False)
+
         self.depth = depth
         self.dataset = args.dataset
 
@@ -205,12 +155,10 @@ class VisualEncoder(nn.Module):
 class LanguageDecoderLayer(nn.Module):
     def __init__(self,args,depth):
         super(LanguageDecoderLayer,self).__init__()
-        if args.use_diff:
-            self.decoder_attn = DiffMultiHeadedAttention(args,depth,mask=True)
-            self.encoder_decoder = DiffMultiHeadedAttention(args,depth,mask=False)
-        else:
-            self.decoder_attn = MultiHeadedAttention(args,mask=True)
-            self.encoder_decoder = MultiHeadedAttention(args,mask=False)
+
+        self.decoder_attn = DiffMultiHeadedAttention(args,depth,mask=True)
+        self.encoder_decoder = DiffMultiHeadedAttention(args,depth,mask=False)
+
         self.ln1 = nn.LayerNorm(args.hidden_size)
         self.ln2 = nn.LayerNorm(args.hidden_size)
         self.ln3 = nn.LayerNorm(args.hidden_size)
@@ -223,11 +171,6 @@ class LanguageDecoderLayer(nn.Module):
         x = self.ln3(x +self.mlp(x))
         return x
     
-# class Decoder(nn.Module):
-#     def __init__(self,args):
-#         self.layers = 
-    
-
 
 
 
@@ -250,10 +193,9 @@ class ExpertTransformer(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
         
         self.visual_encoder = VisualEncoder(args)
-        if args.use_diff:
-            self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
-        else:
-            self.language_encoder = MultiHeadedAttention(args,mask=False)
+
+        self.language_encoder = DiffMultiHeadedAttention(args,depth=0,mask=False)
+
         self.fuser = nn.ModuleList([TransfusionEncoder(args,depth=depth) for depth in range(args.num_layers)])
         self.contextual_decoder = nn.ModuleList([LanguageDecoderLayer(args,depth=depth) for depth in range(args.num_layers)])
         self.visual_contrastive_proj = nn.Linear(args.encoder_size, args.contrastive_proj_dim)
@@ -381,7 +323,7 @@ class ExpertTransformer(nn.Module):
     
 
     @torch.no_grad()
-    def generate_beam(self, images, gt_keywords=None):
+    def generate(self, images, gt_keywords=None):
         device = self.device
         batch_size = images.size(0)
         beam_width = self.beam_width
@@ -439,42 +381,6 @@ class ExpertTransformer(nn.Module):
             final_sequences.append(text)
 
         return final_sequences
-
-
-
-
-    @torch.no_grad()
-    def generate_greedy(self, images, gt_keywords=None):
-        device = self.device
-        batch_size = images.size(0)
-
-        bos_id = self.tokenizer.word2idx["<BOS>"]
-        eos_id = self.tokenizer.word2idx["<EOS>"]
-
-        # Initialize sequences with <BOS> token
-        sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
-        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
-
-
-
-        for _ in range(self.max_gen):  
-            logits, _ = self(images, sequences, gt_keywords)  # Forward pass
-            logits = logits[:, -1, :] / self.temperature  # Get logits for last token
-            next_token = torch.argmax(logits, dim=-1).unsqueeze(1)  # Shape: (batch_size, 1)
-
-            # Append the predicted token
-            sequences = torch.cat((sequences, next_token), dim=1)
-
-            # Stop generation if EOS is reached
-            finished |= (sequences[:, -1] == eos_id)  
-            if finished.all():
-                break
-
-
-        # Decode sequences
-        final_sequences = [self.tokenizer.decode(seq.tolist()) for seq in sequences]
-
-        return final_sequences # Average loss over generated tokens
 
 
     

@@ -4,7 +4,6 @@ python train_roco.py \
   --dataset "roco" \
   --ve_name "resnet" \
   --use_gca \
-  --use_diff \
   --constant_lr \
   --lr_ed 2e-4 \
   --lr_ve 1e-4 \
