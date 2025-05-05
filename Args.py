@@ -3,7 +3,6 @@ import torch
 
 @dataclass
 class Args:
-    exp_name: str = "densenet-deepeyenet-diff"
     epochs: int = 50
     batch_size: int = 64
     max_length: int = 50

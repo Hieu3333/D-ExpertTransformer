@@ -58,11 +58,11 @@ if st.button("Generate"):
         image = transform(image).clone().detach()
         image = image.unsqueeze(0)
         image = image.to(args.device)
+        model.eval()
+        with torch.cuda.amp.autocast():
+            out = model.generate(image,keyword_tokens)
+            out = out[0]
 
-        out = model.generate(image,keyword_tokens)
-        out = out[0]
 
-
-
-    st.markdown(f"<h3>Caption: {out}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3>{out}</h3>", unsafe_allow_html=True)
 
