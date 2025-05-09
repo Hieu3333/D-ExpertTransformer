@@ -20,11 +20,10 @@ class MLP(nn.Module):
         return self.dropout(self.c_proj(self.gelu(self.c_fc(x))))
       
 class DiffMultiHeadedAttention(nn.Module):
-    def __init__(self,args,depth,mask=True):
+    def __init__(self,args, hidden_size, depth,mask=True):
         super(DiffMultiHeadedAttention,self).__init__()
-        self.encoder_size = args.encoder_size
         self.diff_num_heads = args.diff_num_heads
-        self.diff_head_size = self.encoder_size // self.diff_num_heads
+        self.diff_head_size = hidden_size // self.diff_num_heads
         self.dropout = nn.Dropout(args.dropout)
         self.dropout_rate = args.dropout
         self.mask = mask
@@ -39,14 +38,13 @@ class DiffMultiHeadedAttention(nn.Module):
         self.lambda_k2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
 
         
-        self.q_proj = nn.Linear(self.encoder_size,self.encoder_size,bias=args.bias)
-        self.k_proj = nn.Linear(self.encoder_size, self.encoder_size,bias=args.bias)
-        self.v_proj = nn.Linear(self.encoder_size,self.encoder_size,bias=args.bias)
-
+        self.q_proj = nn.Linear(hidden_size,hidden_size,bias=args.bias)
+        self.k_proj = nn.Linear(hidden_size,hidden_size,bias=args.bias)
+        self.v_proj = nn.Linear(hidden_size,hidden_size,bias=args.bias)
         self.rmsnorm = RMSNorm(self.diff_head_size, eps=1e-5, elementwise_affine=True)
 
 
-        self.out_proj = nn.Linear(self.encoder_size, self.encoder_size,bias=args.bias)
+        self.out_proj = nn.Linear(hidden_size,hidden_size,bias=args.bias)
         self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
 
     def forward(self,query,key,value):
@@ -90,7 +88,7 @@ class DiffMultiHeadedAttention(nn.Module):
 class DiffSpatialAttention(nn.Module):
     def __init__(self, args, depth, mask=False):
         super(DiffSpatialAttention, self).__init__()
-        self.attn = DiffMultiHeadedAttention(args, depth, mask)
+        self.attn = DiffMultiHeadedAttention(args, depth, mask, hidden_size=args.encoder_size)
 
     def forward(self, x):
         """
@@ -105,7 +103,7 @@ class DiffSpatialAttention(nn.Module):
 class DiffChannelAttention(nn.Module):
     def __init__(self, args, depth, mask=False):
         super(DiffChannelAttention,self).__init__()
-        self.attn = DiffMultiHeadedAttention(args, depth, mask)
+        self.attn = DiffMultiHeadedAttention(args, depth, mask, hidden_size=144)
 
     def forward(self, x):
         """
