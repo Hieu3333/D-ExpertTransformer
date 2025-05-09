@@ -140,10 +140,10 @@ class DiffDA(nn.Module):
             # Spatial Attention
             x = self.ln1[i](x + self.spatial[i](x))
 
-            # Feedforward
-            x = self.ln2[i](x + self.ffwd[i](x))
-
             # Channel Attention
-            x = self.ln3[i](x + self.channel[i](x))
+            x = self.ln2[i](x + self.channel[i](x))
+
+            # Feedforward
+            x = self.ln3[i](x + self.ffwd[i](x))
 
         return x
