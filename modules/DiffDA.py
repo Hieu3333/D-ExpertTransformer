@@ -22,9 +22,7 @@ class MLP(nn.Module):
 class DiffMultiHeadedAttention(nn.Module):
     def __init__(self,args, attn_size, depth,mask=True):
         super(DiffMultiHeadedAttention,self).__init__()
-        if attn_size==144:
-            self.diff_num_heads = args.diff_num_heads
-        else:
+        if attn_size<1000 and attn_size==49:     
             self.diff_num_heads = 7
         self.hidden_size = attn_size
         self.diff_head_size = attn_size // self.diff_num_heads
