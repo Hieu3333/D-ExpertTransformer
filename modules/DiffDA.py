@@ -137,4 +137,6 @@ class DiffDA(nn.Module):
         for i in range(self.num_layers):
             x =self.ln1[i](x + self.spatial[i](x))
             x =self.ln2[i](x + self.channel[i](x))
+        B, C, H, W = x.shape
+        x = x.view(B,C,-1).transpose(-1,-2) #(b,h*w,c)
         return x
