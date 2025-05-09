@@ -1,4 +1,4 @@
-python train_deepeyenet.py \
+python train_deepeyenet_da.py \
   --exp_name "densenet-diff" \
   --epochs 50 \
   --dataset "deepeyenet" \
