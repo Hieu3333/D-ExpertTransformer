@@ -11,9 +11,9 @@ class MLP(nn.Module):
     def __init__(self,args):
         super(MLP,self).__init__()
         
-        self.c_fc = nn.Linear(args.hidden_size,args.fc_size,bias=args.bias)
+        self.c_fc = nn.Linear(args.encoder_size,args.fc_size,bias=args.bias)
         self.gelu = nn.GELU()
-        self.c_proj = nn.Linear(args.fc_size,args.hidden_size,bias=args.bias)
+        self.c_proj = nn.Linear(args.fc_size,args.encoder_size,bias=args.bias)
         self.dropout = nn.Dropout(args.dropout)
     
     def forward(self,x):
@@ -22,15 +22,15 @@ class MLP(nn.Module):
 class DiffMultiHeadedAttention(nn.Module):
     def __init__(self,args,depth,mask=True):
         super(DiffMultiHeadedAttention,self).__init__()
-        self.hidden_size = args.hidden_size
+        self.encoder_size = args.encoder_size
         self.diff_num_heads = args.diff_num_heads
-        self.diff_head_size = self.hidden_size // self.diff_num_heads
+        self.diff_head_size = self.encoder_size // self.diff_num_heads
         self.dropout = nn.Dropout(args.dropout)
         self.dropout_rate = args.dropout
         self.mask = mask
         
 
-        assert self.hidden_size % self.diff_num_heads == 0
+        assert self.encoder_size % self.diff_num_heads == 0
 
         self.lambda_init = lambda_init_fn(depth)
         self.lambda_q1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
@@ -39,14 +39,14 @@ class DiffMultiHeadedAttention(nn.Module):
         self.lambda_k2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
 
         
-        self.q_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
-        self.k_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
-        self.v_proj = nn.Linear(self.hidden_size,self.hidden_size,bias=args.bias)
+        self.q_proj = nn.Linear(self.encoder_size,self.encoder_size,bias=args.bias)
+        self.k_proj = nn.Linear(self.encoder_size, self.encoder_size,bias=args.bias)
+        self.v_proj = nn.Linear(self.encoder_size,self.encoder_size,bias=args.bias)
 
         self.rmsnorm = RMSNorm(self.diff_head_size, eps=1e-5, elementwise_affine=True)
 
 
-        self.out_proj = nn.Linear(self.hidden_size, self.hidden_size,bias=args.bias)
+        self.out_proj = nn.Linear(self.encoder_size, self.encoder_size,bias=args.bias)
         self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
 
     def forward(self,query,key,value):
@@ -82,7 +82,7 @@ class DiffMultiHeadedAttention(nn.Module):
         attn = att1 - lambda_full * att2
         # out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = self.rmsnorm(attn) * (1-self.lambda_init)# (B, nh, T, head_size)
-        out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
+        out = out.transpose(1,2).contiguous().view(B,T,self.encoder_size)
         out = self.out_proj(out) 
         out = self.dropout(out)
         return out
@@ -131,12 +131,17 @@ class DiffDA(nn.Module):
         self.spatial = nn.ModuleList(DiffSpatialAttention(args,depth=depth) for depth in range(args.num_layers_da))
         self.channel = nn.ModuleList(DiffChannelAttention(args,depth=depth) for depth in range(args.num_layers_da))
         self.ffwd = nn.ModuleList(MLP(args) for _ in range(args.num_layers_da))
-        self.ln1 = nn.ModuleList(nn.LayerNorm(args.hidden_size) for _ in range(args.num_layers_da))
-        self.ln2 = nn.ModuleList(nn.LayerNorm(args.hidden_size) for _ in range(args.num_layers_da))
+        self.ln1 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
+        self.ln2 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
+        self.ln3 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
+
+
     def forward(self,x):
+        B, C, H, W = x.shape
         for i in range(self.num_layers):
             x =self.ln1[i](x + self.spatial[i](x))
-            x =self.ln2[i](x + self.channel[i](x))
-        B, C, H, W = x.shape
+            x = self.ln2[i](x + self.ffwd[i](x))
+            x = self.ln3[i](x + self.channel[i](x))
+        
         x = x.view(B,C,-1).transpose(-1,-2) #(b,h*w,c)
         return x
