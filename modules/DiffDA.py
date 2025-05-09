@@ -23,6 +23,7 @@ class DiffMultiHeadedAttention(nn.Module):
     def __init__(self,args, attn_size, depth,mask=True):
         super(DiffMultiHeadedAttention,self).__init__()
         self.diff_num_heads = args.diff_num_heads
+        self.hidden_size = attn_size
         self.diff_head_size = attn_size // self.diff_num_heads
         self.dropout = nn.Dropout(args.dropout)
         self.dropout_rate = args.dropout
@@ -80,7 +81,7 @@ class DiffMultiHeadedAttention(nn.Module):
         attn = att1 - lambda_full * att2
         # out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = self.rmsnorm(attn) * (1-self.lambda_init)# (B, nh, T, head_size)
-        out = out.transpose(1,2).contiguous().view(B,T,self.encoder_size)
+        out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
         out = self.out_proj(out) 
         out = self.dropout(out)
         return out
