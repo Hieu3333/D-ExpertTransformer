@@ -95,14 +95,11 @@ class DiffSpatialAttention(nn.Module):
     def forward(self, x):
         """
         Args:
-            x: [B, C, H, W]
+            x: [B, H*W,C]
         Returns:
-            [B, C, H, W]
+            [B,H*W,C]
         """
-        B, C, H, W = x.shape
-        x_flat = x.view(B, C, H * W).permute(0, 2, 1)  # [B, HW, C]
-        out = self.attn(x_flat, x_flat, x_flat)  # Q = K = V = [B, HW, C]
-        out = out.permute(0, 2, 1).view(B, C, H, W)
+        out = self.attn(x, x, x)  # Q = K = V = [B, HW, C]
         return out
 
 class DiffChannelAttention(nn.Module):
@@ -113,15 +110,14 @@ class DiffChannelAttention(nn.Module):
     def forward(self, x):
         """
         Args:
-            x: [B, C, H, W]
+            x: [B, H* W, C]
         Returns:
-            [B, C, H, W]
+            [B,H*W,C]
         """
-        B, C, H, W = x.shape
-        x_perm = x.view(B, C, H * W).transpose(1, 2)  # [B, HW, C]
-        x_transposed = x_perm.transpose(1, 2)  # [B, C, HW]
+        B, N, C = x.shape
+        x_transposed = x.transpose(1, 2)  # [B, C, HW]
         out = self.attn(x_transposed, x_transposed, x_transposed)  # [B, C, HW]
-        out = out.view(B, C, H, W)
+        out = out.transpose(-1,-2)
         return out
 
 class DiffDA(nn.Module):
@@ -138,21 +134,16 @@ class DiffDA(nn.Module):
 
     def forward(self,x):
         B, C, H, W = x.shape
+        x = x.view(B,C,-1).transpose(-1,-2)
         for i in range(self.num_layers):
-            # Permute to [B, H, W, C] for LayerNorm and MLP
-            x = x.permute(0, 2, 3, 1)  # [B, H, W, C]
 
             # Spatial Attention
-            x = self.ln1[i](x + self.spatial[i](x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1))
+            x = self.ln1[i](x + self.spatial[i](x))
 
             # Feedforward
             x = self.ln2[i](x + self.ffwd[i](x))
 
             # Channel Attention
-            x = self.ln3[i](x + self.channel[i](x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1))
+            x = self.ln3[i](x + self.channel[i](x))
 
-            # Back to [B, C, H, W] for next layer
-            x = x.permute(0, 3, 1, 2)
-
-            x = x.view(B, C, -1).transpose(-1, -2)  # [B, H*W, C]
         return x
