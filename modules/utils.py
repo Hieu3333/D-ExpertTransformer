@@ -22,6 +22,7 @@ def parser_arg():
     parser.add_argument('--use_contrastive',action='store_true')
     parser.add_argument('--channel_reduction',type=int, required=True)
     parser.add_argument('--num_layers',type=int, required=True)
+    parser.add_argument('--num_layers_da',type=int, required=False)
     parser.add_argument('--warmup_epochs',type=int, required=True)
     parser.add_argument('--step_size',type=int, required=True)
     parser.add_argument('--lr_ve',type=float, required=True)
