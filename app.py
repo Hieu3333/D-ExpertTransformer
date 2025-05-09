@@ -9,7 +9,7 @@ import sys
 import streamlit as st
 from PIL import Image
 import torch
-from model.model import ExpertTransformer
+from model.model_DA import ExpertTransformer
 from modules.tokenizer import Tokenizer
 from Args import Args
 from modules.utils import get_inference_transform
