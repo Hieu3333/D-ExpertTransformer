@@ -132,8 +132,7 @@ for epoch in range(current_epoch-1,num_epochs):
             # print("desc_tokens:",desc_tokens)
             # print("target_tokens:",target_tokens)
             # print('gt:',gt_clinical_desc)
-            with torch.cuda.amp.autocast():
-                outputs, loss = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+            outputs, loss = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
             loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
             loss.backward()
