@@ -11,9 +11,9 @@ class MLP(nn.Module):
     def __init__(self,args):
         super(MLP,self).__init__()
         
-        self.c_fc = nn.Linear(args.encoder_size,args.fc_size,bias=args.bias)
+        self.c_fc = nn.Linear(args.encoder_size,4*args.encoder_size,bias=args.bias)
         self.gelu = nn.GELU()
-        self.c_proj = nn.Linear(args.fc_size,args.encoder_size,bias=args.bias)
+        self.c_proj = nn.Linear(4*args.encoder_size,args.encoder_size,bias=args.bias)
         self.dropout = nn.Dropout(args.dropout)
     
     def forward(self,x):
