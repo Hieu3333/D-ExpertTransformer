@@ -1,8 +1,8 @@
-python train_deepeyenet_da.py \
-  --exp_name "effnet-diff" \
+python train_deepeyenet.py \
+  --exp_name "densenet-deepeyenet-diff" \
   --epochs 50 \
   --dataset "deepeyenet" \
-  --ve_name "efficientnet" \
+  --ve_name "densenet" \
   --use_gca \
   --use_beam \
   --lr_ed 2e-4 \
@@ -11,7 +11,7 @@ python train_deepeyenet_da.py \
   --channel_reduction 4 \
   --warmup_epochs 0 \
   --num_layers 3 \
-  --num_layers_da 2 \
+  --num_layers_da 1 \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
@@ -30,7 +30,7 @@ python train_deepeyenet_da.py \
   --lambda_init 0.8 \
   --dropout 0.2 \
   --beam_width 3 \
-  --encoder_size 1280 \
+  --encoder_size 1024 \
   --diff_num_heads 4 \
   --num_workers 16 \
   --image_path "data/eyenet0420" \
