@@ -88,7 +88,8 @@ class DiffMultiHeadedAttention(nn.Module):
 class DiffSpatialAttention(nn.Module):
     def __init__(self, args, depth, mask=False):
         super(DiffSpatialAttention, self).__init__()
-        self.attn = DiffMultiHeadedAttention(args, depth, mask, attn_size=args.encoder_size)
+        attn_size = args.encoder_size
+        self.attn = DiffMultiHeadedAttention(args, depth, mask, attn_size=attn_size)
 
     def forward(self, x):
         """
