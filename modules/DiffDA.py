@@ -22,7 +22,10 @@ class MLP(nn.Module):
 class DiffMultiHeadedAttention(nn.Module):
     def __init__(self,args, attn_size, depth,mask=True):
         super(DiffMultiHeadedAttention,self).__init__()
-        self.diff_num_heads = args.diff_num_heads
+        if args.ve_name == 'efficientnet':
+            self.diff_num_heads = args.diff_num_heads
+        else:
+            self.diff_num_heads = 7
         self.hidden_size = attn_size
         self.diff_head_size = attn_size // self.diff_num_heads
         self.dropout = nn.Dropout(args.dropout)
@@ -108,8 +111,6 @@ class DiffChannelAttention(nn.Module):
         super(DiffChannelAttention,self).__init__()
         if args.ve_name == 'efficientnet':
             N = 144
-        elif args.ve_name == 'densenet':
-            N = 49
         else:
             N = 49  
         self.attn = DiffMultiHeadedAttention(args, N, depth, mask)
