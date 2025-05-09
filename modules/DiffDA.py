@@ -89,7 +89,7 @@ class DiffMultiHeadedAttention(nn.Module):
     
 class DiffSpatialAttention(nn.Module):
     def __init__(self, args, depth, mask=False):
-        super(DiffSpatialAttention).__init__()
+        super(DiffSpatialAttention, self).__init__()
         self.attn = DiffMultiHeadedAttention(args, depth, mask)
 
     def forward(self, x):
@@ -107,7 +107,7 @@ class DiffSpatialAttention(nn.Module):
 
 class DiffChannelAttention(nn.Module):
     def __init__(self, args, depth, mask=False):
-        super(DiffChannelAttention).__init__()
+        super(DiffChannelAttention,self).__init__()
         self.attn = DiffMultiHeadedAttention(args, depth, mask)
 
     def forward(self, x):
@@ -126,7 +126,7 @@ class DiffChannelAttention(nn.Module):
 
 class DiffDA(nn.Module):
     def __init__(self,args):
-        super(DiffDA).__init__()
+        super(DiffDA,self).__init__()
         self.num_layers = args.num_layers_da
         self.spatial = nn.ModuleList(DiffSpatialAttention(args,depth=depth) for depth in range(args.num_layers_da))
         self.channel = nn.ModuleList(DiffChannelAttention(args,depth=depth) for depth in range(args.num_layers_da))
