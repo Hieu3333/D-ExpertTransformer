@@ -139,9 +139,20 @@ class DiffDA(nn.Module):
     def forward(self,x):
         B, C, H, W = x.shape
         for i in range(self.num_layers):
-            x =self.ln1[i](x + self.spatial[i](x))
+            # Permute to [B, H, W, C] for LayerNorm and MLP
+            x = x.permute(0, 2, 3, 1)  # [B, H, W, C]
+
+            # Spatial Attention
+            x = self.ln1[i](x + self.spatial[i](x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1))
+
+            # Feedforward
             x = self.ln2[i](x + self.ffwd[i](x))
-            x = self.ln3[i](x + self.channel[i](x))
-        
-        x = x.view(B,C,-1).transpose(-1,-2) #(b,h*w,c)
+
+            # Channel Attention
+            x = self.ln3[i](x + self.channel[i](x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1))
+
+            # Back to [B, C, H, W] for next layer
+            x = x.permute(0, 3, 1, 2)
+
+            x = x.view(B, C, -1).transpose(-1, -2)  # [B, H*W, C]
         return x
