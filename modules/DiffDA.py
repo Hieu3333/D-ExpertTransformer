@@ -106,7 +106,13 @@ class DiffSpatialAttention(nn.Module):
 class DiffChannelAttention(nn.Module):
     def __init__(self, args, depth, mask=False):
         super(DiffChannelAttention,self).__init__()
-        self.attn = DiffMultiHeadedAttention(args, 144, depth, mask)
+        if args.ve_name == 'efficientnet':
+            N = 144
+        elif args.ve_name == 'densenet':
+            N = 49
+        else:
+            N = 49  
+        self.attn = DiffMultiHeadedAttention(args, N, depth, mask)
 
     def forward(self, x):
         """
