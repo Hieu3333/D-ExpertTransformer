@@ -24,6 +24,8 @@ class DiffMultiHeadedAttention(nn.Module):
         super(DiffMultiHeadedAttention,self).__init__()
         if attn_size<1000 and attn_size==49:     
             self.diff_num_heads = 7
+        else:
+            self.diff_num_heads = args.diff_num_heads
         self.hidden_size = attn_size
         self.diff_head_size = attn_size // self.diff_num_heads
         self.dropout = nn.Dropout(args.dropout)
