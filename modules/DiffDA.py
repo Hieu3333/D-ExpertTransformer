@@ -131,8 +131,8 @@ class DiffDA(nn.Module):
         self.spatial = nn.ModuleList(DiffSpatialAttention(args,depth=depth) for depth in range(args.num_layers_da))
         self.channel = nn.ModuleList(DiffChannelAttention(args,depth=depth) for depth in range(args.num_layers_da))
         self.ffwd = nn.ModuleList(MLP(args) for _ in range(args.num_layers_da))
-        self.ln1 = nn.ModuleList(nn.LayerNorm() for _ in range(args.num_layers_da))
-        self.ln2 = nn.ModuleList(nn.LayerNorm() for _ in range(args.num_layers_da))
+        self.ln1 = nn.ModuleList(nn.LayerNorm(args.hidden_size) for _ in range(args.num_layers_da))
+        self.ln2 = nn.ModuleList(nn.LayerNorm(args.hidden_size) for _ in range(args.num_layers_da))
     def forward(self,x):
         for i in range(self.num_layers):
             x =self.ln1[i](x + self.spatial[i](x))
