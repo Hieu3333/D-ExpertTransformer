@@ -128,9 +128,10 @@ for epoch in range(current_epoch-1,num_epochs):
             if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
                 scaler.unscale_(optimizer)
                 norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                
+                optimizer.zero_grad()  # Zero gradients after step
                 scaler.step(optimizer)
                 scaler.update()
-                optimizer.zero_grad()  # Zero gradients after step
 
             running_loss += loss.item()
             
