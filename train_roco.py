@@ -66,7 +66,7 @@ test_dataloader = ROCODataLoader(data=data,tokenizer=tokenizer, args=args, split
 
 # Initialize model
 model = ExpertTransformer(args, tokenizer)
-torch.set_float32_matmul_precision('high')
+# torch.set_float32_matmul_precision('high')
 
 optimizer =model.configure_optimizer(args)
 
