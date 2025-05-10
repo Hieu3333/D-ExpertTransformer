@@ -1,4 +1,4 @@
-python train_deepeyenet_da.py \
+python train_iu.py \
   --exp_name "effnet-diff-iu" \
   --epochs 50 \
   --dataset "iu_xray" \
