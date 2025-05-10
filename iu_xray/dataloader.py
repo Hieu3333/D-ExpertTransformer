@@ -14,24 +14,24 @@ class IUXrayDataLoader(DataLoader):
         self.drop_last = True if split == 'train' else False
 
         # Define Image Transformations
-        if args.ve_name == "resnet":
+        if args.ve_name == "efficientnetv2-b0":
             if split == 'train':
                 self.transform = transforms.Compose([
-                    transforms.Resize(256),
-                    transforms.CenterCrop(224),  # Replaces RandomResizedCrop with deterministic crop
+                    transforms.RandomResizedCrop(224),
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
-                    transforms.Normalize((0.485, 0.456, 0.406),
-                                        (0.229, 0.224, 0.225))
+                    transforms.Normalize(mean=(0.485, 0.456, 0.406),
+                                        std=(0.229, 0.224, 0.225))
                 ])
-
             else:
                 self.transform = transforms.Compose([
-                    transforms.Resize((224, 224)),
+                    transforms.Resize(256),
+                    transforms.CenterCrop(224),
                     transforms.ToTensor(),
-                    transforms.Normalize((0.485, 0.456, 0.406),
-                                        (0.229, 0.224, 0.225))
+                    transforms.Normalize(mean=(0.485, 0.456, 0.406),
+                                        std=(0.229, 0.224, 0.225))
                 ])
+
         # Initialize Dataset
         self.dataset = IUXray(
             args=args,
