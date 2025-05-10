@@ -29,7 +29,7 @@ scp -P 50023 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root
 scp -P 50023 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@66.115.179.154:/workspace/D-ExpertTransformer/data
 scp -P 50023 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@66.115.179.154:/workspace/D-ExpertTransformer/data
 
-scp -P 45783 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@185.65.93.144:/workspace/D-ExpertTransformer
+scp -P 45783 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@185.65.93.114:/workspace/D-ExpertTransformer
 
 unzip DeepEyeNet.zip -d data
 unzip iu_xray.zip -d data

@@ -51,8 +51,8 @@ class IUXray(Dataset):
                 image = self.transform(image)
             images.append(image)
 
-        # Stack to tensor: (2, C, H, W)
-        images = torch.stack(images, dim=0)
+        # Stack to tensor: ( C, 2*H, W)
+        images = torch.stack(images, dim=1)
 
         # --- Tokenize cleaned report ---
         report_tokens = self.tokenizer.encode(cleaned_report)
