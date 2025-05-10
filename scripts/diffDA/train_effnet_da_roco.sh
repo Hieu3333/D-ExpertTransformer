@@ -5,6 +5,7 @@ python train_roco.py \
   --ve_name "efficientnet" \
   --use_gca \
   --use_beam \
+  --use_learnable_tokens \
   --lr_ed 2e-4 \
   --lr_ve 1e-4 \
   --weight_decay 1e-4 \
