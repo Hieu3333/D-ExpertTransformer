@@ -34,7 +34,7 @@ python train_iu.py \
   --diff_num_heads 4 \
   --num_workers 16 \
   --image_path "data/eyenet0420" \
-  --ann_path "data" \
+  --ann_path "iu_xray" \
   --project_root "/workspace/D-ExpertTransformer" \
   # --from_pretrained "results/resnet-deepeyenet-diff-gca-1024-4096/checkpoint_epoch_30.pth"
 
