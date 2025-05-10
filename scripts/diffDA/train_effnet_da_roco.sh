@@ -6,8 +6,8 @@ python train_roco.py \
   --use_gca \
   --use_beam \
   --use_learnable_tokens \
-  --lr_ed 2e-4 \
-  --lr_ve 1e-4 \
+  --lr_ed 2e-5 \
+  --lr_ve 1e-5 \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --warmup_epochs 0 \
