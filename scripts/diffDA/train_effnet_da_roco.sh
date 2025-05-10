@@ -30,7 +30,7 @@ python train_roco.py \
   --lambda_init 0.8 \
   --dropout 0.0 \
   --beam_width 3 \
-  --encoder_size 2048 \
+  --encoder_size 1280 \
   --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
