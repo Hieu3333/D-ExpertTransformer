@@ -14,7 +14,7 @@ class IUXrayDataLoader(DataLoader):
         self.drop_last = True if split == 'train' else False
 
         # Define Image Transformations
-        if args.ve_name == "efficientnetv2-b0":
+        if args.ve_name == "efficientnet":
             if split == 'train':
                 self.transform = transforms.Compose([
                     transforms.RandomResizedCrop(224),
