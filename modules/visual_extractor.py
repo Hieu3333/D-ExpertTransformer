@@ -39,27 +39,46 @@ class ResNet50(nn.Module):
 
 
 
+import torch
+import timm
+import torch.nn as nn
+import torchvision.transforms as transforms
+
 class EfficientNet(nn.Module):
-    def __init__(self,args):
+    def __init__(self, args):
         super(EfficientNet, self).__init__()
         self.dataset = args.dataset
         
         # Load EfficientNetV2-B0 without classifier
         self.model = timm.create_model("tf_efficientnetv2_b0", pretrained=True)
-        self.model.global_pool = nn.Identity()  # Remove global pooling
-        self.model.classifier = nn.Identity()   # Remove classification head
-
+        
+        # Remove global pooling and classification head
+        self.model.global_pool = nn.Identity()  
+        self.model.classifier = nn.Identity()
+        
         # Define preprocessing transformations
         self.transform = transforms.Compose([
             transforms.Resize((356, 356)),  # Resize to match input size
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ])
-        # for param in self.model.parameters():
-        #     param.requires_grad = False
+        
+        # To access intermediate layer, we will hook into the desired layer
+        self.intermediate_layer = self.model.blocks[-2]  # Get second to last block, you can adjust this
 
     def forward(self, x):
-        return self.model(x)  # Returns feature map of shape (B, 1280, 12, 12)
+        # Pass the input through the layers up to the intermediate layer
+        x = self.model.conv_stem(x)   # Initial convolution
+        x = self.model.bn1(x)         # Initial batch normalization
+        x = self.model.relu1(x)       # ReLU activation
+
+        # Go through the blocks (modify to hook after specific block)
+        for block in self.model.blocks:
+            x = block(x)
+
+        # This will return the output from the intermediate block
+        return x  # Feature map of shape (B, 1280, 12, 12)
+
 
 class DenseNet(nn.Module):
     def __init__(self, args):
