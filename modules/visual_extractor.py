@@ -58,46 +58,40 @@ class EfficientNet(nn.Module):
         
         # Define preprocessing transformations
         self.transform = transforms.Compose([
-            transforms.Resize((256, 256)),  # Resize to standard input size
-            transforms.CenterCrop(224),     # Center crop to expected input
+            transforms.Resize((256, 256)),
+            transforms.CenterCrop(224),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # ImageNet stats
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         
-        print("Model attributes:", dir(self.model))
-        
-        # Check if specific attributes exist
-        print("Has act1:", hasattr(self.model, "act1"))
-        print("Has relu1:", hasattr(self.model, "relu1"))
-        
-        # Print first few layers to understand initial structure
-        if hasattr(self.model, "conv_stem"):
-            print("conv_stem:", self.model.conv_stem)
-        if hasattr(self.model, "bn1"):
-            print("bn1:", self.model.bn1)
-        
-        # Print blocks structure
-        print(f"Number of blocks: {len(self.model.blocks)}")
-        print(f"First block: {self.model.blocks[0]}")
-        print(f"Second-to-last block: {self.model.blocks[-2]}")
-        print(f"Last block: {self.model.blocks[-1]}")
-        
-        # Store the number of blocks
+        # Store reference to the second-to-last block
         self.num_blocks = len(self.model.blocks)
+        self.second_to_last_block = self.model.blocks[-2]  # This refers to the block we want
 
     def forward(self, x):
-        # Initial layers
+        # Run through the initial layers
         x = self.model.conv_stem(x)
         x = self.model.bn1(x)
-        x = self.model.act1(x)  # Note: EfficientNetV2 might use act1 instead of relu1
         
-        # Process through blocks up to the second-to-last one
-        for i in range(self.num_blocks - 1):  # Stop before the last block
+        # Try different activation function names that might be used
+        if hasattr(self.model, 'act1'):
+            x = self.model.act1(x)
+        elif hasattr(self.model, 'relu1'):
+            x = self.model.relu1(x)
+        else:
+            # Fall back to a safer approach - you might need to check the actual name
+            for name, module in self.model.named_children():
+                if 'act' in name or 'relu' in name:
+                    if name.endswith('1'):
+                        x = module(x)
+                        break
+        
+        # Run through all blocks up to and including the second-to-last block
+        # The second-to-last block is at index -2
+        for i in range(self.num_blocks - 1):  # Process all blocks except the last one
             x = self.model.blocks[i](x)
-            
-        # At this point, x contains the output of the second-to-last block
+        
         return x
-
 
 class DenseNet(nn.Module):
     def __init__(self, args):
