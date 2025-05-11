@@ -20,7 +20,7 @@ class MLP(nn.Module):
         return self.dropout(self.c_proj(self.gelu(self.c_fc(x))))
       
 class DiffMultiHeadedAttention(nn.Module):
-    def __init__(self,args, attn_size, depth,mask=True):
+    def __init__(self,args, attn_size, depth,mask=False):
         super(DiffMultiHeadedAttention,self).__init__()
         if attn_size<1000 and attn_size==49:     
             self.diff_num_heads = 7
@@ -113,8 +113,7 @@ class DiffChannelAttention(nn.Module):
         super(DiffChannelAttention,self).__init__()
         if args.ve_name == 'efficientnet':
             N = 144
-        else:
-            N = 49  
+     
         self.attn = DiffMultiHeadedAttention(args, N, depth, mask)
 
     def forward(self, x):
@@ -145,7 +144,7 @@ class DiffDA(nn.Module):
 
     def forward(self,x):
         B, C, H, W = x.shape
-        x = x.view(B,C,-1).transpose(-1,-2)
+        x = x.contiguous().view(B,C,-1).transpose(-1,-2)
         
         for i in range(self.num_layers):
             if self.return_attn:
