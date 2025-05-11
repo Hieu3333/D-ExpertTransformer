@@ -64,7 +64,25 @@ class EfficientNet(nn.Module):
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # ImageNet stats
         ])
         
-        # Store the number of blocks for easier access to second-to-last block
+        print("Model attributes:", dir(self.model))
+        
+        # Check if specific attributes exist
+        print("Has act1:", hasattr(self.model, "act1"))
+        print("Has relu1:", hasattr(self.model, "relu1"))
+        
+        # Print first few layers to understand initial structure
+        if hasattr(self.model, "conv_stem"):
+            print("conv_stem:", self.model.conv_stem)
+        if hasattr(self.model, "bn1"):
+            print("bn1:", self.model.bn1)
+        
+        # Print blocks structure
+        print(f"Number of blocks: {len(self.model.blocks)}")
+        print(f"First block: {self.model.blocks[0]}")
+        print(f"Second-to-last block: {self.model.blocks[-2]}")
+        print(f"Last block: {self.model.blocks[-1]}")
+        
+        # Store the number of blocks
         self.num_blocks = len(self.model.blocks)
 
     def forward(self, x):
