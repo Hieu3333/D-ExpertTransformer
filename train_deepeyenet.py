@@ -91,7 +91,7 @@ else:
 # Define device
 device = args.device
 model.to(device)
-model = torch.compile(model)
+# model = torch.compile(model)
 
 # Training parameters
 num_epochs = args.epochs
