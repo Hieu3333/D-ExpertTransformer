@@ -155,7 +155,7 @@ class DiffDA(nn.Module):
             # Channel Attention
             x = self.ln2[i](x + self.channel[i](x))
 
-            # Feedforward
-            x = self.ln3[i](x + self.ffwd[i](x))
+            # # Feedforward
+            # x = self.ln3[i](x + self.ffwd[i](x))
 
         return x
