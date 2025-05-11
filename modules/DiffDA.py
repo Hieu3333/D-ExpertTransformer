@@ -84,7 +84,7 @@ class DiffMultiHeadedAttention(nn.Module):
         if return_attn:
             return attn
         out = torch.matmul(attn,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
-        out = self.rmsnorm(attn) * (1-self.lambda_init)# (B, nh, T, head_size)
+        out = self.rmsnorm(out) * (1-self.lambda_init)# (B, nh, T, head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
         out = self.out_proj(out) 
         out = self.dropout(out)
