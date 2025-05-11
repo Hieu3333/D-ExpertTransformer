@@ -124,7 +124,6 @@ class TransfusionEncoder(nn.Module):
 class VisualEncoder(nn.Module):
     def __init__(self,args):
         super(VisualEncoder,self).__init__()
-        self.use_gca = args.use_gca
         self.return_attn = args.return_attn
         self.vis
         if args.ve_name == 'resnet':
