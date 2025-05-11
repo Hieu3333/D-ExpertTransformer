@@ -58,26 +58,27 @@ class EfficientNet(nn.Module):
         
         # Define preprocessing transformations
         self.transform = transforms.Compose([
-            transforms.Resize((356, 356)),  # Resize to match input size
+            transforms.Resize((256, 256)),  # Resize to standard input size
+            transforms.CenterCrop(224),     # Center crop to expected input
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # ImageNet stats
         ])
         
-        # To access intermediate layer, we will hook into the desired layer
-        self.intermediate_layer = self.model.blocks[-2]  # Get second to last block, you can adjust this
+        # Store the number of blocks for easier access to second-to-last block
+        self.num_blocks = len(self.model.blocks)
 
     def forward(self, x):
-        # Pass the input through the layers up to the intermediate layer
-        x = self.model.conv_stem(x)   # Initial convolution
-        x = self.model.bn1(x)         # Initial batch normalization
-        x = self.model.relu1(x)       # ReLU activation
-
-        # Go through the blocks (modify to hook after specific block)
-        for block in self.model.blocks:
-            x = block(x)
-
-        # This will return the output from the intermediate block
-        return x  # Feature map of shape (B, 1280, 12, 12)
+        # Initial layers
+        x = self.model.conv_stem(x)
+        x = self.model.bn1(x)
+        x = self.model.act1(x)  # Note: EfficientNetV2 might use act1 instead of relu1
+        
+        # Process through blocks up to the second-to-last one
+        for i in range(self.num_blocks - 1):  # Stop before the last block
+            x = self.model.blocks[i](x)
+            
+        # At this point, x contains the output of the second-to-last block
+        return x
 
 
 class DenseNet(nn.Module):
