@@ -132,6 +132,7 @@ class DiffChannelAttention(nn.Module):
 class DiffDA(nn.Module):
     def __init__(self,args):
         super(DiffDA,self).__init__()
+        self.wpe = nn.Embedding(144,args.encoder_size)
         self.num_layers = args.num_layers_da
         self.return_attn = args.return_attn
         self.spatial = nn.ModuleList(DiffSpatialAttention(args,depth=depth) for depth in range(args.num_layers_da))
@@ -141,10 +142,15 @@ class DiffDA(nn.Module):
         self.ln2 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
         self.ln3 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
 
+        self.device = args.device
+
 
     def forward(self,x):
         B, C, H, W = x.shape
         x = x.contiguous().view(B,C,-1).transpose(-1,-2)
+        pos = torch.arange(0,x.size(1),dtype = torch.long, device = self.device).unsqueeze(0) #(1,H*W)
+        pos_emb = self.wpe(pos)
+        x = x + pos_emb
         
         for i in range(self.num_layers):
             if self.return_attn:
@@ -155,7 +161,7 @@ class DiffDA(nn.Module):
             # Channel Attention
             x = self.ln2[i](x + self.channel[i](x))
 
-            # # Feedforward
-            # x = self.ln3[i](x + self.ffwd[i](x))
+            # Feedforward
+            x = self.ln3[i](x + self.ffwd[i](x))
 
         return x
