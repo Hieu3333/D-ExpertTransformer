@@ -1,6 +1,6 @@
 import torch
 from iu_xray.tokenizer import Tokenizer
-from model.model_DA import ExpertTransformer
+from model.model import ExpertTransformer
 from iu_xray.dataloader import IUXrayDataLoader
 from modules.metrics import compute_scores
 from tqdm import tqdm

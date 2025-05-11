@@ -1,6 +1,6 @@
 import torch
 from modules.tokenizer import Tokenizer
-from model.model_DA import ExpertTransformer
+from model.model import ExpertTransformer
 from modules.dataloader import DENDataLoader
 from modules.metrics import compute_scores
 from tqdm import tqdm

@@ -1,6 +1,6 @@
 import torch
 from roco.tokenizer import Tokenizer
-from model.model_DA import ExpertTransformer
+from model.model import ExpertTransformer
 from roco.dataloader import ROCODataLoader
 from modules.metrics import compute_scores
 from tqdm import tqdm

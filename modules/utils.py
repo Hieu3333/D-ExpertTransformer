@@ -15,7 +15,7 @@ def parser_arg():
     parser.add_argument('--vocab_size',type=int, required=True)
     parser.add_argument('--ve_name',type=str, required=True)
     parser.add_argument('--randaug',action='store_true')
-    parser.add_argument('--use_gca',action='store_true')
+    parser.add_argument('--vis_processor',type=str,default='dual_attention')
     parser.add_argument('--use_learnable_tokens',action='store_true')
     parser.add_argument('--constant_lr',action='store_true')
     parser.add_argument('--eval',action='store_true')

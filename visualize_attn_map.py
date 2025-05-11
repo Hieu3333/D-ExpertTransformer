@@ -32,7 +32,7 @@ def load_model():
 
 transform, model, tokenizer, args = load_model()
 
-st.title("🖼️ Retinal Image Captioning Demo")
+st.title("🖼️ Visual")
 
 # Upload image
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])

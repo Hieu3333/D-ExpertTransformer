@@ -52,7 +52,7 @@ class DiffMultiHeadedAttention(nn.Module):
         self.out_proj = nn.Linear(attn_size,attn_size,bias=args.bias)
         self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
 
-    def forward(self,query,key,value):
+    def forward(self,query,key,value,return_attn=False):
         B,T,_ = query.shape #T is number of keywords
         B,N,_ = value.shape
 
@@ -64,26 +64,26 @@ class DiffMultiHeadedAttention(nn.Module):
         lambda2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1).float())
         lambda_full = lambda1 - lambda2 + self.lambda_init
 
-        q = q.reshape(B,T,self.diff_num_heads,2,self.diff_head_size//2).transpose(1,2) #(B,nh,T,2,diff_head_size/2)
-        k = k.reshape(B,N,self.diff_num_heads,2,self.diff_head_size//2).transpose(1,2) #(B,nh,N,2,diff_head_size/2)
+        q = q.reshape(B,T,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,T,2*heads,diff_head_size/2)
+        k = k.reshape(B,N,2*self.diff_num_heads,self.diff_head_size//2).transpose(1,2) #(B,N,2*heads,diff_head_size/2)
         v = v.reshape(B,N,self.diff_num_heads,self.diff_head_size).transpose(1,2) #(B,nh,N,diff_head_size)
         
-        q1, q2 = q[:,:,:,0], q[:,:,:,1]
-        k1, k2 = k[:,:,:,0], k[:,:,:,1]
-        att1 = F.scaled_dot_product_attention(q1,k1,v,attn_mask=None,dropout_p=self.dropout_rate,is_causal=self.mask)
-        att2 = F.scaled_dot_product_attention(q2,k2,v,attn_mask=None,dropout_p=self.dropout_rate,is_causal=self.mask)
-        # assert q.shape[-1] == k.shape[-1]
-        # att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
-        # # print('att:',att.shape)
-        # if self.mask:
-        #     att = att.masked_fill(
-        #             self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, 
-        #             torch.finfo(att.dtype).min  # Ensures proper handling in mixed precision
-        #         )
-        # att = F.softmax(att,dim=-1)
-        # att = att.reshape(B,self.diff_num_heads,2,T,-1)
-        attn = att1 - lambda_full * att2
-        # out = torch.matmul(att,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
+        
+        assert q.shape[-1] == k.shape[-1]
+        att = torch.matmul(q,k.transpose(-1,-2)) / math.sqrt(q.shape[-1]) #(B,nh,T,N)
+        att = torch.nan_to_num(att)
+        # print('att:',att.shape)
+        if self.mask:
+            att = att.masked_fill(
+                    self.bias[:,:,:att.shape[2],:att.shape[3]] == 0, 
+                    torch.finfo(att.dtype).min  # Ensures proper handling in mixed precision
+                )
+        att = F.softmax(att,dim=-1)
+        att = att.reshape(B,self.diff_num_heads,2,T,-1)
+        attn = att[:,:,0] - lambda_full * att[:,:,1] #(B,n_head,T,T)
+        if return_attn:
+            return attn
+        out = torch.matmul(attn,v) #(B,nh,T,T) @ (B,nh,T,head_size) -> (B,nh,T,head_size)
         out = self.rmsnorm(attn) * (1-self.lambda_init)# (B, nh, T, head_size)
         out = out.transpose(1,2).contiguous().view(B,T,self.hidden_size)
         out = self.out_proj(out) 
