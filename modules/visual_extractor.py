@@ -90,6 +90,7 @@ class EfficientNet(nn.Module):
         # The second-to-last block is at index -2
         for i in range(self.num_blocks - 1):  # Process all blocks except the last one
             x = self.model.blocks[i](x)
+        print('shape:',x.shape)
         
         return x
 
