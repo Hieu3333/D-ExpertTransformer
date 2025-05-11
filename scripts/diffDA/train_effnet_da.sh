@@ -1,5 +1,5 @@
 python train_deepeyenet.py \
-  --exp_name "effnet-diff-pos" \
+  --exp_name "effnet-diff-lw" \
   --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "efficientnet" \
