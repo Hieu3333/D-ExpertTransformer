@@ -11,7 +11,7 @@ python train_deepeyenet.py \
   --channel_reduction 4 \
   --warmup_epochs 0 \
   --num_layers 3 \
-  --num_layers_da 1 \
+  --num_layers_da 2 \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
