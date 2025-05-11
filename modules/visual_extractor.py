@@ -45,54 +45,26 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 
 class EfficientNet(nn.Module):
-    def __init__(self, args):
+    def __init__(self,args):
         super(EfficientNet, self).__init__()
         self.dataset = args.dataset
         
         # Load EfficientNetV2-B0 without classifier
         self.model = timm.create_model("tf_efficientnetv2_b0", pretrained=True)
-        
-        # Remove global pooling and classification head
-        self.model.global_pool = nn.Identity()  
-        self.model.classifier = nn.Identity()
-        
+        self.model.global_pool = nn.Identity()  # Remove global pooling
+        self.model.classifier = nn.Identity()   # Remove classification head
+
         # Define preprocessing transformations
         self.transform = transforms.Compose([
-            transforms.Resize((256, 256)),
-            transforms.CenterCrop(224),
+            transforms.Resize((356, 356)),  # Resize to match input size
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ])
-        
-        # Store reference to the second-to-last block
-        self.num_blocks = len(self.model.blocks)
-        self.second_to_last_block = self.model.blocks[-2]  # This refers to the block we want
+        # for param in self.model.parameters():
+        #     param.requires_grad = False
 
     def forward(self, x):
-        # Run through the initial layers
-        x = self.model.conv_stem(x)
-        x = self.model.bn1(x)
-        
-        # Try different activation function names that might be used
-        if hasattr(self.model, 'act1'):
-            x = self.model.act1(x)
-        elif hasattr(self.model, 'relu1'):
-            x = self.model.relu1(x)
-        else:
-            # Fall back to a safer approach - you might need to check the actual name
-            for name, module in self.model.named_children():
-                if 'act' in name or 'relu' in name:
-                    if name.endswith('1'):
-                        x = module(x)
-                        break
-        
-        # Run through all blocks up to and including the second-to-last block
-        # The second-to-last block is at index -2
-        for i in range(self.num_blocks - 1):  # Process all blocks except the last one
-            x = self.model.blocks[i](x)
-        print('shape:',x.shape)
-        
-        return x
+        return self.model(x)  # Returns feature map of shape (B, 1280, 12, 12)
 
 class DenseNet(nn.Module):
     def __init__(self, args):
