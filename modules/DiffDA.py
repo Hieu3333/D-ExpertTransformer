@@ -95,6 +95,7 @@ class DiffSpatialAttention(nn.Module):
         super(DiffSpatialAttention, self).__init__()
         attn_size = args.encoder_size
         self.attn = DiffMultiHeadedAttention(args, attn_size, depth, mask)
+        self.return_attn = args.return_attn
 
 
     def forward(self, x):
@@ -104,7 +105,7 @@ class DiffSpatialAttention(nn.Module):
         Returns:
             [B,H*W,C]
         """
-        out = self.attn(x, x, x)  # Q = K = V = [B, HW, C]
+        out = self.attn(x, x, x,self.return_attn)  # Q = K = V = [B, HW, C]
         return out
 
 class DiffChannelAttention(nn.Module):
@@ -133,6 +134,7 @@ class DiffDA(nn.Module):
     def __init__(self,args):
         super(DiffDA,self).__init__()
         self.num_layers = args.num_layers_da
+        self.return_attn = args.return_attn
         self.spatial = nn.ModuleList(DiffSpatialAttention(args,depth=depth) for depth in range(args.num_layers_da))
         self.channel = nn.ModuleList(DiffChannelAttention(args,depth=depth) for depth in range(args.num_layers_da))
         self.ffwd = nn.ModuleList(MLP(args) for _ in range(args.num_layers_da))
@@ -144,10 +146,12 @@ class DiffDA(nn.Module):
     def forward(self,x):
         B, C, H, W = x.shape
         x = x.view(B,C,-1).transpose(-1,-2)
+        
         for i in range(self.num_layers):
-
+            if self.return_attn:
+                return self.spatial[i](x)
             # Spatial Attention
-            x = self.ln1[i](x + self.spatial[i](x))
+            x = self.ln1[i](x + self.spatial[i](x) )
 
             # Channel Attention
             x = self.ln2[i](x + self.channel[i](x))
