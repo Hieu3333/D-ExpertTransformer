@@ -9,7 +9,7 @@ from collections import Counter
 from modules.RMSNorm import RMSNorm
 from modules.DiffDA import DiffDA
 from modules.GCA import GuidedContextAttention
-
+from modules.VIT import ViT
 
 
 def lambda_init_fn(depth):
@@ -136,6 +136,8 @@ class VisualEncoder(nn.Module):
             self.vis = DiffDA(args)
         elif args.vis_processor == 'gca':
             self.vis = GuidedContextAttention(args)
+        elif args.vis_processor == 'attention':
+            self.vis = ViT(args)
         else:
             self.vis = None
         if args.freeze_ve:

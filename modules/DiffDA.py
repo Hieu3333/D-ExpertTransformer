@@ -130,38 +130,49 @@ class DiffChannelAttention(nn.Module):
         return out
 
 class DiffDA(nn.Module):
-    def __init__(self,args):
-        super(DiffDA,self).__init__()
-        self.wpe = nn.Embedding(144,args.encoder_size)
+    def __init__(self, args):
+        super(DiffDA, self).__init__()
+        self.wpe = nn.Embedding(144, args.encoder_size)
         self.num_layers = args.num_layers_da
         self.return_attn = args.return_attn
-        self.spatial = nn.ModuleList(DiffSpatialAttention(args,depth=depth) for depth in range(args.num_layers_da))
-        self.channel = nn.ModuleList(DiffChannelAttention(args,depth=depth) for depth in range(args.num_layers_da))
+        self.spatial = nn.ModuleList(DiffSpatialAttention(args, depth=depth) for depth in range(args.num_layers_da))
+        self.channel = nn.ModuleList(DiffChannelAttention(args, depth=depth) for depth in range(args.num_layers_da))
         self.ffwd = nn.ModuleList(MLP(args) for _ in range(args.num_layers_da))
         self.ln1 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
         self.ln2 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
-        self.ln3 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
-
         self.device = args.device
 
+        # Learnable fusion weights (2 per layer: one for spatial, one for channel)
+        self.fusion_weights = nn.ParameterList([
+            nn.Parameter(torch.tensor([1.0, 1.0])) for _ in range(self.num_layers)
+        ])
 
-    def forward(self,x):
+    def forward(self, x):
         B, C, H, W = x.shape
-        x = x.contiguous().view(B,C,-1).transpose(-1,-2)
-        pos = torch.arange(0,x.size(1),dtype = torch.long, device = self.device).unsqueeze(0) #(1,H*W)
+        x = x.contiguous().view(B, C, -1).transpose(-1, -2)
+        pos = torch.arange(0, x.size(1), dtype=torch.long, device=self.device).unsqueeze(0)  # (1, H*W)
         pos_emb = self.wpe(pos)
         x = x + pos_emb
-        
+
         for i in range(self.num_layers):
             if self.return_attn:
                 return self.spatial[i](x)
-            # Spatial Attention
-            x = self.ln1[i](x + self.spatial[i](x) )
 
-            # Channel Attention
-            x = self.ln2[i](x + self.channel[i](x))
+            # Compute spatial and channel attention in parallel
+            x_spatial = self.spatial[i](x)
+            x_channel = self.channel[i](x)
+
+            # Softmax to normalize fusion weights
+            weights = F.softmax(self.fusion_weights[i], dim=0)
+            alpha, beta = weights[0], weights[1]
+
+            # Fuse the outputs with learned weights
+            x_fused = alpha * x_spatial + beta * x_channel
+
+            # Residual + LayerNorm
+            x = self.ln1[i](x + x_fused)
 
             # Feedforward
-            x = self.ln3[i](x + self.ffwd[i](x))
+            x = self.ln2[i](x + self.ffwd[i](x))
 
         return x
