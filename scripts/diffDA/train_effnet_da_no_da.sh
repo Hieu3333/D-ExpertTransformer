@@ -1,9 +1,9 @@
 python train_deepeyenet.py \
-  --exp_name "effnet-diff" \
+  --exp_name "effnet-diff-no-da" \
   --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "efficientnet" \
-  --vis_processor "dual_attention" \
+  --vis_processor "" \
   --use_beam \
   --lr_ed 2e-4 \
   --lr_ve 1e-4 \
@@ -36,6 +36,6 @@ python train_deepeyenet.py \
   --image_path "data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
-  --from_pretrained "results/effnet-diff/efficientnet_deepeyenet.pth"
+
 
 
