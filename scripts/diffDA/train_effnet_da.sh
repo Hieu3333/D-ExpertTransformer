@@ -4,6 +4,7 @@ python train_deepeyenet.py \
   --dataset "deepeyenet" \
   --ve_name "efficientnet" \
   --vis_processor "dual_attention" \
+  --use_learnable_tokens \
   --use_beam \
   --lr_ed 2e-4 \
   --lr_ve 1e-4 \

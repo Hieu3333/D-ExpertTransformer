@@ -13,6 +13,7 @@ class Args:
     fc_size: int = 2048
     vocab_size: int = 2690
     ve_name: str = "efficientnet"
+    vis_processor: str = "dual_attention"
     randaug: bool = False
     use_gca: bool = True
     use_learnable_tokens: bool = False
@@ -41,4 +42,5 @@ class Args:
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
     project_root: str = "/mnt/c/D-ExpertTransformer"
     lambda_init: float = 0.8
+    return_attn: bool = False
     from_pretrained: str = "results/diffDA/efficientnet_deepeyenet.pth"
