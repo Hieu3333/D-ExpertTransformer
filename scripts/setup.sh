@@ -40,8 +40,8 @@ wget https://raw.githubusercontent.com/cmu-mtlab/meteor/master/data/paraphrase-e
 
 
 
-scp -P 14170 root@172.219.157.164:/workspace/D-ExpertTransformer/results/resnet-deepeyenet/resnet_deepeyenet.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
-scp -P 14170 -r root@172.219.157.164:/workspace/D-ExpertTransformer/logs/resnet-deepeyenet/ "/mnt/c/D-ExpertTransformer/logs"
+scp -P 14170 root@172.219.157.164:/workspace/D-ExpertTransformer/results/effnet-deepeyenet/efficientnet_deepeyenet.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
+scp -P 14170 -r root@172.219.157.164:/workspace/D-ExpertTransformer/logs/effnet-deepeyenet/ "/mnt/c/D-ExpertTransformer/logs"
 
 scp -P 14170 root@172.219.157.164:/workspace/D-ExpertTransformer/results/resnet-diff-roco/roco.pth "/mnt/c/D-ExpertTransformer/results/roco"
 scp -P 14170 -r root@172.219.157.164:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"
