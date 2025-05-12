@@ -5,6 +5,14 @@ import math
 from modules.RMSNorm import RMSNorm
 def lambda_init_fn(depth):
     return 0.8 - 0.6 * math.exp(-0.3 * depth)
+def get_1d_sincos_pos_embed(seq_len, dim, device):
+    position = torch.arange(seq_len, dtype=torch.float, device=device).unsqueeze(1)  # (seq_len, 1)
+    div_term = torch.exp(torch.arange(0, dim, 2, dtype=torch.float, device=device) * (-math.log(10000.0) / dim))
+    
+    pe = torch.zeros(seq_len, dim, device=device)
+    pe[:, 0::2] = torch.sin(position * div_term)
+    pe[:, 1::2] = torch.cos(position * div_term)
+    return pe.unsqueeze(0)  # shape (1, seq_len, dim)
 
 
 class MLP(nn.Module):
@@ -150,8 +158,7 @@ class DiffDA(nn.Module):
     def forward(self, x):
         B, C, H, W = x.shape
         x = x.contiguous().view(B, C, -1).transpose(-1, -2)
-        pos = torch.arange(0, x.size(1), dtype=torch.long, device=self.device).unsqueeze(0)  # (1, H*W)
-        pos_emb = self.wpe(pos)
+        pos_emb = get_1d_sincos_pos_embed(seq_len=x.size(1), dim=C, device=x.device)
         x = x + pos_emb
 
         for i in range(self.num_layers):
