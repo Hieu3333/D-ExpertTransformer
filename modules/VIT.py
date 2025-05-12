@@ -113,7 +113,7 @@ class ViT(nn.Module):
         x = x + pos_emb
         
         for i in range(self.num_layers):
-            x = self.ln1(x + self.attn[i](x,x,x))
-            x = self.ln2(x + self.ffwd[i](x))
+            x = self.ln1[i](x + self.attn[i](x,x,x))
+            x = self.ln2[i](x + self.ffwd[i](x))
 
         return x
