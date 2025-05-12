@@ -144,10 +144,7 @@ class VisualEncoder(nn.Module):
         if self.use_gca:
             vf = self.gca(vf)
             return vf
-        else:
-            B,C,_,_ = vf.size()
-            vf = vf.view(B,C,-1)
-            return vf.transpose(-2,-1)
+       
         
 
 
