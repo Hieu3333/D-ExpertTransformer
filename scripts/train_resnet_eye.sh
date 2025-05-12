@@ -20,7 +20,7 @@ python train_deepeyenet.py \
   --hidden_size 512 \
   --fc_size 2048 \
   --contrastive_proj_dim 256 \
-  --vocab_size 2690 \
+  --vocab_size 2680 \
   --delta1 1 \
   --delta2 0.3 \
   --topk 3 \
@@ -29,7 +29,6 @@ python train_deepeyenet.py \
   --dropout 0.2 \
   --beam_width 3 \
   --encoder_size 2048 \
-  --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
   --save_path "results" \
