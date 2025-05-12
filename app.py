@@ -1,10 +1,6 @@
 import os
 import sys
-# model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model'))
-# sys.path.append(model_path)
 
-# modules_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'modules'))
-# sys.path.append(modules_path)
 
 import streamlit as st
 from PIL import Image
@@ -36,13 +32,13 @@ st.title("🖼️ Retinal Image Captioning Demo")
 
 # Upload image
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
-keywords = st.text_input("Enter keywords:", "")
+keywords = st.text_input("Enter keywords (comma-separated):", "")
 
-if st.button("Generate"):
-    # Load and display image
+if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Uploaded Image", use_container_width=True)
 
+if st.button("Generate"):
     # Generate caption
     with st.spinner("Generating caption..."):
         keywords_list = [kw.strip() for kw in keywords.split(',') if kw.strip()]
@@ -64,5 +60,5 @@ if st.button("Generate"):
             out = out[0]
 
 
-    st.markdown(f"<h3>{out}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h4>{out}</h4>", unsafe_allow_html=True)
 
