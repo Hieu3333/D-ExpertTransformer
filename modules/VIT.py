@@ -111,6 +111,7 @@ class ViT(nn.Module):
         pos = torch.arange(0,x.size(1),dtype = torch.long, device = self.device).unsqueeze(0) #(1,H*W)
         pos_emb = self.wpe(pos)
         x = x + pos_emb
+        print("x: ",x.shape)
         
         x = self.ln1(x + self.attn(x,x,x))
         x = self.ln2(x + self.ffwd(x))
