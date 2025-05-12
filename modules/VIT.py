@@ -96,7 +96,7 @@ class ViT(nn.Module):
         self.wpe = nn.Embedding(144,args.encoder_size)
         self.num_layers = args.num_layers_da
         self.return_attn = args.return_attn
-        self.attn = DiffMultiHeadedAttention(args,144,0)
+        self.attn = nn.ModuleList(DiffMultiHeadedAttention(args=args,attn_size=args.encoder_size,depth=depth,mask=False) for depth in range(self.num_layers))
         self.ffwd = nn.ModuleList(MLP(args) for _ in range(args.num_layers_da))
         self.ln1 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
         self.ln2 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
@@ -111,9 +111,9 @@ class ViT(nn.Module):
         pos = torch.arange(0,x.size(1),dtype = torch.long, device = self.device).unsqueeze(0) #(1,H*W)
         pos_emb = self.wpe(pos)
         x = x + pos_emb
-        print("x: ",x.shape)
         
-        x = self.ln1(x + self.attn(x,x,x))
-        x = self.ln2(x + self.ffwd(x))
+        for i in range(self.num_layers):
+            x = self.ln1(x + self.attn[i](x,x,x))
+            x = self.ln2(x + self.ffwd[i](x))
 
         return x
