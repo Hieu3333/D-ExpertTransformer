@@ -30,11 +30,10 @@ python train_deepeyenet.py \
   --dropout 0.2 \
   --beam_width 3 \
   --encoder_size 1280 \
-  --num_heads 8 \
   --diff_num_heads 4 \
   --num_workers 16 \
   --image_path "data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
-  # --from_pretrained "results/resnet-deepeyenet-diff-gca-1024-4096/checkpoint_epoch_30.pth"
+
 

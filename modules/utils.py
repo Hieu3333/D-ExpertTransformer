@@ -33,7 +33,7 @@ def parser_arg():
     parser.add_argument('--topk',type=int, required=True)
     parser.add_argument('--temperature',type=float, required=True)
     parser.add_argument('--encoder_size',type=int, required=True)
-    parser.add_argument('--num_heads',type=int, required=True)
+    parser.add_argument('--num_heads',type=int, required=False)
     parser.add_argument('--diff_num_heads',type=int, required=True)
     parser.add_argument('--bias', action='store_true')
     parser.add_argument('--freeze_ve', action='store_true')

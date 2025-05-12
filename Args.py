@@ -12,7 +12,7 @@ class Args:
     contrastive_proj_dim: int = 256
     fc_size: int = 2048
     vocab_size: int = 2690
-    ve_name: str = "densenet"
+    ve_name: str = "efficientnet"
     randaug: bool = False
     use_gca: bool = True
     use_learnable_tokens: bool = False
@@ -31,7 +31,7 @@ class Args:
     dropout: float = 0.2
     topk: int = 3
     temperature: float = 1.0
-    encoder_size: int = 1024
+    encoder_size: int = 1280
     num_heads: int = 8
     diff_num_heads: int = 4
     bias: bool = False
@@ -47,4 +47,4 @@ class Args:
     early_stopping: int = 10
     project_root: str = "/mnt/c/D-ExpertTransformer"
     lambda_init: float = 0.8
-    from_pretrained: str = "results/gca/deepeyenet/densenet_deepeyenet.pth"
+    from_pretrained: str = "results/gca/deepeyenet/efficientnet_deepeyenet.pth"
