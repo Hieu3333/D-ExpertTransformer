@@ -100,7 +100,7 @@ class ViT(nn.Module):
         self.ffwd = nn.ModuleList(MLP(args) for _ in range(args.num_layers_da))
         self.ln1 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
         self.ln2 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
-        self.ln3 = nn.ModuleList(nn.LayerNorm(args.encoder_size) for _ in range(args.num_layers_da))
+ 
 
         self.device = args.device
 
