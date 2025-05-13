@@ -31,7 +31,7 @@ class DiffMultiHeadedAttention(nn.Module):
 
         assert self.hidden_size % self.diff_num_heads == 0
 
-        self.lambda_init = lambda_init_fn(depth)
+        self.lambda_init = lambda_init_fn(args,depth)
         self.lambda_q1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
         self.lambda_q2 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
         self.lambda_k1 = nn.Parameter(torch.zeros(self.diff_head_size//2, dtype=torch.float32).normal_(mean=0,std=0.1))
