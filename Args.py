@@ -11,7 +11,7 @@ class Args:
     hidden_size: int = 512
     contrastive_proj_dim: int = 256
     fc_size: int = 2048
-    vocab_size: int = 2690
+    vocab_size: int = 2680
     ve_name: str = "efficientnet"
     randaug: bool = False
     use_gca: bool = True
@@ -47,4 +47,4 @@ class Args:
     early_stopping: int = 10
     project_root: str = "/mnt/c/D-ExpertTransformer"
     lambda_init: float = 0.8
-    from_pretrained: str = "results/gca/deepeyenet/efficientnet_deepeyenet.pth"
+    from_pretrained: str = "results/deepeyenet/efficientnet_deepeyenet.pth"

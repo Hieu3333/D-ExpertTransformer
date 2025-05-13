@@ -61,6 +61,7 @@ class GuidedContextAttention(nn.Module):
         qk = self.relu(query + key + self.bias_qk) #(b,c,h,w)
         qk = self.conv_f(qk) + self.bias_f #(b,1,h,w)
         qk = self.signoid(qk)
+        self.cam = qk.detach()
         out = qk * x
         return out.view(b,d,-1).transpose(-1,-2) #(b,h*w,d)
         
