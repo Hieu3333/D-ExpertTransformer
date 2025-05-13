@@ -1,6 +1,6 @@
 python train_deepeyenet.py \
   --exp_name "effnet-deepeyenet" \
-  --epochs 50 \
+  --epochs 100 \
   --dataset "deepeyenet" \
   --ve_name "efficientnet" \
   --use_gca \
