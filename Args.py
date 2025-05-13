@@ -47,4 +47,5 @@ class Args:
     early_stopping: int = 10
     project_root: str = "/mnt/c/D-ExpertTransformer"
     lambda_init: float = 0.8
+    const_lambda_init: bool = False
     from_pretrained: str = "results/deepeyenet/efficientnet_deepeyenet.pth"
