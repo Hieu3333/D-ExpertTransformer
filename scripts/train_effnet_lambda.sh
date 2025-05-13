@@ -26,7 +26,7 @@ python train_deepeyenet.py \
   --delta2 0.3 \
   --topk 3 \
   --temperature 1 \
-  --constant_lambda_init \
+  --const_lambda_init \
   --lambda_init 0.8 \
   --dropout 0.2 \
   --beam_width 3 \
