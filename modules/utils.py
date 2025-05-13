@@ -18,6 +18,8 @@ def parser_arg():
     parser.add_argument('--use_gca',action='store_true')
     parser.add_argument('--use_learnable_tokens',action='store_true')
     parser.add_argument('--constant_lr',action='store_true')
+    parser.add_argument('--const_lambda_init',action='store_true')
+    parser.add_argument('--lambda_init',type=float, required=True)
     parser.add_argument('--eval',action='store_true')
     parser.add_argument('--use_contrastive',action='store_true')
     parser.add_argument('--channel_reduction',type=int, required=True)
@@ -47,7 +49,6 @@ def parser_arg():
     parser.add_argument('--accum_steps',type=int,required=True)
     parser.add_argument('--early_stopping',type=int,default=10)
     parser.add_argument('--project_root',type=str,required=True)
-    parser.add_argument('--lambda_init',type=float, required=True)
     parser.add_argument('--from_pretrained',type=str,default=None)
     args, unparsed = parser.parse_known_args()
     return args

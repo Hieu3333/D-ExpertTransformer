@@ -11,8 +11,11 @@ from modules.GCA import GuidedContextAttention
 
 
 
-def lambda_init_fn(depth):
-    return 0.8 - 0.6 * math.exp(-0.3 * depth)
+def lambda_init_fn(args,depth):
+    if args.const_lambda_init:
+        return args.lambda_init
+    else:
+        return 0.8 - 0.6 * math.exp(-0.3 * depth)
 
     
 
