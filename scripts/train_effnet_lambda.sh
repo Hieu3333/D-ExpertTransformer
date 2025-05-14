@@ -1,5 +1,5 @@
 python train_deepeyenet.py \
-  --exp_name "effnet-deepeyenet-lambda-0.5" \
+  --exp_name "effnet-deepeyenet-lambda-0.3" \
   --epochs 50 \
   --dataset "deepeyenet" \
   --ve_name "efficientnet" \
@@ -27,7 +27,7 @@ python train_deepeyenet.py \
   --topk 3 \
   --temperature 1 \
   --const_lambda_init \
-  --lambda_init 0.5 \
+  --lambda_init 0.3 \
   --dropout 0.2 \
   --beam_width 3 \
   --encoder_size 1280 \
