@@ -10,7 +10,7 @@ python train_deepeyenet.py \
   --weight_decay 1e-4 \
   --channel_reduction 4 \
   --warmup_epochs 0 \
-  --num_layers 3 \
+  --num_layers 5 \
   --save_path "results" \
   --batch_size 64 \
   --accum_steps 1 \
