@@ -39,7 +39,7 @@ unzip iu_xray.zip -d data
 
 
 scp -P 50198 root@66.115.179.154:/workspace/D-ExpertTransformer/results/effnet-deepeyenet/efficientnet_deepeyenet.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
-scp -P 50198 -r root@66.115.179.154:/workspace/D-ExpertTransformer/logs/effnet-deepeyenet-lambda-0.3/ "/mnt/c/D-ExpertTransformer/logs"
+scp -P 50198 -r root@66.115.179.154:/workspace/D-ExpertTransformer/logs/effnet-deepeyenet-5-layers/ "/mnt/c/D-ExpertTransformer/logs"
 
 scp -P 50198 root@66.115.179.154:/workspace/D-ExpertTransformer/results/resnet-diff-roco/roco.pth "/mnt/c/D-ExpertTransformer/results/roco"
 scp -P 50198 -r root@66.115.179.154:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"
