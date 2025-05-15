@@ -23,13 +23,13 @@ git lfs install
 mkdir data
 
 
-scp -P 50249 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@66.115.179.154:/workspace/D-ExpertTransformer
-scp -P 50249 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@66.115.179.154:/workspace/D-ExpertTransformer/data
-scp -P 50249 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@66.115.179.154:/workspace/D-ExpertTransformer/data
-scp -P 50249 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@66.115.179.154:/workspace/D-ExpertTransformer/data
-scp -P 50249 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@66.115.179.154:/workspace/D-ExpertTransformer/data
+scp -P 41331 "/mnt/c/Users/hieu3/Downloads/DeepEyeNet.zip" root@50.217.254.168:/workspace/D-ExpertTransformer
+scp -P 41331 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_train.json" root@50.217.254.168:/workspace/D-ExpertTransformer/data
+scp -P 41331 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_test.json" root@50.217.254.168:/workspace/D-ExpertTransformer/data
+scp -P 41331 "/mnt/c/D-ExpertTransformer/data/cleaned_DeepEyeNet_val.json" root@50.217.254.168:/workspace/D-ExpertTransformer/data
+scp -P 41331 "/mnt/c/D-ExpertTransformer/data/vocab.json" root@50.217.254.168:/workspace/D-ExpertTransformer/data
 
-scp -P 50249 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@66.115.179.154:/workspace/D-ExpertTransformer
+scp -P 41331 "/mnt/c/Users/hieu3/Downloads/iu_xray.zip" root@50.217.254.168:/workspace/D-ExpertTransformer
 
 unzip DeepEyeNet.zip -d data
 unzip iu_xray.zip -d data
@@ -38,11 +38,11 @@ unzip iu_xray.zip -d data
 
 
 
-scp -P 50249 root@66.115.179.154:/workspace/D-ExpertTransformer/results/effnet-deepeyenet/efficientnet_deepeyenet.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
-scp -P 50249 -r root@66.115.179.154:/workspace/D-ExpertTransformer/logs/effnet-deepeyenet-4-layers/ "/mnt/c/D-ExpertTransformer/logs"
+scp -P 41331 root@50.217.254.168:/workspace/D-ExpertTransformer/results/effnet-deepeyenet/efficientnet_deepeyenet.pth "/mnt/c/D-ExpertTransformer/results/deepeyenet"
+scp -P 41331 -r root@50.217.254.168:/workspace/D-ExpertTransformer/logs/effnet-deepeyenet-4-layers/ "/mnt/c/D-ExpertTransformer/logs"
 
-scp -P 50249 root@66.115.179.154:/workspace/D-ExpertTransformer/results/resnet-diff-roco/roco.pth "/mnt/c/D-ExpertTransformer/results/roco"
-scp -P 50249 -r root@66.115.179.154:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"
+scp -P 41331 root@50.217.254.168:/workspace/D-ExpertTransformer/results/resnet-diff-roco/roco.pth "/mnt/c/D-ExpertTransformer/results/roco"
+scp -P 41331 -r root@50.217.254.168:/workspace/D-ExpertTransformer/roco/logs/resnet-diff-roco/ "/mnt/c/D-ExpertTransformer/roco/logs"
 
-scp -P 50249 root@66.115.179.154:/workspace/D-ExpertTransformer/results/resnet-iu/iu_xray.pth "/mnt/c/D-ExpertTransformer/results/iu_xray"
-scp -P 50249 -r root@66.115.179.154:/workspace/D-ExpertTransformer/roco/logs/resnet_iu/ "/mnt/c/D-ExpertTransformer/iu_xray/logs"
+scp -P 41331 root@50.217.254.168:/workspace/D-ExpertTransformer/results/resnet-iu/iu_xray.pth "/mnt/c/D-ExpertTransformer/results/iu_xray"
+scp -P 41331 -r root@50.217.254.168:/workspace/D-ExpertTransformer/roco/logs/resnet_iu/ "/mnt/c/D-ExpertTransformer/iu_xray/logs"
