@@ -6,6 +6,7 @@ from pycocoevalcap.rouge.rouge import Rouge
 
 
 
+
 def compute_scores(gts, res):
     
 
@@ -13,7 +14,8 @@ def compute_scores(gts, res):
     scorers = [
         (Bleu(4), ["BLEU_1", "BLEU_2", "BLEU_3", "BLEU_4"]),
         (Meteor(), "METEOR"),
-        (Rouge(), "ROUGE_L")
+        (Rouge(), "ROUGE_L"),
+        (Cider(), "CIDER")
     ]
     eval_res = {}
     # Compute score for each metric
