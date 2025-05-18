@@ -116,52 +116,52 @@ logger.info(args)
 
 
 for epoch in range(current_epoch-1,num_epochs):
-    # if num_epoch_not_improved == args.early_stopping:
-    #     break
+    if num_epoch_not_improved == args.early_stopping:
+        break
 
-    # logger.info(f"Epoch {epoch+1}:")
-    # # if args.use_mask:
-    # #     mask_prob = get_mask_prob(args,epoch+1)
-    # #     train_dataloader.set_mask_prob(mask_prob)
-    # model.train()
-    # running_loss = 0.0
-    # if not args.eval:
-    #     for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
-    #         image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
-    #         images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
-    #         # print("desc_tokens:",desc_tokens)
-    #         # print("target_tokens:",target_tokens)
-    #         # print('gt:',gt_clinical_desc)
-    #         outputs, loss = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
-    #         loss = loss / args.accum_steps  # Normalize for gradient accumulation
+    logger.info(f"Epoch {epoch+1}:")
+    # if args.use_mask:
+    #     mask_prob = get_mask_prob(args,epoch+1)
+    #     train_dataloader.set_mask_prob(mask_prob)
+    model.train()
+    running_loss = 0.0
+    if not args.eval:
+        for batch_idx, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}/{num_epochs}; lr={scheduler.get_last_lr()}")):
+            image_ids, images, desc_tokens, target_tokens, gt_keyword_tokens, gt_clinical_desc = batch
+            images, desc_tokens, target_tokens, gt_keyword_tokens = images.to(device), desc_tokens.to(device), target_tokens.to(device), gt_keyword_tokens.to(device)
+            # print("desc_tokens:",desc_tokens)
+            # print("target_tokens:",target_tokens)
+            # print('gt:',gt_clinical_desc)
+            outputs, loss = model(images=images,tokens=desc_tokens, gt_keyword_tokens=gt_keyword_tokens, targets=target_tokens)
+            loss = loss / args.accum_steps  # Normalize for gradient accumulation
 
-    #         loss.backward()
-    #         norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-    #         # Gradient accumulation step
-    #         if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
-    #             optimizer.step()
-    #             optimizer.zero_grad()  # Zero gradients after step
+            loss.backward()
+            norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            # Gradient accumulation step
+            if (batch_idx + 1) % args.accum_steps == 0 or (batch_idx + 1 == len(train_dataloader)):
+                optimizer.step()
+                optimizer.zero_grad()  # Zero gradients after step
 
-    #         running_loss += loss.item()
+            running_loss += loss.item()
             
-    #         # Logging
-    #         if (batch_idx+1== len(train_dataloader)) :
-    #             avg_loss = running_loss / len(train_dataloader)
-    #             logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
-    #             running_loss = 0.0  # Reset running loss
+            # Logging
+            if (batch_idx+1== len(train_dataloader)) :
+                avg_loss = running_loss / len(train_dataloader)
+                logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
+                running_loss = 0.0  # Reset running loss
         
         
-    # if not args.constant_lr:
-    #     scheduler.step()  
+    if not args.constant_lr:
+        scheduler.step()  
 
-    # if (epoch+1) < args.epochs:
-    #     continue
+    if (epoch+1) < args.epochs:
+        continue
 
-    # torch.save({
-    #         'epoch': epoch + 1,  # Save current epoch
-    #         'model': model.state_dict(),  # Save model weights
-    #         'optim': optimizer.state_dict(),  # Save optimizer state
-    #     }, os.path.join(save_path, f"{args.ve_name}_deepeyenet.pth"))
+    torch.save({
+            'epoch': epoch + 1,  # Save current epoch
+            'model': model.state_dict(),  # Save model weights
+            'optim': optimizer.state_dict(),  # Save optimizer state
+        }, os.path.join(save_path, f"{args.ve_name}_deepeyenet.pth"))
 
 
     val_results = []
@@ -207,7 +207,6 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"BLEU_4: {eval_scores['BLEU_4']}")
         logger.info(f"METEOR: {eval_scores['METEOR']}")
         logger.info(f"ROUGE_L: {eval_scores['ROUGE_L']}")
-        logger.info(f"CIDER: {eval_scores['CIDER']}")
         print("GTS Val Example:", list(gts_val.items())[-5:-1])
         print("Res Val Example:", list(res_val.items())[-5:-1])
         logger.info(f"{eval_scores}")
@@ -247,9 +246,7 @@ for epoch in range(current_epoch-1,num_epochs):
         logger.info(f"BLEU_4: {test_scores['BLEU_4']}")
         logger.info(f"METEOR: {test_scores['METEOR']}")
         logger.info(f"ROUGE_L: {test_scores['ROUGE_L']}")
-        logger.info(f"CIDER: {test_scores['CIDER']}")
-
-        
+       
 
         print("GTS Test Example:", list(gts_test.items())[-5:-1])
         print("Res Test Example:", list(res_test.items())[-5:-1])

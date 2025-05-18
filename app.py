@@ -86,7 +86,7 @@ if st.button("Generate"):
         model.eval()
         with torch.cuda.amp.autocast():
 
-            out = model.generate_v2(image,keyword_tokens)
+            out = model.generate(image,keyword_tokens)
             out = out[0]
     
 
