@@ -183,7 +183,7 @@ for epoch in range(current_epoch-1,num_epochs):
             gt_keyword_tokens = gt_keyword_tokens.to(device)
 
             with torch.cuda.amp.autocast():
-                generated_captions = model.generate(images,gt_keyword_tokens)
+                generated_captions = model.generate_v2(images,gt_keyword_tokens)
     
                 for i,image_id in enumerate(image_ids):
                     groundtruth_caption = gt_clinical_desc[i]
@@ -224,7 +224,7 @@ for epoch in range(current_epoch-1,num_epochs):
       
             gt_keyword_tokens = gt_keyword_tokens.to(device)    
             with torch.cuda.amp.autocast():
-                generated_captions = model.generate(images,gt_keyword_tokens)
+                generated_captions = model.generate_v2(images,gt_keyword_tokens)
 
 
             for i,image_id in enumerate(image_ids):
