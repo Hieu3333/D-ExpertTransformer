@@ -40,8 +40,8 @@ keyword_percent = 100 * keyword_counts / len(keyword_lengths)
 plt.figure(figsize=(8, 5))
 x = bins[:-1]
 
-plt.plot(x, clinical_percent, color='orange', label='Distribution of Clinical Description Lengths')
-plt.plot(x, keyword_percent, color='green', label='Distribution of Keyword Lengths')
+plt.plot(x, clinical_percent, color='blue', label='Clinical Description Length Distribution')
+plt.plot(x, keyword_percent, color='red', label='Keyword Length Distribution')
 
 plt.xlabel('Length (Words)')
 plt.ylabel('Percentage %')
