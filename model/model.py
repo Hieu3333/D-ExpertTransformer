@@ -217,7 +217,7 @@ class ExpertTransformer(nn.Module):
 
 
         #Weight tying
-        self.We.weight = self.lm_head.weight
+        # self.We.weight = self.lm_head.weight
         self.apply(self.init_weights)
 
     def init_weights(self,module):
