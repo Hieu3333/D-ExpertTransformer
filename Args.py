@@ -27,7 +27,7 @@ class Args:
     lr_ed: float = 2e-4
     delta1: float = 1.0
     delta2: float = 0.3
-    beam_width: int = 3
+    beam_width: int = 5
     dropout: float = 0.2
     topk: int = 3
     temperature: float = 1.0

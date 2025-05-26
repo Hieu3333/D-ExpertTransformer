@@ -14,33 +14,39 @@ from modules.tokenizer import Tokenizer
 from Args import Args
 from modules.utils import get_inference_transform
 
-# def overlay_heatmap_on_image(att_map, image_tensor):
-#     """
-#     att_map: (1, H, W) torch tensor
-#     image_tensor: (3, H, W) torch tensor, values in [0, 1]
-#     """
-#     # Convert and resize
-#     att_map = att_map.squeeze(0).cpu().numpy()  # (H, W)
-#     att_map = (att_map - att_map.min()) / (att_map.max() - att_map.min() + 1e-6)
 
-#     heatmap = cv2.applyColorMap(np.uint8(255 * att_map), cv2.COLORMAP_JET)
-#     heatmap = heatmap[..., ::-1] / 255.0  # BGR to RGB
+st.markdown(
+    """
+    <style>
+        
+        /* Make button red */
+        button {
+            background-color: white !important;
+            color: blue !important;
+            border: 2px solid blue !important;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-#     # Convert image tensor to numpy
-#     img_np = image_tensor.permute(1, 2, 0).cpu().numpy()  # (H, W, 3)
-#     img_np = np.clip(img_np, 0, 1)
+        /* Make caption output appear in a green box */
+        .green-box {
+            background-color: #e6ffe6;
+            border-left: 6px solid #33cc33;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            font-size: 1.5rem;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-#     # Overlay
-#     overlay = 0.6 * img_np + 0.4 * heatmap
-#     overlay = np.clip(overlay, 0, 1)
-
-#     plt.imshow(overlay)
-#     plt.axis('off')
-#     plt.title("Attention Overlay")
-#     plt.show()
 
 
-# Load your model and processor (you can change this to your own)
+# Load model and processor
 @st.cache_resource
 def load_model():
     args = Args()
@@ -57,7 +63,7 @@ def load_model():
 
 transform, model, tokenizer, args = load_model()
 
-st.title("🖼️ Retinal Image Captioning Demo")
+st.title(" Retinal Image Captioning ")
 
 # Upload image
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
@@ -65,8 +71,9 @@ keywords = st.text_input("Enter keywords (comma-separated):", "")
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_container_width=True)
-
+    col1, col2, col3 = st.columns([1, 8, 1])
+    with col2:
+        st.image(image, caption="Uploaded Image", width=500)
 if st.button("Generate"):
     # Generate caption
     with st.spinner("Generating caption..."):
@@ -91,5 +98,6 @@ if st.button("Generate"):
     
 
 
-    st.markdown(f"<h4>{out}</h4>", unsafe_allow_html=True)
+    st.markdown(f'<div class="green-box">{out}</div>', unsafe_allow_html=True)
+
 
