@@ -35,7 +35,7 @@ python train_deepeyenet.py \
   --image_path "data/eyenet0420" \
   --ann_path "data" \
   --project_root "/workspace/D-ExpertTransformer" \
-  --from_pretrained "results/efficientnet_deepeyenet.pth"
+  # --from_pretrained "results/efficientnet_deepeyenet.pth"
 
 
 
