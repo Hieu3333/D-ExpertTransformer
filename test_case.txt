@@ -13,5 +13,5 @@ Val
 1. pseudo-pohs-93 - presumed ocular histoplasmosis syndrome pohs
 2. persistent-placoid-maculopathy-3 - placoid, maculopathy
 3. necrotizing-retinitis-16 - necrotizing retina, retinitis
-4. harada-disease-5 - harada's disease
+4. harada-disease-5 - harada s disease
 5. choroidal-folds-11 - choroidal folds, bilateral chorioretinal folds
