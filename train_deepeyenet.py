@@ -109,7 +109,7 @@ total_params = sum([p.numel() for p in model.parameters() if p.requires_grad])
 logger.info(f'Total params: {total_params/1e6:.2f}M')
 
 num_epoch_not_improved = 0
-best_val_loss = 1e6
+
 
 logger.info(args)
 
@@ -144,7 +144,7 @@ for epoch in range(current_epoch-1,num_epochs):
 
             running_loss += loss.item()
             
-            # Logging
+
             if (batch_idx+1== len(train_dataloader)) :
                 avg_loss = running_loss / len(train_dataloader)
                 logger.info(f"Batch {batch_idx + 1}/{len(train_dataloader)} Loss: {avg_loss:.4f} Norm: {norm:.2f}")
@@ -158,9 +158,9 @@ for epoch in range(current_epoch-1,num_epochs):
         continue
 
     torch.save({
-            'epoch': epoch + 1,  # Save current epoch
-            'model': model.state_dict(),  # Save model weights
-            'optim': optimizer.state_dict(),  # Save optimizer state
+            'epoch': epoch + 1,  
+            'model': model.state_dict(),  
+            'optim': optimizer.state_dict(),  
         }, os.path.join(save_path, f"{args.ve_name}_deepeyenet.pth"))
 
 
@@ -189,7 +189,7 @@ for epoch in range(current_epoch-1,num_epochs):
                     groundtruth_caption = gt_clinical_desc[i]
                     gts_val[image_id] = [groundtruth_caption]
                     res_val[image_id] = [generated_captions[i]]
-            # Decode ground truth captions
+         
             for i, image_id in enumerate(image_ids):           
                 val_results.append({"image_id": image_id, "ground_truth": gt_clinical_desc[i], "generated_caption": generated_captions[i]})        
 
@@ -197,7 +197,6 @@ for epoch in range(current_epoch-1,num_epochs):
         with open(val_path, "w") as f:
             json.dump(val_results, f, indent=4)
 
-        # Compute evaluation metrics
         eval_scores = compute_scores(gts_val,res_val)
 
         logger.info(f"Epoch {epoch + 1} - Evaluation scores:")

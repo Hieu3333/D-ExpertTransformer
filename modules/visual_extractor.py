@@ -24,7 +24,6 @@ class ResNet50(nn.Module):
             feat1 = F.relu(self.features(img1))  # (B, 2048, 7, 7)
             feat2 = F.relu(self.features(img2))
 
-            # Flatten spatial dimensions for patch-level features
             B, C, H, W = feat1.shape
       
             patch_feats = torch.cat([feat1, feat2], dim=2)  # (B, 2048, 14,7)
@@ -37,8 +36,6 @@ class ResNet50(nn.Module):
         
         
 
-
-
 class EfficientNet(nn.Module):
     def __init__(self,args):
         super(EfficientNet, self).__init__()
@@ -46,12 +43,11 @@ class EfficientNet(nn.Module):
         
         # Load EfficientNetV2-B0 without classifier
         self.model = timm.create_model("tf_efficientnetv2_b0", pretrained=True)
-        self.model.global_pool = nn.Identity()  # Remove global pooling
-        self.model.classifier = nn.Identity()   # Remove classification head
+        self.model.global_pool = nn.Identity()  
+        self.model.classifier = nn.Identity()   
 
-        # Define preprocessing transformations
         self.transform = transforms.Compose([
-            transforms.Resize((356, 356)),  # Resize to match input size
+            transforms.Resize((356, 356)), 
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ])
@@ -59,20 +55,18 @@ class EfficientNet(nn.Module):
         #     param.requires_grad = False
 
     def forward(self, x):
-        return self.model(x)  # Returns feature map of shape (B, 1280, 12, 12)
+        return self.model(x)  # Returns shape (B, 1280, 12, 12)
 
 class DenseNet(nn.Module):
     def __init__(self, args):
         super(DenseNet, self).__init__()
         self.dataset = args.dataset
         
-        # Load DenseNet121
-        densenet = models.densenet121(pretrained=True)
-        
-        # Extract features up to the final convolutional layer
+    
+        densenet = models.densenet121(pretrained=True)       
         self.features = densenet.features  # (B, 1024, 7, 7)
         
-        # Optional: freeze parameters
+
         # for param in self.features.parameters():
         #     param.requires_grad = False
 

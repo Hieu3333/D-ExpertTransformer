@@ -14,6 +14,7 @@ bash scripts/train_effnet_eye.sh
 
 ## Streamlit 
 To run the platform, use the command:
+
 streamlit run app.py
 
 

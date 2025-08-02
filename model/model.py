@@ -47,7 +47,7 @@ class DiffMultiHeadedAttention(nn.Module):
         self.register_buffer('bias',torch.tril(torch.ones(args.max_gen,args.max_gen).view(1,1,args.max_gen,args.max_gen))) 
 
     def forward(self,query,key,value):
-        B,T,_ = query.shape #T is number of keywords
+        B,T,_ = query.shape 
         B,N,_ = value.shape
 
         q = self.q_proj(query) #(B,T,C)
@@ -299,25 +299,23 @@ class ExpertTransformer(nn.Module):
         """
         B = visual_features.size(0)
 
-        # --- Mean Pooling ---
+
         visual_pooled = visual_features.mean(dim=1)  # (B, D_v)
         text_pooled = text_features.mean(dim=1)      # (B, hidden_size)
 
-        # Apply projection
+
         visual_embeds = self.visual_contrastive_proj(visual_pooled)   # (B, D)
         text_embeds = self.text_contrastive_proj(text_pooled)         # (B, D)
 
-        # --- Normalize ---
+
         visual_embeds = F.normalize(visual_embeds, p=2, dim=-1)
         text_embeds = F.normalize(text_embeds, p=2, dim=-1)
 
-        # --- Similarity Matrix ---
+
         sim_matrix = torch.matmul(visual_embeds, text_embeds.T) / temperature  # (B, B)
 
-        # --- Ground truth ---
         labels = torch.arange(B, device=visual_features.device)
 
-        # --- Contrastive Loss ---
         loss_i2t = F.cross_entropy(sim_matrix, labels)
         loss_t2i = F.cross_entropy(sim_matrix.T, labels)
         contrastive_loss = (loss_i2t + loss_t2i) / 2
@@ -338,9 +336,9 @@ class ExpertTransformer(nn.Module):
             bos_id = self.tokenizer.word2idx["<BOS>"]
             eos_id = self.tokenizer.word2idx["<EOS>"]
 
-        # Initialize sequences and log probabilities
+ 
         sequences = torch.full((batch_size, 1), bos_id, device=device, dtype=torch.long)
-        log_probs = torch.zeros(batch_size, device=device)  # Log probability of sequences
+        log_probs = torch.zeros(batch_size, device=device)  
         finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
 
         # Beam candidates (track beam_width sequences per batch)
@@ -351,11 +349,11 @@ class ExpertTransformer(nn.Module):
             all_candidates = []
 
             for i in range(beam_width):  # Iterate over beams
-                logits, _= self(images, beam_sequences[i], gt_keywords)  # (B, seq_len, vocab_size)
-                logits = logits[:, -1, :] / self.temperature  # Get logits for last token
-                probs = F.log_softmax(logits, dim=-1)  # Convert to log probabilities
+                logits, _= self(images, beam_sequences[i], gt_keywords) 
+                logits = logits[:, -1, :] / self.temperature 
+                probs = F.log_softmax(logits, dim=-1)  
 
-                # Select top-k candidates (beam search step)
+             
                 top_probs, top_indices = torch.topk(probs, beam_width, dim=-1)  # (B, beam_width)
                 
                 # Compute new sequence candidates
@@ -378,7 +376,7 @@ class ExpertTransformer(nn.Module):
         # Decode sequences
         final_sequences = []
         for i in range(batch_size):
-            best_seq = beam_sequences[0][i].tolist()  # Take the highest-scoring sequence for each batch
+            best_seq = beam_sequences[0][i].tolist() 
             if eos_id in best_seq:
                 best_seq = best_seq[:best_seq.index(eos_id) + 1]
             text = self.tokenizer.decode(best_seq)

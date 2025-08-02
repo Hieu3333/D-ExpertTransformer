@@ -5,7 +5,7 @@ from modules.dataset import DeepEyeNet
 
 class DENDataLoader(DataLoader):
     def __init__(self, args, tokenizer, split, shuffle):
-        # Ensure the required arguments are provided
+    
         assert hasattr(args, 'batch_size'), "args.batch_size is required"
         assert hasattr(args, 'num_workers'), "args.num_workers is required"
         assert hasattr(args, 've_name'), "args.ve_name is required"
@@ -18,7 +18,7 @@ class DENDataLoader(DataLoader):
         self.split = split
         self.drop_last = True if split == 'train' or args.use_learnable_tokens else False
 
-        # Define Image Transformations based on backbone model (ve_name)
+  
         if args.ve_name == "resnet":
             self.transform = transforms.Compose([
                 transforms.Resize(256),
@@ -33,7 +33,7 @@ class DENDataLoader(DataLoader):
             ])
 
         elif args.ve_name == "efficientnet":
-            # Dynamically setting the size based on input size from the args (if specified)
+     
             self.transform = transforms.Compose([
                 transforms.Resize((356, 356)),  # Resizing to match input size
                 transforms.ToTensor(),
@@ -62,14 +62,14 @@ class DENDataLoader(DataLoader):
             transform=self.transform
         )
 
-        # Initialize DataLoader with the custom collate function
+        # Initialize DataLoader 
         super().__init__(
             dataset=self.dataset,
             batch_size=self.batch_size,
             shuffle=self.shuffle,
             num_workers=self.num_workers,
             drop_last=self.drop_last,
-            collate_fn=self.custom_collate  # Pass custom collate function
+            collate_fn=self.custom_collate  
         )
 
     @staticmethod
@@ -77,15 +77,14 @@ class DENDataLoader(DataLoader):
         """Custom collate function to handle batches of images and tokens."""
         image_ids, images, desc_tokens, target_tokens, keyword_tokens, clinical_descs = zip(*batch)
 
-        # Stack images into a batch
+      
         images = torch.stack(images)
 
-        # Pad sequences of tokens to the same length
+
         desc_tokens = torch.nn.utils.rnn.pad_sequence(desc_tokens, batch_first=True, padding_value=0)
         target_tokens = torch.nn.utils.rnn.pad_sequence(target_tokens, batch_first=True, padding_value=0)
         keyword_tokens = torch.nn.utils.rnn.pad_sequence(keyword_tokens, batch_first=True, padding_value=0)
 
-        # Return a tuple of batches
         return image_ids, images, desc_tokens, target_tokens, keyword_tokens, clinical_descs  # clinical_descs remains a list of strings
 
     # def set_mask_prob(self,prob):
